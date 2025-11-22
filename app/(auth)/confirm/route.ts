@@ -76,20 +76,29 @@ export async function GET(request: NextRequest) {
         // Check if profile is completed
         const { data: profile } = await supabase
           .from('profiles')
-          .select('profile_completed')
+          .select('profile_completed, role')
           .eq('id', user.id)
           .single()
         
         if (!profile?.profile_completed) {
-          // Profile not completed - redirect to complete profile
-          console.log('Email verified, redirecting to complete profile');
-          redirectTo.pathname = '/signup/complete-profile'
+          // Email verified but profile not completed
+          // Redirect to success page with instructions
+          console.log('Email verified, profile incomplete - showing success page');
+          redirectTo.pathname = '/signup/email-verified'
           redirectTo.searchParams.delete('next')
           return NextResponse.redirect(redirectTo)
         }
         
-        // Profile already completed - redirect to home
-        console.log('Email verified, profile complete, redirecting home');
+        // Profile already completed - redirect to appropriate dashboard
+        console.log('Email verified, profile complete, redirecting to dashboard');
+        const role = profile.role || user.user_metadata?.role
+        if (role === 'organizer') {
+          redirectTo.pathname = '/dashboard/organizer'
+        } else if (role === 'mathelete') {
+          redirectTo.pathname = '/dashboard/mathelete'
+        } else {
+          redirectTo.pathname = '/'
+        }
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
       }
