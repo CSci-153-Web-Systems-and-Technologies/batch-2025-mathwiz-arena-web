@@ -15,11 +15,11 @@ import SignInWithGoogleButton from "./SignInWithGoogleButton"
 
 export function LoginForm() {
   return (
-    <Card className="mx-auto max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
+    <Card className="mx-auto max-w-md w-full shadow-xl">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          Sign in to your Mathwiz account to continue
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -38,22 +38,22 @@ export function LoginForm() {
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <Link href="#" className="ml-auto inline-block text-sm underline">
-                    Forgot your password?
+                  <Link href="#" className="ml-auto inline-block text-sm text-blue-600 hover:underline">
+                    Forgot password?
                   </Link>
                 </div>
                 <Input id="password" name="password" type="password" required />
               </div>
-              <Button type="submit" formAction={login} className="w-full">
-                Login
+              <Button type="submit" formAction={login} className="w-full bg-blue-600 hover:bg-blue-700">
+                Sign in
               </Button>
              <SignInWithGoogleButton/> 
             </div>
         </form>
-        <div className="mt-4 text-center text-sm">
+        <div className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="underline">
-            Sign up
+          <Link href="/signup" className="text-blue-600 hover:underline font-medium">
+            Sign up for free
           </Link>
         </div>
       </CardContent>
