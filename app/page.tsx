@@ -1,8 +1,36 @@
 import Link from "next/link";
 import Image from "next/image";
 import LoginButton from "@/components/LoginLogoutButton";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // If user is logged in, check profile completion and redirect accordingly
+  if (user) {
+    // Check if profile is completed
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("profile_completed, role")
+      .eq("id", user.id)
+      .single();
+
+    // If profile is not completed, redirect to complete profile page
+    if (!profile?.profile_completed) {
+      redirect("/signup/complete-profile");
+    }
+
+    // If profile is completed, redirect to appropriate dashboard
+    const role = profile.role || user.user_metadata?.role;
+    if (role === "organizer") {
+      redirect("/organizer");
+    } else if (role === "mathlete") {
+      redirect("/mathlete");
+    }
+  }
+
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-white via-sky-50 to-white dark:from-black dark:via-slate-900">
       <header className="w-full border-b bg-opacity-40 backdrop-blur-sm">

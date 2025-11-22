@@ -23,13 +23,13 @@ export default async function CompleteProfilePage() {
   // If profile is already completed, redirect to dashboard 
   if (profile?.profile_completed) { 
     if (profile.role === "organizer") { 
-      redirect("/dashboard/organizer"); 
+      redirect("/organizer"); 
     } else { 
-      redirect("/dashboard/mathelete"); 
+      redirect("/mathlete"); 
     } 
   } 
  
-  const role = user.user_metadata?.role || profile?.role || "mathelete"; 
+  const role = user.user_metadata?.role || profile?.role || "mathlete"; 
  
   return ( 
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-4"> 
