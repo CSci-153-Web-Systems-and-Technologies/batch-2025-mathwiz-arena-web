@@ -9,8 +9,8 @@ const SignInWithGoogleButton = () => {
       type="button"
       variant="outline"
       className="w-full"
-      onClick={() => {
-        signInWithGoogle();
+      onClick={async () => {
+        await signInWithGoogle();
       }}
     >
       Login with Google

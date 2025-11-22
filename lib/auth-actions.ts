@@ -32,6 +32,8 @@ export async function signup(formData: FormData) {
   // in practice, you should validate your inputs
   const firstName = formData.get("first-name") as string;
   const lastName = formData.get("last-name") as string;
+  const role = formData.get("role") as string;
+  
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
@@ -39,6 +41,7 @@ export async function signup(formData: FormData) {
       data: {
         full_name: `${firstName + " " + lastName}`,
         email: formData.get("email") as string,
+        role: role || "mathelete",
       },
     },
   };
@@ -66,13 +69,14 @@ export async function signout() {
 
 export async function signInWithGoogle() {
   const supabase = createClient();
+  
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/callback?next=/`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/confirm`,
       queryParams: {
         access_type: "offline",
-        prompt: "consent",
+        prompt: "select_account",
       },
     },
   });
@@ -83,4 +87,21 @@ export async function signInWithGoogle() {
   }
 
   redirect(data.url);
+}
+
+export async function saveUserRole(formData: FormData) {
+  const supabase = createClient();
+  const role = formData.get("role") as string;
+
+  const { error } = await supabase.auth.updateUser({
+    data: { role: role }
+  });
+
+  if (error) {
+    console.log(error);
+    redirect("/error");
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/");
 }
