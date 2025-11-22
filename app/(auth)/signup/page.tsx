@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SignUpForm } from "./components/SignUpForm";
+import { RoleSelection } from "./components/RoleSelection";
 
 const SignUpPage = () => {
   return (
@@ -18,7 +18,7 @@ const SignUpPage = () => {
         </div>
       </header>
       <div className="flex grow items-center justify-center p-6">
-        <SignUpForm />
+        <RoleSelection />
       </div>
     </div>
   );
