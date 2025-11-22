@@ -20,7 +20,9 @@ export async function login(formData: FormData) {
   if (error) {
     // Return specific error messages based on error type
     if (error.message.includes("Invalid login credentials")) {
-      throw new Error("Invalid email or password. Please try again.");
+      throw new Error(
+        "Invalid email or password. If you signed up with Google, please use the 'Login with Google' button instead."
+      );
     } else if (error.message.includes("Email not confirmed")) {
       throw new Error(
         "Please verify your email address. Check your inbox for the confirmation link."
@@ -51,7 +53,7 @@ export async function signup(formData: FormData) {
       data: {
         full_name: `${firstName + " " + lastName}`,
         email: formData.get("email") as string,
-        role: role || "mathelete",
+        role: role || "mathlete",
       },
     },
   };
@@ -137,6 +139,10 @@ export async function completeProfile(formData: FormData) {
   const school = formData.get("school") as string;
   const organization = formData.get("organization") as string;
 
+  // Get user data for full_name
+  const { data: { user } } = await supabase.auth.getUser();
+  const fullName = user?.user_metadata?.full_name || user?.email || "";
+
   // Check if username is already taken
   const { data: existingProfile } = await supabase
     .from("profiles")
@@ -149,18 +155,24 @@ export async function completeProfile(formData: FormData) {
     return { error: "Username is already taken. Please choose another one." };
   }
 
-  // Update profile with additional information
+  // Use UPSERT to either insert or update the profile
+  // This is safer and more PostgreSQL-idiomatic
   const { error } = await supabase
     .from("profiles")
-    .update({
+    .upsert({
+      id: userId,
+      role,
+      full_name: fullName,
       username,
-      school: role === "mathelete" ? school : organization,
+      school: role === "mathlete" ? school : organization,
       organization: role === "organizer" ? organization : null,
       country,
       province_city,
       profile_completed: true,
-    })
-    .eq("id", userId);
+    }, {
+      onConflict: 'id', // If id exists, update; otherwise insert
+      ignoreDuplicates: false, // Always update if exists
+    });
 
   if (error) {
     console.error("Error completing profile:", error);
