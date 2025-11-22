@@ -17,7 +17,7 @@ interface SignUpFormProps {
 }
 
 export function SignUpForm({ role }: SignUpFormProps) {
-  const roleLabel = role === "organizer" ? "Organizer" : "Mathelete";
+  const roleLabel = role === "organizer" ? "Organizer" : "Mathlete";
   const roleDescription = role === "organizer" 
     ? "Create and manage math competitions" 
     : "Compete in math challenges and climb leaderboards";
