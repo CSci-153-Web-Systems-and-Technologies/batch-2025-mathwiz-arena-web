@@ -40,14 +40,29 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(redirectTo)
       }
       
-      // Existing user - proceed to home
+      // Check if profile is completed
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('profile_completed')
+        .eq('id', data.user.id)
+        .single()
+      
+      if (!profile?.profile_completed) {
+        // Profile not completed - redirect to complete profile
+        console.log('Profile incomplete, redirecting to complete profile');
+        redirectTo.pathname = '/signup/complete-profile'
+        redirectTo.searchParams.delete('next')
+        return NextResponse.redirect(redirectTo)
+      }
+      
+      // Existing user with completed profile - proceed to home
       console.log('Existing user with role:', data.user.user_metadata.role);
       redirectTo.searchParams.delete('next')
       return NextResponse.redirect(redirectTo)
     }
   }
 
-  // Handle Email OTP verification
+  // Handle Email OTP verification (email confirmation)
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({
       type,
@@ -55,19 +70,29 @@ export async function GET(request: NextRequest) {
     })
     
     if (!error) {
-      // Check if user is new (no role set yet)
       const { data: { user } } = await supabase.auth.getUser()
       
-      if (user && !user.user_metadata.role) {
-        // New user - redirect to role selection
-        redirectTo.pathname = '/signup/select-role'
+      if (user) {
+        // Check if profile is completed
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('profile_completed')
+          .eq('id', user.id)
+          .single()
+        
+        if (!profile?.profile_completed) {
+          // Profile not completed - redirect to complete profile
+          console.log('Email verified, redirecting to complete profile');
+          redirectTo.pathname = '/signup/complete-profile'
+          redirectTo.searchParams.delete('next')
+          return NextResponse.redirect(redirectTo)
+        }
+        
+        // Profile already completed - redirect to home
+        console.log('Email verified, profile complete, redirecting home');
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
       }
-      
-      // Existing user - proceed to home
-      redirectTo.searchParams.delete('next')
-      return NextResponse.redirect(redirectTo)
     }
     
     console.log('OTP error:', error);

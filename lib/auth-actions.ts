@@ -38,6 +38,7 @@ export async function signup(formData: FormData) {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
     options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/signup/complete-profile`,
       data: {
         full_name: `${firstName + " " + lastName}`,
         email: formData.get("email") as string,
@@ -46,14 +47,22 @@ export async function signup(formData: FormData) {
     },
   };
 
-  const { error } = await supabase.auth.signUp(data);
+  const { data: signUpData, error } = await supabase.auth.signUp(data);
 
   if (error) {
+    console.error("Signup error:", error);
     redirect("/error");
   }
 
+  // Check if email confirmation is required
+  if (signUpData?.user && !signUpData.session) {
+    // Email confirmation required - redirect to confirmation page
+    redirect("/signup/check-email");
+  }
+
+  // If session exists (email confirmation disabled), proceed to complete profile
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/signup/complete-profile");
 }
 
 export async function signout() {
@@ -103,5 +112,52 @@ export async function saveUserRole(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/signup/complete-profile");
+}
+
+export async function completeProfile(formData: FormData) {
+  const supabase = createClient();
+  
+  const userId = formData.get("userId") as string;
+  const role = formData.get("role") as string;
+  const username = formData.get("username") as string;
+  const country = formData.get("country") as string;
+  const province_city = formData.get("province_city") as string;
+  
+  // Role-specific fields
+  const school = formData.get("school") as string;
+  const organization = formData.get("organization") as string;
+
+  // Check if username is already taken
+  const { data: existingProfile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("username", username)
+    .neq("id", userId)
+    .single();
+
+  if (existingProfile) {
+    return { error: "Username is already taken. Please choose another one." };
+  }
+
+  // Update profile with additional information
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      username,
+      school: role === "mathelete" ? school : organization,
+      organization: role === "organizer" ? organization : null,
+      country,
+      province_city,
+      profile_completed: true,
+    })
+    .eq("id", userId);
+
+  if (error) {
+    console.error("Error completing profile:", error);
+    return { error: "Failed to complete profile. Please try again." };
+  }
+
+  revalidatePath("/", "layout");
+  return { success: true };
 }
