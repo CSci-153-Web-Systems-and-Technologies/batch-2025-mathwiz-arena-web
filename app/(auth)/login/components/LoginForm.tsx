@@ -29,7 +29,7 @@ export function LoginForm() {
     try {
       await login(formData);
     } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please try again.");
+      setError(err.message || "Failed to login. Please try again.");
       setLoading(false);
     }
   };
@@ -39,7 +39,7 @@ export function LoginForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
         <CardDescription>
-          Sign in to your Mathwiz account to continue
+          Login to your Mathwiz account to continue
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -63,7 +63,7 @@ export function LoginForm() {
                     />
                   </svg>
                   <div>
-                    <p className="font-semibold">Sign in failed</p>
+                    <p className="font-semibold">Login failed</p>
                     <p className="mt-1">{error}</p>
                   </div>
                 </div>
@@ -126,12 +126,24 @@ export function LoginForm() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Signing in...
+                  Logging in...
                 </span>
               ) : (
-                "Sign in"
+                "Login"
               )}
             </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+            
             <SignInWithGoogleButton />
           </div>
         </form>

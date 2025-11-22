@@ -25,16 +25,20 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('OAuth exchange error:', error);
       redirectTo.pathname = '/error'
+      redirectTo.searchParams.set('message', 'Failed to authenticate with Google. Please try again.')
       return NextResponse.redirect(redirectTo)
     }
     
     if (data.user) {
+      // Check if this is a new OAuth user or existing user
+      const isNewUser = data.user.created_at === data.user.updated_at
+      
       // Check if user is new (no role set yet)
       const hasRole = data.user.user_metadata?.role
       
-      if (!hasRole) {
-        // New user - redirect to role selection
-        console.log('New user detected, redirecting to role selection');
+      if (!hasRole && isNewUser) {
+        // New OAuth user - redirect to role selection
+        console.log('New OAuth user detected, redirecting to role selection');
         redirectTo.pathname = '/signup/select-role'
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
@@ -43,7 +47,7 @@ export async function GET(request: NextRequest) {
       // Check if profile is completed
       const { data: profile } = await supabase
         .from('profiles')
-        .select('profile_completed')
+        .select('profile_completed, role')
         .eq('id', data.user.id)
         .single()
       
@@ -55,8 +59,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(redirectTo)
       }
       
-      // Existing user with completed profile - proceed to home
-      console.log('Existing user with role:', data.user.user_metadata.role);
+      // Existing user with completed profile - redirect to appropriate dashboard
+      console.log('Existing user with role:', profile.role);
+      const role = profile.role
+      if (role === 'organizer') {
+        redirectTo.pathname = '/organizer'
+      } else if (role === 'mathlete') {
+        redirectTo.pathname = '/mathlete'
+      } else {
+        redirectTo.pathname = '/'
+      }
       redirectTo.searchParams.delete('next')
       return NextResponse.redirect(redirectTo)
     }
@@ -93,9 +105,9 @@ export async function GET(request: NextRequest) {
         console.log('Email verified, profile complete, redirecting to dashboard');
         const role = profile.role || user.user_metadata?.role
         if (role === 'organizer') {
-          redirectTo.pathname = '/dashboard/organizer'
-        } else if (role === 'mathelete') {
-          redirectTo.pathname = '/dashboard/mathelete'
+          redirectTo.pathname = '/organizer'
+        } else if (role === 'mathlete') {
+          redirectTo.pathname = '/mathlete'
         } else {
           redirectTo.pathname = '/'
         }
