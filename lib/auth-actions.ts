@@ -18,7 +18,16 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    redirect("/error");
+    // Return specific error messages based on error type
+    if (error.message.includes("Invalid login credentials")) {
+      throw new Error("Invalid email or password. Please try again.");
+    } else if (error.message.includes("Email not confirmed")) {
+      throw new Error(
+        "Please verify your email address. Check your inbox for the confirmation link."
+      );
+    } else {
+      throw new Error(error.message || "Failed to sign in. Please try again.");
+    }
   }
 
   revalidatePath("/", "layout");
