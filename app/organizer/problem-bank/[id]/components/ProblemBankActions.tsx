@@ -65,7 +65,7 @@ export default function ProblemBankActions({ problemBankId }: { problemBankId: s
             variant="outline"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="text-sm bg-red-600 text-white hover:bg-red-700 border-red-600"
+            className="text-sm bg-red-600 text-white hover:bg-red-700 border-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeleting ? "Deleting..." : "Confirm Delete"}
           </Button>
@@ -73,7 +73,7 @@ export default function ProblemBankActions({ problemBankId }: { problemBankId: s
             variant="outline"
             onClick={() => setShowDeleteConfirm(false)}
             disabled={isDeleting}
-            className="text-sm"
+            className="text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </Button>
