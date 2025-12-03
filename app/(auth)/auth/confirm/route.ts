@@ -30,29 +30,30 @@ export async function GET(request: NextRequest) {
     }
     
     if (data.user) {
-      // Check if this is a new OAuth user or existing user
-      const isNewUser = data.user.created_at === data.user.updated_at
+      console.log('=== OAuth Callback ===');
+      console.log('User authenticated:', data.user.id);
+      console.log('User email:', data.user.email);
       
-      // Check if user is new (no role set yet)
-      const hasRole = data.user.user_metadata?.role
+      // Check if profile exists in database
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('profile_completed, role')
+        .eq('id', data.user.id)
+        .maybeSingle()
       
-      if (!hasRole && isNewUser) {
-        // New OAuth user - redirect to role selection
-        console.log('New OAuth user detected, redirecting to role selection');
+      console.log('Profile query result:', profile);
+      console.log('Profile error:', profileError);
+      
+      // If no profile exists, this is a brand new OAuth user - redirect to role selection
+      if (!profile) {
+        console.log('✅ New OAuth user (no profile), redirecting to role selection');
         redirectTo.pathname = '/signup/select-role'
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
       }
       
-      // Check if profile is completed
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('profile_completed, role')
-        .eq('id', data.user.id)
-        .single()
-      
-      if (!profile?.profile_completed) {
-        // Profile not completed - redirect to complete profile
+      // If profile exists but not completed - redirect to complete profile
+      if (!profile.profile_completed) {
         console.log('Profile incomplete, redirecting to complete profile');
         redirectTo.pathname = '/signup/complete-profile'
         redirectTo.searchParams.delete('next')
@@ -60,13 +61,15 @@ export async function GET(request: NextRequest) {
       }
       
       // Existing user with completed profile - redirect to appropriate dashboard
-      console.log('Existing user with role:', profile.role);
+      console.log('✅ Existing user with completed profile, role:', profile.role);
       const role = profile.role
       if (role === 'organizer') {
         redirectTo.pathname = '/organizer'
       } else if (role === 'mathlete') {
         redirectTo.pathname = '/mathlete'
       } else {
+        // Fallback if role is somehow invalid
+        console.log('⚠️ Invalid role, redirecting to home');
         redirectTo.pathname = '/'
       }
       redirectTo.searchParams.delete('next')

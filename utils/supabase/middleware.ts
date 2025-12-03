@@ -75,11 +75,20 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Check profile completion and role
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('profile_completed, role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
+
+    console.log(`[Middleware] Path: ${pathname}, User: ${user.id}, Profile:`, profile, 'Error:', profileError)
+
+    // If no profile exists, redirect to complete profile
+    if (!profile) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/signup/complete-profile'
+      return NextResponse.redirect(redirectUrl)
+    }
 
     // Redirect to complete profile if not completed
     if (!profile?.profile_completed) {
@@ -93,6 +102,7 @@ export async function updateSession(request: NextRequest) {
     
     // Check if user is accessing the correct role route
     if (pathname.startsWith('/mathlete') && userRole !== 'mathlete') {
+      console.log(`[Middleware] Access denied: User role '${userRole}' trying to access /mathlete`)
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = userRole === 'organizer' ? '/organizer' : '/error'
       redirectUrl.searchParams.set('message', 'You do not have access to this page.')
@@ -100,11 +110,14 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (pathname.startsWith('/organizer') && userRole !== 'organizer') {
+      console.log(`[Middleware] Access denied: User role '${userRole}' trying to access /organizer`)
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = userRole === 'mathlete' ? '/mathlete' : '/error'
       redirectUrl.searchParams.set('message', 'You do not have access to this page.')
       return NextResponse.redirect(redirectUrl)
     }
+
+    console.log(`[Middleware] Access granted: User role '${userRole}' accessing ${pathname}`)
   }
 
   return response

@@ -11,11 +11,20 @@ export default async function Home() {
   // If user is logged in, check profile completion and redirect accordingly
   if (user) {
     // Check if profile is completed
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("profile_completed, role")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
+
+    console.log('Landing page - User:', user.id);
+    console.log('Landing page - Profile:', profile);
+    console.log('Landing page - Profile error:', profileError);
+
+    // If no profile exists, redirect to complete profile
+    if (!profile) {
+      redirect("/signup/complete-profile");
+    }
 
     // If profile is not completed, redirect to complete profile page
     if (!profile?.profile_completed) {

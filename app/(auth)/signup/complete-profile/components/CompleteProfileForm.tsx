@@ -36,12 +36,18 @@ export default function CompleteProfileForm({
         setError(result.error);
         setLoading(false);
       } else {
+        // Small delay to ensure database updates propagate
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Redirect to appropriate dashboard
         if (role === "organizer") {
           router.push("/organizer");
         } else {
           router.push("/mathlete");
         }
+        
+        // Force a hard refresh to clear any cached data
+        router.refresh();
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");

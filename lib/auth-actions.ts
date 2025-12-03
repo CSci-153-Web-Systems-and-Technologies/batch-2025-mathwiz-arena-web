@@ -5,77 +5,6 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 
-export async function login(formData: FormData) {
-  const supabase = createClient();
-
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
-
-  const { error } = await supabase.auth.signInWithPassword(data);
-
-  if (error) {
-    // Return specific error messages based on error type
-    if (error.message.includes("Invalid login credentials")) {
-      throw new Error(
-        "Invalid email or password. If you signed up with Google, please use the 'Login with Google' button instead."
-      );
-    } else if (error.message.includes("Email not confirmed")) {
-      throw new Error(
-        "Please verify your email address. Check your inbox for the confirmation link."
-      );
-    } else {
-      throw new Error(error.message || "Failed to sign in. Please try again.");
-    }
-  }
-
-  revalidatePath("/", "layout");
-  redirect("/");
-}
-
-export async function signup(formData: FormData) {
-  const supabase = createClient();
-
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const firstName = formData.get("first-name") as string;
-  const lastName = formData.get("last-name") as string;
-  const role = formData.get("role") as string;
-  
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/signup/complete-profile`,
-      data: {
-        full_name: `${firstName + " " + lastName}`,
-        email: formData.get("email") as string,
-        role: role || "mathlete",
-      },
-    },
-  };
-
-  const { data: signUpData, error } = await supabase.auth.signUp(data);
-
-  if (error) {
-    console.error("Signup error:", error);
-    redirect("/error");
-  }
-
-  // Check if email confirmation is required
-  if (signUpData?.user && !signUpData.session) {
-    // Email confirmation required - redirect to confirmation page
-    redirect("/signup/check-email");
-  }
-
-  // If session exists (email confirmation disabled), proceed to complete profile
-  revalidatePath("/", "layout");
-  redirect("/signup/complete-profile");
-}
-
 export async function signout() {
   const supabase = createClient();
   const { error } = await supabase.auth.signOut();
@@ -113,13 +42,26 @@ export async function saveUserRole(formData: FormData) {
   const supabase = createClient();
   const role = formData.get("role") as string;
 
+  // Update user metadata to include the selected role
   const { error } = await supabase.auth.updateUser({
-    data: { role: role }
+    data: { 
+      role: role,
+      role_selected: true // Mark that user explicitly selected this role
+    }
   });
 
   if (error) {
     console.log(error);
     redirect("/error");
+  }
+  
+  // Also update the profile table with the selected role
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    await supabase
+      .from('profiles')
+      .update({ role: role })
+      .eq('id', user.id);
   }
 
   revalidatePath("/", "layout");
@@ -155,6 +97,13 @@ export async function completeProfile(formData: FormData) {
     return { error: "Username is already taken. Please choose another one." };
   }
 
+  console.log("=== COMPLETE PROFILE ===");
+  console.log("User ID:", userId);
+  console.log("Role:", role);
+  console.log("Username:", username);
+  console.log("School:", school);
+  console.log("Organization:", organization);
+
   // Use UPSERT to either insert or update the profile
   // This is safer and more PostgreSQL-idiomatic
   const { error } = await supabase
@@ -164,7 +113,7 @@ export async function completeProfile(formData: FormData) {
       role,
       full_name: fullName,
       username,
-      school: role === "mathlete" ? school : organization,
+      school: role === "mathlete" ? school : null,
       organization: role === "organizer" ? organization : null,
       country,
       province_city,
@@ -175,10 +124,11 @@ export async function completeProfile(formData: FormData) {
     });
 
   if (error) {
-    console.error("Error completing profile:", error);
+    console.error("❌ Error completing profile:", error);
     return { error: "Failed to complete profile. Please try again." };
   }
 
+  console.log("✅ Profile completed successfully!");
   revalidatePath("/", "layout");
   return { success: true };
 }
