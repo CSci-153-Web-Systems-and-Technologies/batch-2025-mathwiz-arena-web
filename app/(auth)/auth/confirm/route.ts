@@ -44,10 +44,9 @@ export async function GET(request: NextRequest) {
       console.log('Profile query result:', profile);
       console.log('Profile error:', profileError);
       
-      // If no profile exists OR profile has default mathlete role and is incomplete
-      // This catches brand new users AND users whose profile was auto-created by trigger
-      if (!profile || (profile.role === 'mathlete' && !profile.profile_completed)) {
-        console.log('✅ New user or default profile, redirecting to role selection');
+      // If no profile exists, this is a brand new OAuth user - redirect to role selection
+      if (!profile) {
+        console.log('✅ New OAuth user (no profile), redirecting to role selection');
         redirectTo.pathname = '/signup/select-role'
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
