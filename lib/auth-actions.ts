@@ -155,6 +155,13 @@ export async function completeProfile(formData: FormData) {
     return { error: "Username is already taken. Please choose another one." };
   }
 
+  console.log("=== COMPLETE PROFILE ===");
+  console.log("User ID:", userId);
+  console.log("Role:", role);
+  console.log("Username:", username);
+  console.log("School:", school);
+  console.log("Organization:", organization);
+
   // Use UPSERT to either insert or update the profile
   // This is safer and more PostgreSQL-idiomatic
   const { error } = await supabase
@@ -164,7 +171,7 @@ export async function completeProfile(formData: FormData) {
       role,
       full_name: fullName,
       username,
-      school: role === "mathlete" ? school : organization,
+      school: role === "mathlete" ? school : null,
       organization: role === "organizer" ? organization : null,
       country,
       province_city,
@@ -175,10 +182,11 @@ export async function completeProfile(formData: FormData) {
     });
 
   if (error) {
-    console.error("Error completing profile:", error);
+    console.error("❌ Error completing profile:", error);
     return { error: "Failed to complete profile. Please try again." };
   }
 
+  console.log("✅ Profile completed successfully!");
   revalidatePath("/", "layout");
   return { success: true };
 }
