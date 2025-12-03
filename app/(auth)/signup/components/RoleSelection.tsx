@@ -19,7 +19,7 @@ export function RoleSelection() {
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2">
           <Link
-            href="/signup/register?role=mathlete"
+            href="/signup/google-role?role=mathlete"
             className="group relative overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-6 transition-all hover:border-[#25346A] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800"
           >
             <div className="flex flex-col items-center text-center space-y-4">
@@ -54,7 +54,7 @@ export function RoleSelection() {
           </Link>
 
           <Link
-            href="/signup/register?role=organizer"
+            href="/signup/google-role?role=organizer"
             className="group relative overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-6 transition-all hover:border-[#f49700] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800"
           >
             <div className="flex flex-col items-center text-center space-y-4">
@@ -88,8 +88,31 @@ export function RoleSelection() {
             </div>
           </Link>
         </div>
+
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg text-sm mt-6">
+          <div className="flex items-start gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 flex-shrink-0 mt-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <div>
+              <p className="font-semibold">Google Sign-In Only</p>
+              <p className="mt-1">Email/password authentication is currently disabled. You will sign up with Google.</p>
+            </div>
+          </div>
+        </div>
         
-        <div className="mt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-4 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href="/login" className="text-[#25346A] hover:underline font-medium">
             Sign in
