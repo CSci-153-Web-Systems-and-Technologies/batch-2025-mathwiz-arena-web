@@ -170,7 +170,13 @@ export default function EditProblemForm({
         <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
-            onClick={() => setFormData({ ...formData, type: "multiple_choice", correctAnswer: "" })}
+            onClick={() => setFormData({ 
+              ...formData, 
+              type: "multiple_choice", 
+              correctAnswer: "",
+              correctAnswerIndex: 0,
+              options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
+            })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
               formData.type === "multiple_choice"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
@@ -185,7 +191,12 @@ export default function EditProblemForm({
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ ...formData, type: "true_false", correctAnswer: "" })}
+            onClick={() => setFormData({ 
+              ...formData, 
+              type: "true_false", 
+              correctAnswer: "",
+              correctAnswerIndex: 0
+            })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
               formData.type === "true_false"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
@@ -200,7 +211,12 @@ export default function EditProblemForm({
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ ...formData, type: "identification", correctAnswer: "" })}
+            onClick={() => setFormData({ 
+              ...formData, 
+              type: "identification", 
+              correctAnswer: "",
+              correctAnswerIndex: 0
+            })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
               formData.type === "identification"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
