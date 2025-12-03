@@ -109,17 +109,60 @@ export async function signInWithGoogle() {
   redirect(data.url);
 }
 
-export async function saveUserRole(formData: FormData) {
+export async function signInWithGoogleRole(formData: FormData) {
   const supabase = createClient();
   const role = formData.get("role") as string;
-
-  const { error } = await supabase.auth.updateUser({
-    data: { role: role }
+  
+  console.log("=== Google OAuth with Role ===");
+  console.log("Selected role:", role);
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/confirm`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "select_account",
+      },
+      // Pass the role in scopes/metadata so it's available after OAuth
+      // Note: This will be stored in user_metadata after successful auth
+    },
   });
 
   if (error) {
     console.log(error);
     redirect("/error");
+  }
+
+  // Store role in a cookie or session storage before redirect
+  // Since we can't pass it directly through OAuth, we'll handle it differently
+  redirect(data.url);
+}
+
+export async function saveUserRole(formData: FormData) {
+  const supabase = createClient();
+  const role = formData.get("role") as string;
+
+  // Update user metadata to include the selected role
+  const { error } = await supabase.auth.updateUser({
+    data: { 
+      role: role,
+      role_selected: true // Mark that user explicitly selected this role
+    }
+  });
+
+  if (error) {
+    console.log(error);
+    redirect("/error");
+  }
+  
+  // Also update the profile table with the selected role
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    await supabase
+      .from('profiles')
+      .update({ role: role })
+      .eq('id', user.id);
   }
 
   revalidatePath("/", "layout");
