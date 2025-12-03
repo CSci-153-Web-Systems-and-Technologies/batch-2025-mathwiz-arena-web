@@ -37,6 +37,12 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         setIsLoading(false);
         return;
       }
+      
+      if (formData.question.trim().length < 5) {
+        setError("Question must be at least 5 characters long");
+        setIsLoading(false);
+        return;
+      }
 
       // Validate based on type
       if (formData.type === "multiple_choice") {
@@ -46,6 +52,16 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           setIsLoading(false);
           return;
         }
+        
+        // Check each option has minimum length
+        for (let i = 0; i < formData.options.length; i++) {
+          if (formData.options[i].trim().length < 1) {
+            setError(`Option ${String.fromCharCode(65 + i)} cannot be empty`);
+            setIsLoading(false);
+            return;
+          }
+        }
+        
         if (!formData.options[formData.correctAnswerIndex].trim()) {
           setError("Please select a correct answer");
           setIsLoading(false);
@@ -60,6 +76,12 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       } else if (formData.type === "identification") {
         if (!formData.correctAnswer.trim()) {
           setError("Please enter the correct answer");
+          setIsLoading(false);
+          return;
+        }
+        
+        if (formData.correctAnswer.trim().length < 1) {
+          setError("Correct answer must be at least 1 character long");
           setIsLoading(false);
           return;
         }
