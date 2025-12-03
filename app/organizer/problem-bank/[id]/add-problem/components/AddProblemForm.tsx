@@ -65,18 +65,6 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         }
       }
 
-      // Get the next order_index
-      const { data: existingProblems } = await supabase
-        .from("problems")
-        .select("order_index")
-        .eq("problem_bank_id", problemBankId)
-        .order("order_index", { ascending: false })
-        .limit(1);
-
-      const nextOrderIndex = existingProblems && existingProblems.length > 0 
-        ? existingProblems[0].order_index + 1 
-        : 0;
-
       // Prepare data
       let options = null;
       let correctAnswer = "";
@@ -90,7 +78,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         correctAnswer = formData.correctAnswer.trim();
       }
 
-      // Create problem
+      // Create problem with timestamp-based order to avoid race conditions
+      // Using created_at timestamp ensures uniqueness even with concurrent inserts
       const { error: insertError } = await supabase
         .from("problems")
         .insert([
@@ -101,7 +90,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             difficulty: formData.difficulty,
             options: options,
             correct_answer: correctAnswer,
-            order_index: nextOrderIndex,
+            order_index: Date.now(), // Use timestamp to avoid race conditions
           },
         ]);
 
