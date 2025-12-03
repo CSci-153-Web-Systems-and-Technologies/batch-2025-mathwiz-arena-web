@@ -117,7 +117,8 @@ export default function EditProblemForm({
 
       if (updateError) {
         console.error("Error updating problem:", updateError);
-        setError("Failed to update problem. Please try again.");
+        const errorMessage = updateError.message || updateError.hint || "Unknown error occurred";
+        setError(`Failed to update problem: ${errorMessage}`);
         setIsLoading(false);
         return;
       }
@@ -125,9 +126,10 @@ export default function EditProblemForm({
       // Redirect back to problem details
       router.push(`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`);
       router.refresh();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Unexpected error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      const errorMessage = err?.message || "Unknown error occurred";
+      setError(`An unexpected error occurred: ${errorMessage}`);
       setIsLoading(false);
     }
   };

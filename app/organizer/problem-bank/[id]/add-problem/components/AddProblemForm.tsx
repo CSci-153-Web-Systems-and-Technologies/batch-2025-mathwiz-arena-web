@@ -78,8 +78,19 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         correctAnswer = formData.correctAnswer.trim();
       }
 
-      // Create problem with timestamp-based order to avoid race conditions
-      // Using created_at timestamp ensures uniqueness even with concurrent inserts
+      // Get the next order_index
+      const { data: existingProblems } = await supabase
+        .from("problems")
+        .select("order_index")
+        .eq("problem_bank_id", problemBankId)
+        .order("order_index", { ascending: false })
+        .limit(1);
+
+      const nextOrderIndex = existingProblems && existingProblems.length > 0 
+        ? existingProblems[0].order_index + 1 
+        : 0;
+
+      // Create problem
       const { error: insertError } = await supabase
         .from("problems")
         .insert([
@@ -90,13 +101,14 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             difficulty: formData.difficulty,
             options: options,
             correct_answer: correctAnswer,
-            order_index: Date.now(), // Use timestamp to avoid race conditions
+            order_index: nextOrderIndex,
           },
         ]);
 
       if (insertError) {
         console.error("Error creating problem:", insertError);
-        setError("Failed to create problem. Please try again.");
+        const errorMessage = insertError.message || insertError.hint || "Unknown error occurred";
+        setError(`Failed to create problem: ${errorMessage}`);
         setIsLoading(false);
         return;
       }
@@ -104,9 +116,10 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       // Redirect back to problem bank
       router.push(`/organizer/problem-bank/${problemBankId}`);
       router.refresh();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Unexpected error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      const errorMessage = err?.message || "Unknown error occurred";
+      setError(`An unexpected error occurred: ${errorMessage}`);
       setIsLoading(false);
     }
   };

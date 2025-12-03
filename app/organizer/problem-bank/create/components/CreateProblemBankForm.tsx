@@ -53,16 +53,18 @@ export default function CreateProblemBankForm() {
 
       if (insertError) {
         console.error("Error creating problem bank:", insertError);
-        setError("Failed to create problem bank. Please try again.");
+        const errorMessage = insertError.message || insertError.hint || "Unknown error occurred";
+        setError(`Failed to create problem bank: ${errorMessage}`);
         setIsLoading(false);
         return;
       }
 
       // Redirect to the newly created problem bank
       router.push(`/organizer/problem-bank/${data.id}`);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Unexpected error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      const errorMessage = err?.message || "Unknown error occurred";
+      setError(`An unexpected error occurred: ${errorMessage}`);
       setIsLoading(false);
     }
   };

@@ -49,7 +49,8 @@ export default function EditProblemBankForm({ problemBank }: { problemBank: Prob
 
       if (updateError) {
         console.error("Error updating problem bank:", updateError);
-        setError("Failed to update problem bank. Please try again.");
+        const errorMessage = updateError.message || updateError.hint || "Unknown error occurred";
+        setError(`Failed to update problem bank: ${errorMessage}`);
         setIsLoading(false);
         return;
       }
@@ -57,9 +58,10 @@ export default function EditProblemBankForm({ problemBank }: { problemBank: Prob
       // Redirect back to the problem bank
       router.push(`/organizer/problem-bank/${problemBank.id}`);
       router.refresh();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Unexpected error:", err);
-      setError("An unexpected error occurred. Please try again.");
+      const errorMessage = err?.message || "Unknown error occurred";
+      setError(`An unexpected error occurred: ${errorMessage}`);
       setIsLoading(false);
     }
   };
