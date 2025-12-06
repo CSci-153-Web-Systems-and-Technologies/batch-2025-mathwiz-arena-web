@@ -29,7 +29,34 @@ type SelectedProblem = {
   orderIndex: number;
 };
 
-export default function CreateCompetitionForm() {
+type CompetitionData = {
+  id: string;
+  name: string;
+  description: string | null;
+  start_datetime: string;
+  duration_minutes: number;
+  participation_type: "individual" | "team";
+  max_participants: number | null;
+  max_teams: number | null;
+  max_team_members: number | null;
+  point_system_type: "auto_level" | "manual";
+  easy_points: number | null;
+  average_points: number | null;
+  difficult_points: number | null;
+};
+
+type CompetitionProblem = {
+  points: number;
+  order_index: number;
+  problems: Problem;
+};
+
+type Props = {
+  competitionData?: CompetitionData | null;
+  competitionProblems?: CompetitionProblem[] | null;
+};
+
+export default function CreateCompetitionForm({ competitionData, competitionProblems }: Props) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +66,7 @@ export default function CreateCompetitionForm() {
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [isLoadingProblems, setIsLoadingProblems] = useState(false);
   const [showReview, setShowReview] = useState(false);
+  const [competitionId, setCompetitionId] = useState<string | null>(competitionData?.id || null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -57,6 +85,47 @@ export default function CreateCompetitionForm() {
     averagePoints: "",
     difficultPoints: "",
   });
+
+  // Initialize form with existing competition data
+  useEffect(() => {
+    if (competitionData) {
+      const startDateTime = new Date(competitionData.start_datetime);
+      const hours = Math.floor(competitionData.duration_minutes / 60);
+      const minutes = competitionData.duration_minutes % 60;
+
+      setFormData({
+        name: competitionData.name,
+        description: competitionData.description || "",
+        startDate: startDateTime.toISOString().split("T")[0],
+        startTime: startDateTime.toTimeString().slice(0, 5),
+        durationHours: hours.toString(),
+        durationMinutes: minutes.toString(),
+        participationType: competitionData.participation_type,
+        hasMaxParticipants: competitionData.max_participants !== null,
+        maxParticipants: competitionData.max_participants?.toString() || "",
+        hasMaxTeams: competitionData.max_teams !== null,
+        maxTeams: competitionData.max_teams?.toString() || "",
+        maxTeamMembers: competitionData.max_team_members?.toString() || "",
+        pointSystemType: competitionData.point_system_type,
+        easyPoints: competitionData.easy_points?.toString() || "",
+        averagePoints: competitionData.average_points?.toString() || "",
+        difficultPoints: competitionData.difficult_points?.toString() || "",
+      });
+      setCompetitionId(competitionData.id);
+    }
+  }, [competitionData]);
+
+  // Initialize selected problems with existing competition problems
+  useEffect(() => {
+    if (competitionProblems && competitionProblems.length > 0) {
+      const loadedProblems: SelectedProblem[] = competitionProblems.map((cp, index) => ({
+        problem: cp.problems,
+        points: cp.points,
+        orderIndex: index,
+      }));
+      setSelectedProblems(loadedProblems);
+    }
+  }, [competitionProblems]);
 
   // Fetch problem banks on mount
   useEffect(() => {
@@ -209,7 +278,7 @@ export default function CreateCompetitionForm() {
       const totalMinutes = hours * 60 + minutes;
 
       // Create competition
-      const competitionData = {
+      const competitionPayload = {
         organizer_id: user.id,
         name: formData.name.trim(),
         description: formData.description.trim() || null,
@@ -232,18 +301,49 @@ export default function CreateCompetitionForm() {
         status: status,
       };
 
-      const { data: competition, error: competitionError } = await supabase
-        .from("competitions")
-        .insert([competitionData])
-        .select()
-        .single();
+      let competition;
 
-      if (competitionError) {
-        console.error("Error creating competition:", competitionError);
-        const errorMessage = competitionError.message || competitionError.hint || "Unknown error occurred";
-        setError(`Failed to create competition: ${errorMessage}`);
-        setIsLoading(false);
-        return;
+      if (competitionId) {
+        // Update existing competition
+        const { data, error: competitionError } = await supabase
+          .from("competitions")
+          .update(competitionPayload)
+          .eq("id", competitionId)
+          .select()
+          .single();
+
+        if (competitionError) {
+          console.error("Error updating competition:", competitionError);
+          const errorMessage = competitionError.message || competitionError.hint || "Unknown error occurred";
+          setError(`Failed to update competition: ${errorMessage}`);
+          setIsLoading(false);
+          return;
+        }
+
+        competition = data;
+
+        // Delete existing competition problems
+        await supabase
+          .from("competition_problems")
+          .delete()
+          .eq("competition_id", competitionId);
+      } else {
+        // Create new competition
+        const { data, error: competitionError } = await supabase
+          .from("competitions")
+          .insert([competitionPayload])
+          .select()
+          .single();
+
+        if (competitionError) {
+          console.error("Error creating competition:", competitionError);
+          const errorMessage = competitionError.message || competitionError.hint || "Unknown error occurred";
+          setError(`Failed to create competition: ${errorMessage}`);
+          setIsLoading(false);
+          return;
+        }
+
+        competition = data;
       }
 
       // Insert competition problems
