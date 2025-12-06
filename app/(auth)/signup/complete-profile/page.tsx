@@ -29,7 +29,13 @@ export default async function CompleteProfilePage() {
     } 
   } 
  
-  const role = user.user_metadata?.role || profile?.role || "mathlete"; 
+  // Get role from user metadata or profile
+  const role = user.user_metadata?.role || profile?.role;
+  
+  // If no role is set, redirect to role selection
+  if (!role) {
+    redirect("/signup/select-role");
+  } 
  
   return ( 
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-4"> 
