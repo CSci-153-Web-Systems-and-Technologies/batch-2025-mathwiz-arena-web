@@ -1,10 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
+import EditProblemBankForm from "./components/EditProblemBankForm";
 
-export default async function ProblemBankPage() {
+export default async function EditProblemBankPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -12,12 +13,17 @@ export default async function ProblemBankPage() {
     redirect("/login");
   }
 
-  // Fetch problem banks for the current organizer
-  const { data: problemBanks, error } = await supabase
+  // Fetch problem bank to verify ownership
+  const { data: problemBank, error } = await supabase
     .from("problem_banks")
     .select("*")
+    .eq("id", params.id)
     .eq("organizer_id", user.id)
-    .order("created_at", { ascending: false });
+    .single();
+
+  if (error || !problemBank) {
+    notFound();
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -103,81 +109,26 @@ export default async function ProblemBankPage() {
 
       {/* Main Content */}
       <main className="flex-1 ml-64 p-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">Problem Banks</h1>
-              <p className="text-slate-600">Manage your collection of problem banks</p>
-            </div>
+          <div className="mb-8">
             <Link
-              href="/organizer/problem-bank/create"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors shadow-sm"
+              href={`/organizer/problem-bank/${params.id}`}
+              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] mb-4 transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Add Problem Bank
+              Back to {problemBank.title}
             </Link>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Edit Problem Bank</h1>
+            <p className="text-slate-600">Update the title and description</p>
           </div>
 
-          {/* Problem Banks Grid */}
-          {error ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-              Error loading problem banks. Please try again.
-            </div>
-          ) : problemBanks && problemBanks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {problemBanks.map((bank) => (
-                <Link
-                  key={bank.id}
-                  href={`/organizer/problem-bank/${bank.id}`}
-                  className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 bg-[#f49700]/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#f49700]/20 transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-slate-800 mb-1 truncate group-hover:text-[#f49700] transition-colors">
-                        {bank.title}
-                      </h3>
-                      <p className="text-sm text-slate-500 line-clamp-2">
-                        {bank.description || "No description"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-slate-100">
-                    <span>Created {new Date(bank.created_at).toLocaleDateString()}</span>
-                    <span className="text-[#f49700] font-medium">View →</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-              <div className="w-20 h-20 bg-[#f49700]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-slate-800 mb-2">No Problem Banks Yet</h2>
-              <p className="text-slate-600 mb-6">
-                Get started by creating your first problem bank
-              </p>
-              <Link
-                href="/organizer/problem-bank/create"
-                className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Create Problem Bank
-              </Link>
-            </div>
-          )}
+          {/* Form Card */}
+          <div className="bg-white rounded-lg border border-slate-200 p-8 shadow-sm">
+            <EditProblemBankForm problemBank={problemBank} />
+          </div>
         </div>
       </main>
     </div>
