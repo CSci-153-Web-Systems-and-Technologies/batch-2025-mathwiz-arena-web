@@ -38,6 +38,7 @@ export default function CreateCompetitionForm() {
   const [bankProblems, setBankProblems] = useState<Problem[]>([]);
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [isLoadingProblems, setIsLoadingProblems] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -184,6 +185,95 @@ export default function CreateCompetitionForm() {
       case "average": return "bg-yellow-100 text-yellow-700 border-yellow-200";
       case "difficult": return "bg-red-100 text-red-700 border-red-200";
       default: return "bg-slate-100 text-slate-700 border-slate-200";
+    }
+  };
+
+  const handleSaveCompetition = async (status: "draft" | "published") => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError("You must be logged in to create a competition");
+        setIsLoading(false);
+        return;
+      }
+
+      // Prepare start datetime
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+      const hours = parseInt(formData.durationHours) || 0;
+      const minutes = parseInt(formData.durationMinutes) || 0;
+      const totalMinutes = hours * 60 + minutes;
+
+      // Create competition
+      const competitionData = {
+        organizer_id: user.id,
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        start_datetime: startDateTime.toISOString(),
+        duration_minutes: totalMinutes,
+        participation_type: formData.participationType,
+        max_participants: formData.participationType === "individual" && formData.hasMaxParticipants 
+          ? parseInt(formData.maxParticipants) 
+          : null,
+        max_teams: formData.participationType === "team" && formData.hasMaxTeams 
+          ? parseInt(formData.maxTeams) 
+          : null,
+        max_team_members: formData.participationType === "team" 
+          ? parseInt(formData.maxTeamMembers) 
+          : null,
+        point_system_type: formData.pointSystemType,
+        easy_points: formData.pointSystemType === "auto_level" ? parseInt(formData.easyPoints) : null,
+        average_points: formData.pointSystemType === "auto_level" ? parseInt(formData.averagePoints) : null,
+        difficult_points: formData.pointSystemType === "auto_level" ? parseInt(formData.difficultPoints) : null,
+        status: status,
+      };
+
+      const { data: competition, error: competitionError } = await supabase
+        .from("competitions")
+        .insert([competitionData])
+        .select()
+        .single();
+
+      if (competitionError) {
+        console.error("Error creating competition:", competitionError);
+        const errorMessage = competitionError.message || competitionError.hint || "Unknown error occurred";
+        setError(`Failed to create competition: ${errorMessage}`);
+        setIsLoading(false);
+        return;
+      }
+
+      // Insert competition problems
+      const problemsToInsert = selectedProblems.map(sp => ({
+        competition_id: competition.id,
+        problem_id: sp.problem.id,
+        points: sp.points,
+        order_index: sp.orderIndex,
+      }));
+
+      const { error: problemsError } = await supabase
+        .from("competition_problems")
+        .insert(problemsToInsert);
+
+      if (problemsError) {
+        console.error("Error adding problems to competition:", problemsError);
+        const errorMessage = problemsError.message || problemsError.hint || "Unknown error occurred";
+        setError(`Competition created but failed to add problems: ${errorMessage}`);
+        setIsLoading(false);
+        return;
+      }
+
+      // Success! Redirect to competitions page
+      router.push("/organizer/create-competition");
+      router.refresh();
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      const errorMessage = err?.message || "Unknown error occurred";
+      setError(`An unexpected error occurred: ${errorMessage}`);
+      setIsLoading(false);
     }
   };
 
@@ -1117,7 +1207,7 @@ export default function CreateCompetitionForm() {
             </>
           ) : (
             <>
-              Continue
+              Review Competition
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
