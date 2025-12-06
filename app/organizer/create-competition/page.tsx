@@ -238,7 +238,7 @@ export default async function CompetitionPage() {
                         </svg>
                         View Details
                       </Link>
-                      {competition.status === "draft" && (
+                      {(competition.status === "draft" || competition.status === "published") && (
                         <Link
                           href={`/organizer/create-competition/create?edit=${competition.id}`}
                           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
