@@ -23,6 +23,10 @@ export default function CreateCompetitionForm() {
     hasMaxTeams: false,
     maxTeams: "",
     maxTeamMembers: "",
+    pointSystemType: "auto_level" as "auto_level" | "manual",
+    easyPoints: "",
+    averagePoints: "",
+    difficultPoints: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,6 +114,31 @@ export default function CreateCompetitionForm() {
         }
       }
 
+      // Validate point system
+      if (formData.pointSystemType === "auto_level") {
+        const easyPts = parseInt(formData.easyPoints);
+        const avgPts = parseInt(formData.averagePoints);
+        const difficultPts = parseInt(formData.difficultPoints);
+
+        if (!formData.easyPoints.trim() || isNaN(easyPts) || easyPts < 0) {
+          setError("Please set valid points for Easy difficulty (must be 0 or greater)");
+          setIsLoading(false);
+          return;
+        }
+
+        if (!formData.averagePoints.trim() || isNaN(avgPts) || avgPts < 0) {
+          setError("Please set valid points for Average difficulty (must be 0 or greater)");
+          setIsLoading(false);
+          return;
+        }
+
+        if (!formData.difficultPoints.trim() || isNaN(difficultPts) || difficultPts < 0) {
+          setError("Please set valid points for Difficult difficulty (must be 0 or greater)");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Prepare participation data
       const participationData = {
         participationType: formData.participationType,
@@ -124,6 +153,14 @@ export default function CreateCompetitionForm() {
           : null,
       };
 
+      // Prepare point system data
+      const pointSystemData = {
+        pointSystemType: formData.pointSystemType,
+        easyPoints: formData.pointSystemType === "auto_level" ? parseInt(formData.easyPoints) : null,
+        averagePoints: formData.pointSystemType === "auto_level" ? parseInt(formData.averagePoints) : null,
+        difficultPoints: formData.pointSystemType === "auto_level" ? parseInt(formData.difficultPoints) : null,
+      };
+
       // For now, just log the data (we'll implement actual save later)
       console.log("Form data:", {
         name: formData.name.trim(),
@@ -131,10 +168,11 @@ export default function CreateCompetitionForm() {
         startDateTime: startDateTime.toISOString(),
         durationMinutes: totalMinutes,
         ...participationData,
+        ...pointSystemData,
       });
 
       // Temporary success message
-      alert("Basic info and participation settings validated! Next step: Point system");
+      alert("All settings validated! Next step: Problem selection");
       
       // TODO: Save to database and navigate to next step
       // router.push("/organizer/create-competition");
@@ -463,6 +501,201 @@ export default function CreateCompetitionForm() {
                 />
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Point System */}
+      <div className="space-y-4 pt-6 border-t border-slate-200">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">Point System</h3>
+          <p className="text-sm text-slate-600">Choose how points will be assigned to problems</p>
+        </div>
+
+        {/* Point System Type */}
+        <div className="space-y-2">
+          <Label className="text-slate-700 font-medium">
+            Point Assignment Method <span className="text-red-500">*</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              type="button"
+              onClick={() => setFormData({ 
+                ...formData, 
+                pointSystemType: "auto_level",
+                easyPoints: formData.easyPoints || "1",
+                averagePoints: formData.averagePoints || "3",
+                difficultPoints: formData.difficultPoints || "5"
+              })}
+              className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+                formData.pointSystemType === "auto_level"
+                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
+              disabled={isLoading}
+            >
+              <div className="text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-xl">⚡</div>
+                  <div className="font-semibold">Auto-Level Points</div>
+                </div>
+                <div className="text-xs text-slate-600">
+                  Set points once for each difficulty level. Points are automatically assigned based on problem difficulty.
+                </div>
+              </div>
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => setFormData({ 
+                ...formData, 
+                pointSystemType: "manual",
+                easyPoints: "",
+                averagePoints: "",
+                difficultPoints: ""
+              })}
+              className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+                formData.pointSystemType === "manual"
+                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
+              disabled={isLoading}
+            >
+              <div className="text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-xl">✏️</div>
+                  <div className="font-semibold">Manual Points</div>
+                </div>
+                <div className="text-xs text-slate-600">
+                  Set custom points for each individual problem. More control, more flexibility.
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Auto-Level Settings */}
+        {formData.pointSystemType === "auto_level" && (
+          <div className="space-y-4 pl-4 border-l-2 border-[#f49700]">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-700">
+                  With Auto-Level Points, all Easy problems will receive the same points, all Average problems will receive the same points, and so on.
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              {/* Easy Points */}
+              <div className="space-y-2">
+                <Label htmlFor="easyPoints" className="text-slate-700 font-medium flex items-center gap-2">
+                  <span className="px-2 py-0.5 text-xs font-semibold rounded bg-green-100 text-green-700 border border-green-200">
+                    Easy
+                  </span>
+                  Points <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="easyPoints"
+                  type="number"
+                  placeholder="e.g., 1"
+                  value={formData.easyPoints}
+                  onChange={(e) => setFormData({ ...formData, easyPoints: e.target.value })}
+                  className="w-full"
+                  min="0"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+
+              {/* Average Points */}
+              <div className="space-y-2">
+                <Label htmlFor="averagePoints" className="text-slate-700 font-medium flex items-center gap-2">
+                  <span className="px-2 py-0.5 text-xs font-semibold rounded bg-yellow-100 text-yellow-700 border border-yellow-200">
+                    Average
+                  </span>
+                  Points <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="averagePoints"
+                  type="number"
+                  placeholder="e.g., 3"
+                  value={formData.averagePoints}
+                  onChange={(e) => setFormData({ ...formData, averagePoints: e.target.value })}
+                  className="w-full"
+                  min="0"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+
+              {/* Difficult Points */}
+              <div className="space-y-2">
+                <Label htmlFor="difficultPoints" className="text-slate-700 font-medium flex items-center gap-2">
+                  <span className="px-2 py-0.5 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-200">
+                    Difficult
+                  </span>
+                  Points <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="difficultPoints"
+                  type="number"
+                  placeholder="e.g., 5"
+                  value={formData.difficultPoints}
+                  onChange={(e) => setFormData({ ...formData, difficultPoints: e.target.value })}
+                  className="w-full"
+                  min="0"
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Points Preview */}
+            {(formData.easyPoints || formData.averagePoints || formData.difficultPoints) && (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-slate-800 mb-2">Points Summary:</p>
+                <div className="flex gap-4 text-sm">
+                  {formData.easyPoints && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600 font-semibold">{formData.easyPoints} pts</span>
+                      <span className="text-slate-600">per Easy problem</span>
+                    </div>
+                  )}
+                  {formData.averagePoints && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-yellow-600 font-semibold">{formData.averagePoints} pts</span>
+                      <span className="text-slate-600">per Average problem</span>
+                    </div>
+                  )}
+                  {formData.difficultPoints && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600 font-semibold">{formData.difficultPoints} pts</span>
+                      <span className="text-slate-600">per Difficult problem</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Manual Points Info */}
+        {formData.pointSystemType === "manual" && (
+          <div className="pl-4 border-l-2 border-[#f49700]">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="text-sm text-yellow-700">
+                  <p className="font-medium mb-1">Manual Point Assignment</p>
+                  <p>You'll assign custom points to each problem when you select them in the next step.</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
