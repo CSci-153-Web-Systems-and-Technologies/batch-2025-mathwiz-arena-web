@@ -436,23 +436,10 @@ export default function CreateCompetitionForm() {
         orderIndex: sp.orderIndex,
       }));
 
-      // For now, just log the data (we'll implement actual save later)
-      console.log("Complete form data:", {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        startDateTime: startDateTime.toISOString(),
-        durationMinutes: totalMinutes,
-        ...participationData,
-        ...pointSystemData,
-        problems: problemsData,
-      });
-
-      // Temporary success message
-      alert(`Competition validated successfully!\n\nTotal problems selected: ${selectedProblems.length}\nTotal possible points: ${selectedProblems.reduce((sum, sp) => sum + (sp.points || 0), 0)}`);
+      // All validation passed, show review
+      setShowReview(true);
+      setError(null);
       
-      // TODO: Save to database and navigate to next step
-      // router.push("/organizer/create-competition");
-
     } catch (err: any) {
       console.error("Unexpected error:", err);
       const errorMessage = err?.message || "Unknown error occurred";
@@ -462,6 +449,234 @@ export default function CreateCompetitionForm() {
     }
   };
 
+  // If showing review, display review screen
+  if (showReview) {
+    const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+    const hours = parseInt(formData.durationHours) || 0;
+    const minutes = parseInt(formData.durationMinutes) || 0;
+    const totalMinutes = hours * 60 + minutes;
+    const endDateTime = new Date(startDateTime.getTime() + totalMinutes * 60000);
+
+    return (
+      <div className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-slate-800">Review Competition</h2>
+          <button
+            type="button"
+            onClick={() => setShowReview(false)}
+            className="text-sm text-slate-600 hover:text-[#f49700] transition-colors"
+            disabled={isLoading}
+          >
+            ← Edit Details
+          </button>
+        </div>
+
+        {/* Basic Info */}
+        <div className="bg-white border border-slate-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Basic Information</h3>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-slate-600">Competition Name</p>
+              <p className="font-medium text-slate-800">{formData.name}</p>
+            </div>
+            {formData.description && (
+              <div>
+                <p className="text-sm text-slate-600">Description</p>
+                <p className="text-slate-800">{formData.description}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-slate-600">Start Date & Time</p>
+                <p className="font-medium text-slate-800">
+                  {startDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-600">End Date & Time</p>
+                <p className="font-medium text-slate-800">
+                  {endDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                </p>
+              </div>
+            </div>
+            <div>
+              <p className="text-sm text-slate-600">Duration</p>
+              <p className="font-medium text-slate-800">
+                {hours > 0 && `${hours} hour${hours !== 1 ? 's' : ''}`}
+                {hours > 0 && minutes > 0 && ' '}
+                {minutes > 0 && `${minutes} minute${minutes !== 1 ? 's' : ''}`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Participation Settings */}
+        <div className="bg-white border border-slate-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Participation Settings</h3>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-slate-600">Participation Type</p>
+              <p className="font-medium text-slate-800 capitalize">{formData.participationType}</p>
+            </div>
+            {formData.participationType === "individual" ? (
+              <div>
+                <p className="text-sm text-slate-600">Maximum Participants</p>
+                <p className="font-medium text-slate-800">
+                  {formData.hasMaxParticipants ? formData.maxParticipants : "Unlimited"}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <p className="text-sm text-slate-600">Maximum Team Members</p>
+                  <p className="font-medium text-slate-800">{formData.maxTeamMembers}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Maximum Teams</p>
+                  <p className="font-medium text-slate-800">
+                    {formData.hasMaxTeams ? formData.maxTeams : "Unlimited"}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Point System */}
+        <div className="bg-white border border-slate-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">Point System</h3>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-slate-600">Point Assignment Method</p>
+              <p className="font-medium text-slate-800">
+                {formData.pointSystemType === "auto_level" ? "Auto-Level Points" : "Manual Points"}
+              </p>
+            </div>
+            {formData.pointSystemType === "auto_level" && (
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-slate-600">Easy</p>
+                  <p className="font-medium text-green-700">{formData.easyPoints} points</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Average</p>
+                  <p className="font-medium text-yellow-700">{formData.averagePoints} points</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-600">Difficult</p>
+                  <p className="font-medium text-red-700">{formData.difficultPoints} points</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Problems */}
+        <div className="bg-white border border-slate-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4">
+            Problems ({selectedProblems.length})
+          </h3>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {selectedProblems.map((sp, index) => (
+              <div key={sp.problem.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-medium text-slate-700">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded border capitalize ${getDifficultyColor(sp.problem.difficulty)}`}>
+                      {sp.problem.difficulty}
+                    </span>
+                    <span className="text-xs text-slate-500">{getTypeLabel(sp.problem.type)}</span>
+                  </div>
+                  <p className="text-sm text-slate-800 line-clamp-1">{sp.problem.question}</p>
+                </div>
+                <div className="flex-shrink-0 text-sm font-semibold text-[#f49700]">
+                  {sp.points} pts
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-medium text-slate-700">Total Points</p>
+              <p className="text-lg font-bold text-[#f49700]">
+                {selectedProblems.reduce((sum, sp) => sum + (sp.points || 0), 0)} points
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4 border-t border-slate-200">
+          <Button
+            type="button"
+            onClick={() => handleSaveCompetition("draft")}
+            disabled={isLoading}
+            variant="outline"
+            className="font-medium px-6"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Save as Draft
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            onClick={() => handleSaveCompetition("published")}
+            disabled={isLoading}
+            className="bg-[#f49700] hover:bg-[#d68400] text-white font-medium px-6"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Publishing...
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Publish Competition
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/organizer/create-competition")}
+            disabled={isLoading}
+            className="font-medium"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular form view
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
