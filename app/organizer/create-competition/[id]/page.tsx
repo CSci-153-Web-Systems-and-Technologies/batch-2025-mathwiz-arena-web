@@ -35,7 +35,8 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
         id,
         question,
         difficulty,
-        type
+        type,
+        correct_answer
       )
     `)
     .eq("competition_id", params.id)
@@ -323,7 +324,13 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                         </span>
                         <span className="text-xs text-slate-500">{getTypeLabel(cp.problems.type)}</span>
                       </div>
-                      <p className="text-sm text-slate-800">{cp.problems.question}</p>
+                      <p className="text-sm text-slate-800 mb-1">{cp.problems.question}</p>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="text-slate-600 font-medium">Answer:</span>
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+                          {cp.problems.correct_answer}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex-shrink-0 text-sm font-semibold text-[#f49700]">
                       {cp.points} pts

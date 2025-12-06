@@ -465,15 +465,21 @@ export default function CreateCompetitionForm() {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-slate-800">Review Competition</h2>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">Review Competition</h2>
+            <p className="text-sm text-slate-600 mt-1">Review all details before saving or publishing</p>
+          </div>
           <button
             type="button"
             onClick={() => setShowReview(false)}
-            className="text-sm text-slate-600 hover:text-[#f49700] transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-[#f49700] hover:text-[#f49700] transition-colors"
             disabled={isLoading}
           >
-            ← Edit Details
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit Details
           </button>
         </div>
 
@@ -595,7 +601,13 @@ export default function CreateCompetitionForm() {
                     </span>
                     <span className="text-xs text-slate-500">{getTypeLabel(sp.problem.type)}</span>
                   </div>
-                  <p className="text-sm text-slate-800 line-clamp-1">{sp.problem.question}</p>
+                  <p className="text-sm text-slate-800 mb-1">{sp.problem.question}</p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-slate-600 font-medium">Answer:</span>
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+                      {sp.problem.correct_answer}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex-shrink-0 text-sm font-semibold text-[#f49700]">
                   {sp.points} pts
