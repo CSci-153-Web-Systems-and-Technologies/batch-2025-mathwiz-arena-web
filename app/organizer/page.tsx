@@ -50,6 +50,131 @@ export default async function OrganizerDashboard() {
     ? (ratingsData.reduce((sum, r) => sum + r.rating, 0) / ratingsData.length).toFixed(1)
     : "0.0";
 
+  // Fetch recent activities
+  // Get recent competitions (created in last 7 days)
+  const { data: recentCompetitions } = await supabase
+    .from("competitions")
+    .select("id, name, created_at, status, start_datetime, duration_minutes")
+    .eq("organizer_id", user.id)
+    .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  // Get recent registrations (last 7 days)
+  const { data: recentRegistrations } = await supabase
+    .from("competition_registrations")
+    .select(`
+      registered_at,
+      competition_id,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("competitions.organizer_id", user.id)
+    .gte("registered_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order("registered_at", { ascending: false })
+    .limit(10);
+
+  // Get recent ratings (last 7 days)
+  const { data: recentRatings } = await supabase
+    .from("competition_ratings")
+    .select(`
+      created_at,
+      rating,
+      competition_id,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("competitions.organizer_id", user.id)
+    .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  // Combine and sort all activities
+  const activities: Array<{
+    type: "created" | "registration" | "rating" | "ended";
+    timestamp: string;
+    competitionName: string;
+    competitionId?: string;
+    rating?: number;
+  }> = [];
+
+  // Add created competitions
+  recentCompetitions?.forEach(comp => {
+    activities.push({
+      type: "created",
+      timestamp: comp.created_at,
+      competitionName: comp.name,
+      competitionId: comp.id,
+    });
+
+    // Check if this competition ended recently
+    const now = new Date();
+    const endTime = new Date(new Date(comp.start_datetime).getTime() + comp.duration_minutes * 60000);
+    const timeSinceEnd = now.getTime() - endTime.getTime();
+    
+    // If ended in last 7 days
+    if (endTime < now && timeSinceEnd < 7 * 24 * 60 * 60 * 1000) {
+      activities.push({
+        type: "ended",
+        timestamp: endTime.toISOString(),
+        competitionName: comp.name,
+        competitionId: comp.id,
+      });
+    }
+  });
+
+  // Add registrations
+  recentRegistrations?.forEach(reg => {
+    if (reg.competitions && typeof reg.competitions === 'object' && !Array.isArray(reg.competitions)) {
+      const comp = reg.competitions as { id: string; name: string };
+      activities.push({
+        type: "registration",
+        timestamp: reg.registered_at,
+        competitionName: comp.name,
+        competitionId: comp.id,
+      });
+    }
+  });
+
+  // Add ratings
+  recentRatings?.forEach(rat => {
+    if (rat.competitions && typeof rat.competitions === 'object' && !Array.isArray(rat.competitions)) {
+      const comp = rat.competitions as { id: string; name: string };
+      activities.push({
+        type: "rating",
+        timestamp: rat.created_at,
+        competitionName: comp.name,
+        competitionId: comp.id,
+        rating: rat.rating,
+      });
+    }
+  });
+
+  // Sort by timestamp descending and take top 5
+  const recentActivities = activities
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 5);
+
+  // Helper function to format time ago
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMs = now.getTime() - time.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return time.toLocaleDateString();
+  };
+
   // Fetch published competitions with details
   const { data: publishedCompetitionsList, error: competitionsError } = await supabase
     .from("competitions")
@@ -336,27 +461,50 @@ export default async function OrganizerDashboard() {
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-bold text-slate-800 mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#f49700]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">Competition ended</p>
-                    <p className="text-xs text-slate-500">Weekly Sprint #46 • 2h ago</p>
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity, index) => {
+                    const activityConfig = {
+                      created: {
+                        label: "Competition created",
+                        color: "bg-slate-300",
+                        textColor: "text-slate-700"
+                      },
+                      registration: {
+                        label: "New registration",
+                        color: "bg-[#f49700]",
+                        textColor: "text-slate-800"
+                      },
+                      rating: {
+                        label: `Received ${activity.rating}-star rating`,
+                        color: "bg-[#f49700]",
+                        textColor: "text-slate-800"
+                      },
+                      ended: {
+                        label: "Competition ended",
+                        color: "bg-[#f49700]",
+                        textColor: "text-slate-800"
+                      }
+                    };
+
+                    const config = activityConfig[activity.type];
+
+                    return (
+                      <div key={`${activity.type}-${activity.timestamp}-${index}`} className="flex gap-3">
+                        <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${config.color}`}></div>
+                        <div>
+                          <p className={`text-sm font-medium ${config.textColor}`}>{config.label}</p>
+                          <p className="text-xs text-slate-500">
+                            {activity.competitionName} • {getTimeAgo(activity.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-slate-500">No recent activity</p>
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#f49700]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">New registration</p>
-                    <p className="text-xs text-slate-500">Algebra Challenge • 5h ago</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-slate-300"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Competition created</p>
-                    <p className="text-xs text-slate-500">Geometry Masters • Yesterday</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
