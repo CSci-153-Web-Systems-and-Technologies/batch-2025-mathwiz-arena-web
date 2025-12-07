@@ -331,7 +331,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
       }
 
       // Success! Redirect to competitions page
-      router.push("/organizer/create-competition");
+      router.push("/organizer/competition");
       router.refresh();
     } catch (err: any) {
       console.error("Unexpected error:", err);
@@ -735,7 +735,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/organizer/create-competition")}
+          onClick={() => router.push("/organizer/competition")}
           disabled={isLoading}
           className="font-medium ml-auto"
         >

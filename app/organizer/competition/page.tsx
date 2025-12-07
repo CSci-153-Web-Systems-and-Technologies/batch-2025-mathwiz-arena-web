@@ -69,7 +69,7 @@ export default async function CompetitionPage() {
             </Link>
 
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#f49700] rounded-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,7 +126,7 @@ export default async function CompetitionPage() {
               <p className="text-slate-600 mt-1">Manage your math competitions</p>
             </div>
             <Link
-              href="/organizer/create-competition/create"
+              href="/organizer/competition/create"
               className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors shadow-sm"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,8 +146,8 @@ export default async function CompetitionPage() {
               </div>
               <h2 className="text-xl font-semibold text-slate-800 mb-2">No Competitions Yet</h2>
               <p className="text-slate-600 mb-6">Get started by creating your first math competition</p>
-              <Link
-                href="/organizer/create-competition/create"
+                <Link
+                href="/organizer/competition/create"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,7 +230,7 @@ export default async function CompetitionPage() {
 
                     <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
                       <Link
-                        href={`/organizer/create-competition/${competition.id}`}
+                        href={`/organizer/competition/${competition.id}`}
                         className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#f49700] rounded-lg hover:bg-[#d68400] transition-colors"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -241,7 +241,7 @@ export default async function CompetitionPage() {
                       </Link>
                       {(competition.status === "draft" || competition.status === "published") && (
                         <Link
-                          href={`/organizer/create-competition/create?edit=${competition.id}`}
+                          href={`/organizer/competition/create?edit=${competition.id}`}
                           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

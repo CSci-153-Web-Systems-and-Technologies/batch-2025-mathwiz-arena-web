@@ -21,6 +21,229 @@ export default async function OrganizerDashboard() {
 
   const userName = profile?.username || user.user_metadata?.full_name || "Organizer";
 
+  // Fetch total competitions count for this organizer
+  const { count: totalContests } = await supabase
+    .from("competitions")
+    .select("*", { count: "exact", head: true })
+    .eq("organizer_id", user.id);
+
+  // Fetch published competitions count
+  const { count: publishedCompetitions } = await supabase
+    .from("competitions")
+    .select("*", { count: "exact", head: true })
+    .eq("organizer_id", user.id)
+    .eq("status", "published");
+
+  // Fetch total participants count across all competitions
+  const { count: totalParticipants } = await supabase
+    .from("competition_registrations")
+    .select("*, competitions!inner(organizer_id)", { count: "exact", head: true })
+    .eq("competitions.organizer_id", user.id);
+
+  // Fetch average rating across all competitions
+  const { data: ratingsData } = await supabase
+    .from("competition_ratings")
+    .select("rating, competitions!inner(organizer_id)")
+    .eq("competitions.organizer_id", user.id);
+
+  const averageRating = ratingsData && ratingsData.length > 0
+    ? (ratingsData.reduce((sum, r) => sum + r.rating, 0) / ratingsData.length).toFixed(1)
+    : "0.0";
+
+  // Fetch recent activities
+  // Get recent competitions (created in last 7 days)
+  const { data: recentCompetitions } = await supabase
+    .from("competitions")
+    .select("id, name, created_at, status, start_datetime, duration_minutes")
+    .eq("organizer_id", user.id)
+    .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  // Get recent registrations (last 7 days)
+  const { data: recentRegistrations } = await supabase
+    .from("competition_registrations")
+    .select(`
+      registered_at,
+      competition_id,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("competitions.organizer_id", user.id)
+    .gte("registered_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order("registered_at", { ascending: false })
+    .limit(10);
+
+  // Get recent ratings (last 7 days)
+  const { data: recentRatings } = await supabase
+    .from("competition_ratings")
+    .select(`
+      created_at,
+      rating,
+      competition_id,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("competitions.organizer_id", user.id)
+    .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  // Combine and sort all activities
+  const activities: Array<{
+    type: "created" | "registration" | "rating" | "ended";
+    timestamp: string;
+    competitionName: string;
+    competitionId?: string;
+    rating?: number;
+  }> = [];
+
+  // Add created competitions
+  recentCompetitions?.forEach(comp => {
+    activities.push({
+      type: "created",
+      timestamp: comp.created_at,
+      competitionName: comp.name,
+      competitionId: comp.id,
+    });
+
+    // Check if this competition ended recently
+    const now = new Date();
+    const endTime = new Date(new Date(comp.start_datetime).getTime() + comp.duration_minutes * 60000);
+    const timeSinceEnd = now.getTime() - endTime.getTime();
+    
+    // If ended in last 7 days
+    if (endTime < now && timeSinceEnd < 7 * 24 * 60 * 60 * 1000) {
+      activities.push({
+        type: "ended",
+        timestamp: endTime.toISOString(),
+        competitionName: comp.name,
+        competitionId: comp.id,
+      });
+    }
+  });
+
+  // Add registrations
+  recentRegistrations?.forEach(reg => {
+    if (reg.competitions && typeof reg.competitions === 'object' && !Array.isArray(reg.competitions)) {
+      const comp = reg.competitions as { id: string; name: string };
+      activities.push({
+        type: "registration",
+        timestamp: reg.registered_at,
+        competitionName: comp.name,
+        competitionId: comp.id,
+      });
+    }
+  });
+
+  // Add ratings
+  recentRatings?.forEach(rat => {
+    if (rat.competitions && typeof rat.competitions === 'object' && !Array.isArray(rat.competitions)) {
+      const comp = rat.competitions as { id: string; name: string };
+      activities.push({
+        type: "rating",
+        timestamp: rat.created_at,
+        competitionName: comp.name,
+        competitionId: comp.id,
+        rating: rat.rating,
+      });
+    }
+  });
+
+  // Sort by timestamp descending and take top 5
+  const recentActivities = activities
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 5);
+
+  // Helper function to format time ago
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMs = now.getTime() - time.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return time.toLocaleDateString();
+  };
+
+  // Fetch published competitions with details
+  const { data: publishedCompetitionsList, error: competitionsError } = await supabase
+    .from("competitions")
+    .select(`
+      id,
+      name,
+      start_datetime,
+      duration_minutes,
+      status
+    `)
+    .eq("organizer_id", user.id)
+    .eq("status", "published")
+    .order("start_datetime", { ascending: false })
+    .limit(3);
+
+  // Log any errors for debugging
+  if (competitionsError) {
+    console.error("Error fetching competitions:", competitionsError);
+  }
+
+  // Helper function to get competition status badge
+  const getCompetitionStatus = (competition: any) => {
+    const now = new Date();
+    const startTime = new Date(competition.start_datetime);
+    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60000);
+
+    if (now >= startTime && now <= endTime) {
+      return { label: "Live", color: "bg-green-100 text-green-700" };
+    } else if (now < startTime) {
+      return { label: "Upcoming", color: "bg-blue-100 text-blue-700" };
+    } else {
+      return { label: "Ended", color: "bg-slate-200 text-slate-600" };
+    }
+  };
+
+  // Helper function to format time remaining or time until start
+  const getTimeInfo = (competition: any) => {
+    const now = new Date();
+    const startTime = new Date(competition.start_datetime);
+    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60000);
+
+    if (now >= startTime && now <= endTime) {
+      const timeLeft = endTime.getTime() - now.getTime();
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      return `Ends in ${hours}h ${minutes}m`;
+    } else if (now < startTime) {
+      const timeUntil = startTime.getTime() - now.getTime();
+      const days = Math.floor(timeUntil / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeUntil % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      if (days > 0) {
+        return `Starts in ${days} day${days > 1 ? 's' : ''}`;
+      } else {
+        return `Starts in ${hours}h`;
+      }
+    } else {
+      const timeAgo = now.getTime() - endTime.getTime();
+      const days = Math.floor(timeAgo / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeAgo % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      if (days > 0) {
+        return `Ended ${days} day${days > 1 ? 's' : ''} ago`;
+      } else {
+        return `Ended ${hours}h ago`;
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar Navigation */}
@@ -56,7 +279,7 @@ export default async function OrganizerDashboard() {
             </Link>
 
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,8 +340,8 @@ export default async function OrganizerDashboard() {
           <div className="rounded-xl bg-white border-2 border-[#f49700] p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600">Total Contests</p>
-                <p className="text-3xl font-bold text-[#f49700] mt-1">12</p>
+                <p className="text-sm text-slate-600">Total Competitions</p>
+                <p className="text-3xl font-bold text-[#f49700] mt-1">{totalContests || 0}</p>
               </div>
               <div className="rounded-full bg-[#f49700]/10 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,8 +354,8 @@ export default async function OrganizerDashboard() {
           <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600">Active Contests</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">3</p>
+                <p className="text-sm text-slate-600">Published Competitions</p>
+                <p className="text-3xl font-bold text-slate-800 mt-1">{publishedCompetitions || 0}</p>
               </div>
               <div className="rounded-full bg-slate-100 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,7 +369,7 @@ export default async function OrganizerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Total Participants</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">1,247</p>
+                <p className="text-3xl font-bold text-slate-800 mt-1">{totalParticipants || 0}</p>
               </div>
               <div className="rounded-full bg-slate-100 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -160,7 +383,7 @@ export default async function OrganizerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Avg. Rating</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">4.8</p>
+                <p className="text-3xl font-bold text-slate-800 mt-1">{averageRating}</p>
               </div>
               <div className="rounded-full bg-slate-100 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -173,75 +396,62 @@ export default async function OrganizerDashboard() {
 
         {/* Main Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Active Contests */}
+          {/* Published Competitions */}
           <div className="lg:col-span-2">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-800">Active Contests</h2>
-                <Link href="/organizer/contests" className="text-sm text-[#f49700] hover:underline">
+                <h2 className="text-xl font-bold text-slate-800">Published Competitions</h2>
+                <Link href="/organizer/competition" className="text-sm text-[#f49700] hover:underline">
                   View all
                 </Link>
               </div>
               <div className="space-y-4">
-                <div className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-800">Weekly Math Sprint #47</h3>
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Live</span>
+                {publishedCompetitionsList && publishedCompetitionsList.length > 0 ? (
+                  publishedCompetitionsList.map((competition) => {
+                    const status = getCompetitionStatus(competition);
+                    const timeInfo = getTimeInfo(competition);
+                    
+                    return (
+                      <div key={competition.id} className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-slate-800">{competition.name}</h3>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color}`}>
+                                {status.label}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600 mt-1">{timeInfo}</p>
+                            <div className="mt-2 flex gap-2">
+                              <Link
+                                href={`/organizer/competition/${competition.id}`}
+                                className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                              >
+                                View Details
+                              </Link>
+                              <Link
+                                href={`/organizer/competition/create?edit=${competition.id}`}
+                                className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                              >
+                                Edit
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-600 mt-1">247 participants • Ends in 3h 24m</p>
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          View Results
-                        </button>
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          Edit
-                        </button>
-                      </div>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500 mb-4">No published competitions yet</p>
+                    <Link
+                      href="/organizer/competition/create"
+                      className="inline-block rounded-md bg-[#f49700] px-4 py-2 text-sm text-white hover:bg-[#d68400]"
+                    >
+                      Create Your First Competition
+                    </Link>
                   </div>
-                </div>
-
-                <div className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-800">Algebra Challenge</h3>
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Upcoming</span>
-                      </div>
-                      <p className="text-sm text-slate-600 mt-1">89 registered • Starts in 2 days</p>
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          View Details
-                        </button>
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          Edit
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border-l-4 border-slate-300 bg-slate-50 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-700">Geometry Masters</h3>
-                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">Draft</span>
-                      </div>
-                      <p className="text-sm text-slate-600 mt-1">Not published yet</p>
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-md border border-slate-400 px-3 py-1 text-xs text-slate-600 hover:bg-slate-100">
-                          Continue Editing
-                        </button>
-                        <button className="rounded-md bg-[#f49700] px-3 py-1 text-xs text-white hover:bg-[#d68400]">
-                          Publish
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -251,34 +461,57 @@ export default async function OrganizerDashboard() {
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-bold text-slate-800 mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#f49700]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">Contest ended</p>
-                    <p className="text-xs text-slate-500">Weekly Sprint #46 • 2h ago</p>
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity, index) => {
+                    const activityConfig = {
+                      created: {
+                        label: "Competition created",
+                        color: "bg-slate-300",
+                        textColor: "text-slate-700"
+                      },
+                      registration: {
+                        label: "New registration",
+                        color: "bg-[#f49700]",
+                        textColor: "text-slate-800"
+                      },
+                      rating: {
+                        label: `Received ${activity.rating}-star rating`,
+                        color: "bg-[#f49700]",
+                        textColor: "text-slate-800"
+                      },
+                      ended: {
+                        label: "Competition ended",
+                        color: "bg-[#f49700]",
+                        textColor: "text-slate-800"
+                      }
+                    };
+
+                    const config = activityConfig[activity.type];
+
+                    return (
+                      <div key={`${activity.type}-${activity.timestamp}-${index}`} className="flex gap-3">
+                        <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${config.color}`}></div>
+                        <div>
+                          <p className={`text-sm font-medium ${config.textColor}`}>{config.label}</p>
+                          <p className="text-xs text-slate-500">
+                            {activity.competitionName} • {getTimeAgo(activity.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-slate-500">No recent activity</p>
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#f49700]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">New registration</p>
-                    <p className="text-xs text-slate-500">Algebra Challenge • 5h ago</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-slate-300"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Contest created</p>
-                    <p className="text-xs text-slate-500">Geometry Masters • Yesterday</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
             <div className="rounded-xl border-2 border-[#f49700] bg-[#f49700]/5 p-6">
               <h3 className="font-semibold text-[#f49700] mb-2">💡 Pro Tip</h3>
               <p className="text-sm text-slate-700">
-                Contests with clear descriptions and sample problems get 40% more participants!
+                Competitions with clear descriptions and sample problems get 40% more participants!
               </p>
             </div>
           </div>

@@ -22,7 +22,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
     .single();
 
   if (competitionError || !competition) {
-    redirect("/organizer/create-competition");
+    redirect("/organizer/competition");
   }
 
   // Fetch competition problems with problem details
@@ -122,7 +122,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
             </Link>
 
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#f49700] rounded-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -177,7 +177,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Link
-                  href="/organizer/create-competition"
+                  href="/organizer/competition"
                   className="text-slate-600 hover:text-[#f49700] transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -194,9 +194,9 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                 </div>
               </div>
               {competition.status === "draft" && (
-                <Link
-                  href={`/organizer/create-competition/create?edit=${competition.id}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#f49700] rounded-lg hover:bg-[#d68400] transition-colors"
+                  <Link
+                  href={`/organizer/competition/create?edit=${competition.id}`}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -351,7 +351,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
             {/* Back Button */}
             <div className="flex justify-center pt-4">
               <Link
-                href="/organizer/create-competition"
+                href="/organizer/competition"
                 className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
