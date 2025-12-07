@@ -34,6 +34,12 @@ export default async function OrganizerDashboard() {
     .eq("organizer_id", user.id)
     .eq("status", "published");
 
+  // Fetch total participants count across all competitions
+  const { count: totalParticipants } = await supabase
+    .from("competition_registrations")
+    .select("*, competitions!inner(organizer_id)", { count: "exact", head: true })
+    .eq("competitions.organizer_id", user.id);
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar Navigation */}
@@ -159,7 +165,7 @@ export default async function OrganizerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Total Participants</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">1,247</p>
+                <p className="text-3xl font-bold text-slate-800 mt-1">{totalParticipants || 0}</p>
               </div>
               <div className="rounded-full bg-slate-100 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
