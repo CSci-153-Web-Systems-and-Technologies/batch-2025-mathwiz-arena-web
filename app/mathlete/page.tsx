@@ -51,6 +51,96 @@ export default async function MathleteDashboard() {
     return endTime > currentTime; // Show if competition hasn't ended
   }) || [];
 
+  // Fetch recent activity for this mathlete (last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoISO = sevenDaysAgo.toISOString();
+
+  // Get recent registrations
+  const { data: recentRegistrations } = await supabase
+    .from("competition_registrations")
+    .select(`
+      id,
+      registered_at,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("mathlete_id", user.id)
+    .gte("registered_at", sevenDaysAgoISO)
+    .order("registered_at", { ascending: false })
+    .limit(5);
+
+  // Get recent ratings given
+  const { data: recentRatings } = await supabase
+    .from("competition_ratings")
+    .select(`
+      id,
+      created_at,
+      rating,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("mathlete_id", user.id)
+    .gte("created_at", sevenDaysAgoISO)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  // Helper function to format time ago
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 60) {
+      return diffMins <= 1 ? "Just now" : `${diffMins} minutes ago`;
+    } else if (diffHours < 24) {
+      return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+    } else {
+      return diffDays === 1 ? "1 day ago" : `${diffDays} days ago`;
+    }
+  };
+
+  // Combine and sort all activities
+  const allActivities: Array<{
+    type: 'registration' | 'rating';
+    timestamp: string;
+    competitionName: string;
+    rating?: number;
+  }> = [];
+
+  recentRegistrations?.forEach(reg => {
+    const comp = reg.competitions as any;
+    if (comp && comp.name) {
+      allActivities.push({
+        type: 'registration',
+        timestamp: reg.registered_at,
+        competitionName: comp.name,
+      });
+    }
+  });
+
+  recentRatings?.forEach(rating => {
+    const comp = rating.competitions as any;
+    if (comp && comp.name) {
+      allActivities.push({
+        type: 'rating',
+        timestamp: rating.created_at,
+        competitionName: comp.name,
+        rating: rating.rating,
+      });
+    }
+  });
+
+  // Sort by timestamp descending
+  allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
       {/* Sidebar Navigation */}
@@ -206,27 +296,30 @@ export default async function MathleteDashboard() {
             <div className="rounded-xl border bg-white p-6 shadow-sm">
               <h2 className="text-xl font-bold text-[#25346A] mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-[#25346A]">Completed 5 problems</p>
-                    <p className="text-xs text-slate-500">2 hours ago</p>
+                {allActivities.length > 0 ? (
+                  allActivities.slice(0, 5).map((activity, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
+                      <div>
+                        {activity.type === 'registration' ? (
+                          <p className="text-sm font-medium text-[#25346A]">
+                            Registered for <span className="font-semibold">{activity.competitionName}</span>
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium text-[#25346A]">
+                            Rated <span className="font-semibold">{activity.competitionName}</span> ({activity.rating}/5 stars)
+                          </p>
+                        )}
+                        <p className="text-xs text-slate-500">{getTimeAgo(activity.timestamp)}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-slate-500">No recent activity</p>
+                    <p className="text-xs text-slate-400 mt-1">Your activity will appear here</p>
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-[#25346A]">Placed #23 in Weekly Challenge</p>
-                    <p className="text-xs text-slate-500">Yesterday</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-slate-300"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Earned "Problem Solver" badge</p>
-                    <p className="text-xs text-slate-500">2 days ago</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
