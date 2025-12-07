@@ -3,6 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
+import DeleteCompetitionButton from "./components/DeleteCompetitionButton";
 
 export default async function CompetitionPage() {
   const supabase = createClient();
@@ -249,6 +250,10 @@ export default async function CompetitionPage() {
                           Edit
                         </Link>
                       )}
+                      <DeleteCompetitionButton 
+                        competitionId={competition.id}
+                        competitionName={competition.name}
+                      />
                     </div>
                   </div>
                 );
