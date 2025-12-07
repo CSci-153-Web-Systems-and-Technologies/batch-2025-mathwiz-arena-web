@@ -48,7 +48,7 @@ export default async function CreateProblemBankPage() {
             </Link>
 
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

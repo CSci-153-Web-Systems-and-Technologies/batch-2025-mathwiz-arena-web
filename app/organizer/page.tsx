@@ -40,6 +40,16 @@ export default async function OrganizerDashboard() {
     .select("*, competitions!inner(organizer_id)", { count: "exact", head: true })
     .eq("competitions.organizer_id", user.id);
 
+  // Fetch average rating across all competitions
+  const { data: ratingsData } = await supabase
+    .from("competition_ratings")
+    .select("rating, competitions!inner(organizer_id)")
+    .eq("competitions.organizer_id", user.id);
+
+  const averageRating = ratingsData && ratingsData.length > 0
+    ? (ratingsData.reduce((sum, r) => sum + r.rating, 0) / ratingsData.length).toFixed(1)
+    : "0.0";
+
   // Fetch published competitions with details
   const { data: publishedCompetitionsList, error: competitionsError } = await supabase
     .from("competitions")
@@ -144,7 +154,7 @@ export default async function OrganizerDashboard() {
             </Link>
 
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -248,7 +258,7 @@ export default async function OrganizerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Avg. Rating</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">4.8</p>
+                <p className="text-3xl font-bold text-slate-800 mt-1">{averageRating}</p>
               </div>
               <div className="rounded-full bg-slate-100 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,7 +276,7 @@ export default async function OrganizerDashboard() {
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-slate-800">Published Competitions</h2>
-                <Link href="/organizer/create-competition" className="text-sm text-[#f49700] hover:underline">
+                <Link href="/organizer/competition" className="text-sm text-[#f49700] hover:underline">
                   View all
                 </Link>
               </div>
@@ -289,13 +299,13 @@ export default async function OrganizerDashboard() {
                             <p className="text-sm text-slate-600 mt-1">{timeInfo}</p>
                             <div className="mt-2 flex gap-2">
                               <Link
-                                href={`/organizer/create-competition/${competition.id}`}
+                                href={`/organizer/competition/${competition.id}`}
                                 className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
                               >
                                 View Details
                               </Link>
                               <Link
-                                href={`/organizer/create-competition/create?edit=${competition.id}`}
+                                href={`/organizer/competition/create?edit=${competition.id}`}
                                 className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
                               >
                                 Edit
@@ -310,7 +320,7 @@ export default async function OrganizerDashboard() {
                   <div className="text-center py-8">
                     <p className="text-slate-500 mb-4">No published competitions yet</p>
                     <Link
-                      href="/organizer/create-competition/create"
+                      href="/organizer/competition/create"
                       className="inline-block rounded-md bg-[#f49700] px-4 py-2 text-sm text-white hover:bg-[#d68400]"
                     >
                       Create Your First Competition

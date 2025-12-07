@@ -49,7 +49,7 @@ export async function deleteCompetition(competitionId: string) {
   }
 
   // Revalidate the page to reflect the changes
-  revalidatePath("/organizer/create-competition");
+  revalidatePath("/organizer/competition");
 
   return { success: true };
 }

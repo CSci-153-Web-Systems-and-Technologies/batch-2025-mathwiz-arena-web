@@ -90,7 +90,7 @@ export default async function CreateCompetitionPage({
             </Link>
 
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#f49700] rounded-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,7 +143,7 @@ export default async function CreateCompetitionPage({
           {/* Header */}
           <div className="mb-6">
             <Link
-              href="/organizer/create-competition"
+              href="/organizer/competition"
               className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] transition-colors mb-4"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
