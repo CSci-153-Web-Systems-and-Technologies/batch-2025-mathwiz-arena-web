@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import RegisterButton from "./components/RegisterButton";
+import CompetitionCalendar from "./components/CompetitionCalendar";
 
 export default async function MathleteDashboard() {
   const supabase = createClient();
@@ -365,10 +366,10 @@ export default async function MathleteDashboard() {
           </div>
 
           {/* Recent Activity */}
-          <div>
+          <div className="space-y-6">
             <div className="rounded-xl border bg-white p-6 shadow-sm">
               <h2 className="text-lg font-bold text-[#25346A] mb-6 uppercase tracking-wide">Recent Activity</h2>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                 {allActivities.length > 0 ? (
                   allActivities.slice(0, 5).map((activity, index) => (
                     <div key={index} className="flex gap-3">
@@ -395,6 +396,9 @@ export default async function MathleteDashboard() {
                 )}
               </div>
             </div>
+            
+            {/* Competition Calendar */}
+            <CompetitionCalendar competitions={upcomingCompetitions || []} />
           </div>
         </div>
         </div>
