@@ -40,6 +40,75 @@ export default async function OrganizerDashboard() {
     .select("*, competitions!inner(organizer_id)", { count: "exact", head: true })
     .eq("competitions.organizer_id", user.id);
 
+  // Fetch published competitions with details
+  const { data: publishedCompetitionsList, error: competitionsError } = await supabase
+    .from("competitions")
+    .select(`
+      id,
+      name,
+      start_datetime,
+      duration_minutes,
+      status
+    `)
+    .eq("organizer_id", user.id)
+    .eq("status", "published")
+    .order("start_datetime", { ascending: false })
+    .limit(3);
+
+  // Log any errors for debugging
+  if (competitionsError) {
+    console.error("Error fetching competitions:", competitionsError);
+  }
+
+  // Helper function to get competition status badge
+  const getCompetitionStatus = (competition: any) => {
+    const now = new Date();
+    const startTime = new Date(competition.start_datetime);
+    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60000);
+
+    if (now >= startTime && now <= endTime) {
+      return { label: "Live", color: "bg-green-100 text-green-700" };
+    } else if (now < startTime) {
+      return { label: "Upcoming", color: "bg-blue-100 text-blue-700" };
+    } else {
+      return { label: "Ended", color: "bg-slate-200 text-slate-600" };
+    }
+  };
+
+  // Helper function to format time remaining or time until start
+  const getTimeInfo = (competition: any) => {
+    const now = new Date();
+    const startTime = new Date(competition.start_datetime);
+    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60000);
+
+    if (now >= startTime && now <= endTime) {
+      const timeLeft = endTime.getTime() - now.getTime();
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      return `Ends in ${hours}h ${minutes}m`;
+    } else if (now < startTime) {
+      const timeUntil = startTime.getTime() - now.getTime();
+      const days = Math.floor(timeUntil / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeUntil % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      if (days > 0) {
+        return `Starts in ${days} day${days > 1 ? 's' : ''}`;
+      } else {
+        return `Starts in ${hours}h`;
+      }
+    } else {
+      const timeAgo = now.getTime() - endTime.getTime();
+      const days = Math.floor(timeAgo / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeAgo % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      if (days > 0) {
+        return `Ended ${days} day${days > 1 ? 's' : ''} ago`;
+      } else {
+        return `Ended ${hours}h ago`;
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar Navigation */}
@@ -202,65 +271,52 @@ export default async function OrganizerDashboard() {
                 </Link>
               </div>
               <div className="space-y-4">
-                <div className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-800">Weekly Math Sprint #47</h3>
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Live</span>
+                {publishedCompetitionsList && publishedCompetitionsList.length > 0 ? (
+                  publishedCompetitionsList.map((competition) => {
+                    const status = getCompetitionStatus(competition);
+                    const timeInfo = getTimeInfo(competition);
+                    
+                    return (
+                      <div key={competition.id} className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-slate-800">{competition.name}</h3>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color}`}>
+                                {status.label}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-600 mt-1">{timeInfo}</p>
+                            <div className="mt-2 flex gap-2">
+                              <Link
+                                href={`/organizer/create-competition/${competition.id}`}
+                                className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                              >
+                                View Details
+                              </Link>
+                              <Link
+                                href={`/organizer/create-competition/${competition.id}/edit`}
+                                className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                              >
+                                Edit
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-600 mt-1">247 participants • Ends in 3h 24m</p>
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          View Results
-                        </button>
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          Edit
-                        </button>
-                      </div>
-                    </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500 mb-4">No published competitions yet</p>
+                    <Link
+                      href="/organizer/create-competition/create"
+                      className="inline-block rounded-md bg-[#f49700] px-4 py-2 text-sm text-white hover:bg-[#d68400]"
+                    >
+                      Create Your First Competition
+                    </Link>
                   </div>
-                </div>
-
-                <div className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-800">Algebra Challenge</h3>
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Upcoming</span>
-                      </div>
-                      <p className="text-sm text-slate-600 mt-1">89 registered • Starts in 2 days</p>
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          View Details
-                        </button>
-                        <button className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100">
-                          Edit
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border-l-4 border-slate-300 bg-slate-50 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-slate-700">Geometry Masters</h3>
-                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">Draft</span>
-                      </div>
-                      <p className="text-sm text-slate-600 mt-1">Not published yet</p>
-                      <div className="mt-2 flex gap-2">
-                        <button className="rounded-md border border-slate-400 px-3 py-1 text-xs text-slate-600 hover:bg-slate-100">
-                          Continue Editing
-                        </button>
-                        <button className="rounded-md bg-[#f49700] px-3 py-1 text-xs text-white hover:bg-[#d68400]">
-                          Publish
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
