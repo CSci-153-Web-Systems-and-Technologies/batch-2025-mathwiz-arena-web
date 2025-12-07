@@ -21,6 +21,36 @@ export default async function MathleteDashboard() {
 
   const userName = profile?.username || user.user_metadata?.full_name || "Mathlete";
 
+  // Fetch upcoming and ongoing published competitions
+  const now = new Date().toISOString();
+  const { data: allPublishedCompetitions, error: competitionsError } = await supabase
+    .from("competitions")
+    .select(`
+      id,
+      name,
+      description,
+      start_datetime,
+      duration_minutes,
+      participation_type,
+      max_participants,
+      status
+    `)
+    .eq("status", "published")
+    .order("start_datetime", { ascending: true });
+
+  // Log error if any (for debugging RLS issues)
+  if (competitionsError) {
+    console.error("Error fetching competitions:", competitionsError);
+  }
+
+  // Filter competitions that haven't ended yet (upcoming or ongoing)
+  const upcomingCompetitions = allPublishedCompetitions?.filter(competition => {
+    const startTime = new Date(competition.start_datetime);
+    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+    const currentTime = new Date();
+    return endTime > currentTime; // Show if competition hasn't ended
+  }) || [];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
       {/* Sidebar Navigation */}
@@ -97,7 +127,7 @@ export default async function MathleteDashboard() {
           <div className="rounded-xl bg-gradient-to-br from-[#25346A] to-[#2A64d1] p-6 text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm opacity-90">Contest Rank</p>
+                <p className="text-sm opacity-90">Competition Rank</p>
                 <p className="text-3xl font-bold mt-1">#127</p>
               </div>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -133,49 +163,79 @@ export default async function MathleteDashboard() {
 
         {/* Main Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Upcoming Contests */}
+          {/* Join Competitions */}
           <div className="lg:col-span-2">
             <div className="rounded-xl border bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-[#25346A] mb-4">Upcoming Contests</h2>
+              <h2 className="text-xl font-bold text-[#25346A] mb-4">Join Competitions</h2>
               <div className="space-y-4">
-                <div className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[#25346A]">Weekly Challenge #47</h3>
-                      <p className="text-sm text-slate-600 mt-1">Mixed topics • 60 minutes</p>
-                      <p className="text-xs text-slate-500 mt-2">Starts in 2 hours</p>
-                    </div>
-                    <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
-                      Register
-                    </button>
-                  </div>
-                </div>
+                {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
+                  upcomingCompetitions.map((competition) => {
+                    const startTime = new Date(competition.start_datetime);
+                    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+                    const now = new Date();
+                    const timeUntilStart = startTime.getTime() - now.getTime();
+                    const timeUntilEnd = endTime.getTime() - now.getTime();
+                    const hoursUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60));
+                    const daysUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24));
+                    const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
 
-                <div className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[#25346A]">Algebra Sprint</h3>
-                      <p className="text-sm text-slate-600 mt-1">Algebra • 45 minutes</p>
-                      <p className="text-xs text-slate-500 mt-2">Tomorrow, 3:00 PM</p>
-                    </div>
-                    <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
-                      Register
-                    </button>
-                  </div>
-                </div>
+                    let timeText = "";
+                    let statusBadge = null;
+                    const isLive = now >= startTime && now < endTime;
+                    const canRegister = !isLive; // Can only register if competition hasn't started
+                    
+                    if (isLive) {
+                      // Competition is currently live
+                      timeText = `Ends in ${minutesUntilEnd} minute${minutesUntilEnd !== 1 ? 's' : ''}`;
+                      statusBadge = <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Live Now</span>;
+                    } else if (daysUntilStart > 0) {
+                      timeText = `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
+                    } else if (hoursUntilStart > 0) {
+                      timeText = `Starts in ${hoursUntilStart} hour${hoursUntilStart > 1 ? 's' : ''}`;
+                    } else {
+                      timeText = startTime.toLocaleString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                      });
+                    }
 
-                <div className="rounded-lg border-l-4 border-slate-300 bg-slate-50 p-4 opacity-60">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-slate-700">Geometry Masters</h3>
-                      <p className="text-sm text-slate-600 mt-1">Geometry • 90 minutes</p>
-                      <p className="text-xs text-slate-500 mt-2">Dec 15, 2:00 PM</p>
-                    </div>
-                    <button className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600">
-                      Coming Soon
-                    </button>
+                    return (
+                      <div key={competition.id} className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-[#25346A]">{competition.name}</h3>
+                              {statusBadge}
+                            </div>
+                            <p className="text-sm text-slate-600 mt-1">
+                              {competition.participation_type.charAt(0).toUpperCase() + competition.participation_type.slice(1)} • {competition.duration_minutes} minutes
+                            </p>
+                            {competition.description && (
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-2">{competition.description}</p>
+                            )}
+                            <p className="text-xs text-slate-500 mt-2">{timeText}</p>
+                          </div>
+                          {canRegister ? (
+                            <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
+                              Register
+                            </button>
+                          ) : (
+                            <button disabled className="rounded-md bg-slate-300 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">
+                              In Progress
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500">No upcoming competitions at the moment</p>
+                    <p className="text-sm text-slate-400 mt-2">Check back later for new challenges!</p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
