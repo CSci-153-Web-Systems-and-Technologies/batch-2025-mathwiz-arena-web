@@ -21,6 +21,126 @@ export default async function MathleteDashboard() {
 
   const userName = profile?.username || user.user_metadata?.full_name || "Mathlete";
 
+  // Fetch upcoming and ongoing published competitions
+  const now = new Date().toISOString();
+  const { data: allPublishedCompetitions, error: competitionsError } = await supabase
+    .from("competitions")
+    .select(`
+      id,
+      name,
+      description,
+      start_datetime,
+      duration_minutes,
+      participation_type,
+      max_participants,
+      status
+    `)
+    .eq("status", "published")
+    .order("start_datetime", { ascending: true });
+
+  // Log error if any (for debugging RLS issues)
+  if (competitionsError) {
+    console.error("Error fetching competitions:", competitionsError);
+  }
+
+  // Filter competitions that haven't ended yet (upcoming or ongoing)
+  const upcomingCompetitions = allPublishedCompetitions?.filter(competition => {
+    const startTime = new Date(competition.start_datetime);
+    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+    const currentTime = new Date();
+    return endTime > currentTime; // Show if competition hasn't ended
+  }) || [];
+
+  // Fetch recent activity for this mathlete (last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoISO = sevenDaysAgo.toISOString();
+
+  // Get recent registrations
+  const { data: recentRegistrations } = await supabase
+    .from("competition_registrations")
+    .select(`
+      id,
+      registered_at,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("mathlete_id", user.id)
+    .gte("registered_at", sevenDaysAgoISO)
+    .order("registered_at", { ascending: false })
+    .limit(5);
+
+  // Get recent ratings given
+  const { data: recentRatings } = await supabase
+    .from("competition_ratings")
+    .select(`
+      id,
+      created_at,
+      rating,
+      competitions (
+        id,
+        name
+      )
+    `)
+    .eq("mathlete_id", user.id)
+    .gte("created_at", sevenDaysAgoISO)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  // Helper function to format time ago
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 60) {
+      return diffMins <= 1 ? "Just now" : `${diffMins} minutes ago`;
+    } else if (diffHours < 24) {
+      return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+    } else {
+      return diffDays === 1 ? "1 day ago" : `${diffDays} days ago`;
+    }
+  };
+
+  // Combine and sort all activities
+  const allActivities: Array<{
+    type: 'registration' | 'rating';
+    timestamp: string;
+    competitionName: string;
+    rating?: number;
+  }> = [];
+
+  recentRegistrations?.forEach(reg => {
+    const comp = reg.competitions as any;
+    if (comp && comp.name) {
+      allActivities.push({
+        type: 'registration',
+        timestamp: reg.registered_at,
+        competitionName: comp.name,
+      });
+    }
+  });
+
+  recentRatings?.forEach(rating => {
+    const comp = rating.competitions as any;
+    if (comp && comp.name) {
+      allActivities.push({
+        type: 'rating',
+        timestamp: rating.created_at,
+        competitionName: comp.name,
+        rating: rating.rating,
+      });
+    }
+  });
+
+  // Sort by timestamp descending
+  allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
       {/* Sidebar Navigation */}
@@ -92,90 +212,81 @@ export default async function MathleteDashboard() {
             <p className="text-slate-600 mt-1">Ready to solve some problems today?</p>
           </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <div className="rounded-xl bg-gradient-to-br from-[#25346A] to-[#2A64d1] p-6 text-white shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Contest Rank</p>
-                <p className="text-3xl font-bold mt-1">#127</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="rounded-xl border-2 border-[#2A64d1] bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Problems Solved</p>
-                <p className="text-3xl font-bold text-[#25346A] mt-1">234</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#2A64d1] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            </div>
-          </div>
-
-          <div className="rounded-xl border-2 border-[#2A64d1] bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Active Streak</p>
-                <p className="text-3xl font-bold text-[#25346A] mt-1">12 days</p>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#2A64d1] opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
         {/* Main Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Upcoming Contests */}
+          {/* Join Competitions */}
           <div className="lg:col-span-2">
             <div className="rounded-xl border bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-[#25346A] mb-4">Upcoming Contests</h2>
+              <h2 className="text-xl font-bold text-[#25346A] mb-4">Join Competitions</h2>
               <div className="space-y-4">
-                <div className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[#25346A]">Weekly Challenge #47</h3>
-                      <p className="text-sm text-slate-600 mt-1">Mixed topics • 60 minutes</p>
-                      <p className="text-xs text-slate-500 mt-2">Starts in 2 hours</p>
-                    </div>
-                    <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
-                      Register
-                    </button>
-                  </div>
-                </div>
+                {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
+                  upcomingCompetitions.map((competition) => {
+                    const startTime = new Date(competition.start_datetime);
+                    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+                    const now = new Date();
+                    const timeUntilStart = startTime.getTime() - now.getTime();
+                    const timeUntilEnd = endTime.getTime() - now.getTime();
+                    const hoursUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60));
+                    const daysUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24));
+                    const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
 
-                <div className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[#25346A]">Algebra Sprint</h3>
-                      <p className="text-sm text-slate-600 mt-1">Algebra • 45 minutes</p>
-                      <p className="text-xs text-slate-500 mt-2">Tomorrow, 3:00 PM</p>
-                    </div>
-                    <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
-                      Register
-                    </button>
-                  </div>
-                </div>
+                    let timeText = "";
+                    let statusBadge = null;
+                    const isLive = now >= startTime && now < endTime;
+                    const canRegister = !isLive; // Can only register if competition hasn't started
+                    
+                    if (isLive) {
+                      // Competition is currently live
+                      timeText = `Ends in ${minutesUntilEnd} minute${minutesUntilEnd !== 1 ? 's' : ''}`;
+                      statusBadge = <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Live Now</span>;
+                    } else if (daysUntilStart > 0) {
+                      timeText = `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
+                    } else if (hoursUntilStart > 0) {
+                      timeText = `Starts in ${hoursUntilStart} hour${hoursUntilStart > 1 ? 's' : ''}`;
+                    } else {
+                      timeText = startTime.toLocaleString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        hour: 'numeric', 
+                        minute: '2-digit' 
+                      });
+                    }
 
-                <div className="rounded-lg border-l-4 border-slate-300 bg-slate-50 p-4 opacity-60">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-slate-700">Geometry Masters</h3>
-                      <p className="text-sm text-slate-600 mt-1">Geometry • 90 minutes</p>
-                      <p className="text-xs text-slate-500 mt-2">Dec 15, 2:00 PM</p>
-                    </div>
-                    <button className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-600">
-                      Coming Soon
-                    </button>
+                    return (
+                      <div key={competition.id} className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-[#25346A]">{competition.name}</h3>
+                              {statusBadge}
+                            </div>
+                            <p className="text-sm text-slate-600 mt-1">
+                              {competition.participation_type.charAt(0).toUpperCase() + competition.participation_type.slice(1)} • {competition.duration_minutes} minutes
+                            </p>
+                            {competition.description && (
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-2">{competition.description}</p>
+                            )}
+                            <p className="text-xs text-slate-500 mt-2">{timeText}</p>
+                          </div>
+                          {canRegister ? (
+                            <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
+                              Register
+                            </button>
+                          ) : (
+                            <button disabled className="rounded-md bg-slate-300 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">
+                              In Progress
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-slate-500">No upcoming competitions at the moment</p>
+                    <p className="text-sm text-slate-400 mt-2">Check back later for new challenges!</p>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -185,27 +296,30 @@ export default async function MathleteDashboard() {
             <div className="rounded-xl border bg-white p-6 shadow-sm">
               <h2 className="text-xl font-bold text-[#25346A] mb-4">Recent Activity</h2>
               <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-[#25346A]">Completed 5 problems</p>
-                    <p className="text-xs text-slate-500">2 hours ago</p>
+                {allActivities.length > 0 ? (
+                  allActivities.slice(0, 5).map((activity, index) => (
+                    <div key={index} className="flex gap-3">
+                      <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
+                      <div>
+                        {activity.type === 'registration' ? (
+                          <p className="text-sm font-medium text-[#25346A]">
+                            Registered for <span className="font-semibold">{activity.competitionName}</span>
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium text-[#25346A]">
+                            Rated <span className="font-semibold">{activity.competitionName}</span> ({activity.rating}/5 stars)
+                          </p>
+                        )}
+                        <p className="text-xs text-slate-500">{getTimeAgo(activity.timestamp)}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-slate-500">No recent activity</p>
+                    <p className="text-xs text-slate-400 mt-1">Your activity will appear here</p>
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
-                  <div>
-                    <p className="text-sm font-medium text-[#25346A]">Placed #23 in Weekly Challenge</p>
-                    <p className="text-xs text-slate-500">Yesterday</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-slate-300"></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">Earned "Problem Solver" badge</p>
-                    <p className="text-xs text-slate-500">2 days ago</p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
