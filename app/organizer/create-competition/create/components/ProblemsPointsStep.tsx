@@ -110,6 +110,25 @@ export default function ProblemsPointsStep({
     fetchBankProblems();
   }, [selectedBankId]);
 
+  // Update points for selected problems when switching to auto_level or when auto_level points change
+  useEffect(() => {
+    if (formData.pointSystemType === "auto_level" && selectedProblems.length > 0) {
+      const hasInvalidPoints = selectedProblems.some((sp) => {
+        const expectedPoints = getAutoLevelPoints(sp.problem.difficulty);
+        return sp.points !== expectedPoints;
+      });
+      
+      if (hasInvalidPoints) {
+        const updatedProblems = selectedProblems.map((sp) => ({
+          ...sp,
+          points: getAutoLevelPoints(sp.problem.difficulty),
+        }));
+        setSelectedProblems(updatedProblems);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.pointSystemType, formData.easyPoints, formData.averagePoints, formData.difficultPoints]);
+
   const getAutoLevelPoints = (difficulty: string): number => {
     switch (difficulty) {
       case "easy":
