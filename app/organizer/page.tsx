@@ -295,7 +295,7 @@ export default async function OrganizerDashboard() {
                                 View Details
                               </Link>
                               <Link
-                                href={`/organizer/create-competition/${competition.id}/edit`}
+                                href={`/organizer/create-competition/create?edit=${competition.id}`}
                                 className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
                               >
                                 Edit
