@@ -21,6 +21,12 @@ export default async function OrganizerDashboard() {
 
   const userName = profile?.username || user.user_metadata?.full_name || "Organizer";
 
+  // Fetch total competitions count for this organizer
+  const { count: totalContests } = await supabase
+    .from("competitions")
+    .select("*", { count: "exact", head: true })
+    .eq("organizer_id", user.id);
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar Navigation */}
@@ -117,8 +123,8 @@ export default async function OrganizerDashboard() {
           <div className="rounded-xl bg-white border-2 border-[#f49700] p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600">Total Contests</p>
-                <p className="text-3xl font-bold text-[#f49700] mt-1">12</p>
+                <p className="text-sm text-slate-600">Total Competitions</p>
+                <p className="text-3xl font-bold text-[#f49700] mt-1">{totalContests || 0}</p>
               </div>
               <div className="rounded-full bg-[#f49700]/10 p-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,7 +137,7 @@ export default async function OrganizerDashboard() {
           <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600">Active Contests</p>
+                <p className="text-sm text-slate-600">Active Competitions</p>
                 <p className="text-3xl font-bold text-slate-800 mt-1">3</p>
               </div>
               <div className="rounded-full bg-slate-100 p-3">
@@ -173,12 +179,12 @@ export default async function OrganizerDashboard() {
 
         {/* Main Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Active Contests */}
+          {/* Active Competitions */}
           <div className="lg:col-span-2">
             <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-800">Active Contests</h2>
-                <Link href="/organizer/contests" className="text-sm text-[#f49700] hover:underline">
+                <h2 className="text-xl font-bold text-slate-800">Active Competitions</h2>
+                <Link href="/organizer/create-competition" className="text-sm text-[#f49700] hover:underline">
                   View all
                 </Link>
               </div>
@@ -254,7 +260,7 @@ export default async function OrganizerDashboard() {
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#f49700]"></div>
                   <div>
-                    <p className="text-sm font-medium text-slate-800">Contest ended</p>
+                    <p className="text-sm font-medium text-slate-800">Competition ended</p>
                     <p className="text-xs text-slate-500">Weekly Sprint #46 • 2h ago</p>
                   </div>
                 </div>
@@ -268,7 +274,7 @@ export default async function OrganizerDashboard() {
                 <div className="flex gap-3">
                   <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-slate-300"></div>
                   <div>
-                    <p className="text-sm font-medium text-slate-700">Contest created</p>
+                    <p className="text-sm font-medium text-slate-700">Competition created</p>
                     <p className="text-xs text-slate-500">Geometry Masters • Yesterday</p>
                   </div>
                 </div>
@@ -278,7 +284,7 @@ export default async function OrganizerDashboard() {
             <div className="rounded-xl border-2 border-[#f49700] bg-[#f49700]/5 p-6">
               <h3 className="font-semibold text-[#f49700] mb-2">💡 Pro Tip</h3>
               <p className="text-sm text-slate-700">
-                Contests with clear descriptions and sample problems get 40% more participants!
+                Competitions with clear descriptions and sample problems get 40% more participants!
               </p>
             </div>
           </div>
