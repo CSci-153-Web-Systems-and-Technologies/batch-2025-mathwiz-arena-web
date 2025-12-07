@@ -61,6 +61,7 @@ export default async function MathleteDashboard() {
     .from("competition_registrations")
     .select("competition_id, status")
     .eq("mathlete_id", user.id)
+    .eq("status", "registered")
     .in("competition_id", competitionIds);
 
   // Create a map of competition_id -> registration status for quick lookup
@@ -73,21 +74,23 @@ export default async function MathleteDashboard() {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
-  // Get recent registrations
+  // Get recent registrations (both current and withdrawn)
   const { data: recentRegistrations } = await supabase
     .from("competition_registrations")
     .select(`
       id,
       registered_at,
+      status,
+      updated_at,
       competitions (
         id,
         name
       )
     `)
     .eq("mathlete_id", user.id)
-    .gte("registered_at", sevenDaysAgoISO)
+    .or(`registered_at.gte.${sevenDaysAgoISO},updated_at.gte.${sevenDaysAgoISO}`)
     .order("registered_at", { ascending: false })
-    .limit(5);
+    .limit(20);
 
   // Get recent ratings given
   const { data: recentRatings } = await supabase
@@ -126,7 +129,7 @@ export default async function MathleteDashboard() {
 
   // Combine and sort all activities
   const allActivities: Array<{
-    type: 'registration' | 'rating';
+    type: 'registration' | 'rating' | 'withdrawal';
     timestamp: string;
     competitionName: string;
     rating?: number;
@@ -135,11 +138,29 @@ export default async function MathleteDashboard() {
   recentRegistrations?.forEach(reg => {
     const comp = reg.competitions as any;
     if (comp && comp.name) {
-      allActivities.push({
-        type: 'registration',
-        timestamp: reg.registered_at,
-        competitionName: comp.name,
-      });
+      const registeredTime = new Date(reg.registered_at);
+      const sevenDaysAgoDate = new Date(sevenDaysAgoISO);
+      
+      // Add registration activity if it's within the last 7 days
+      if (registeredTime >= sevenDaysAgoDate) {
+        allActivities.push({
+          type: 'registration',
+          timestamp: reg.registered_at,
+          competitionName: comp.name,
+        });
+      }
+      
+      // Add withdrawal activity if status is withdrawn and updated_at is within last 7 days
+      if (reg.status === 'withdrawn' && reg.updated_at) {
+        const updatedTime = new Date(reg.updated_at);
+        if (updatedTime >= sevenDaysAgoDate) {
+          allActivities.push({
+            type: 'withdrawal',
+            timestamp: reg.updated_at,
+            competitionName: comp.name,
+          });
+        }
+      }
     }
   });
 
@@ -340,16 +361,16 @@ export default async function MathleteDashboard() {
                             </svg>
                             <span className="font-medium">{timeText}</span>
                           </div>
-                          {canRegister ? (
-                            <RegisterButton competitionId={competition.id} competitionName={competition.name} />
-                          ) : isRegistered ? (
-                            <button disabled className="rounded-lg bg-blue-100 px-6 py-2.5 text-sm font-semibold text-blue-800 cursor-not-allowed">
-                              Already Registered
-                            </button>
-                          ) : (
+                          {isLive ? (
                             <button disabled className="rounded-lg bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-500 cursor-not-allowed">
                               In Progress
                             </button>
+                          ) : (
+                            <RegisterButton 
+                              competitionId={competition.id} 
+                              competitionName={competition.name}
+                              isRegistered={isRegistered}
+                            />
                           )}
                         </div>
                       </div>
@@ -373,11 +394,17 @@ export default async function MathleteDashboard() {
                 {allActivities.length > 0 ? (
                   allActivities.slice(0, 5).map((activity, index) => (
                     <div key={index} className="flex gap-3">
-                      <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
+                      <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${
+                        activity.type === 'withdrawal' ? 'bg-red-500' : 'bg-[#2A64d1]'
+                      }`}></div>
                       <div>
                         {activity.type === 'registration' ? (
                           <p className="text-sm font-medium text-[#25346A]">
                             Registered for <span className="font-semibold">{activity.competitionName}</span>
+                          </p>
+                        ) : activity.type === 'withdrawal' ? (
+                          <p className="text-sm font-medium text-[#25346A]">
+                            Withdrew from <span className="font-semibold">{activity.competitionName}</span>
                           </p>
                         ) : (
                           <p className="text-sm font-medium text-[#25346A]">
