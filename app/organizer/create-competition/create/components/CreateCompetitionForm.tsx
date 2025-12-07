@@ -236,6 +236,12 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
       const minutes = parseInt(formData.durationMinutes) || 0;
       const totalMinutes = hours * 60 + minutes;
 
+      // For drafts with auto_level, check if points are filled, otherwise use manual to avoid constraint violation
+      const hasAutoLevelPoints = formData.easyPoints && formData.averagePoints && formData.difficultPoints;
+      const effectivePointSystemType = formData.pointSystemType === "auto_level" && !hasAutoLevelPoints && status === "draft"
+        ? "manual"
+        : formData.pointSystemType;
+
       // Create competition payload
       const competitionPayload = {
         organizer_id: user.id,
@@ -250,13 +256,13 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         max_teams: formData.participationType === "team" && formData.hasMaxTeams 
           ? parseInt(formData.maxTeams) 
           : null,
-        max_team_members: formData.participationType === "team" 
+        max_team_members: formData.participationType === "team" && formData.maxTeamMembers
           ? parseInt(formData.maxTeamMembers) 
           : null,
-        point_system_type: formData.pointSystemType,
-        easy_points: formData.pointSystemType === "auto_level" ? parseInt(formData.easyPoints) : null,
-        average_points: formData.pointSystemType === "auto_level" ? parseInt(formData.averagePoints) : null,
-        difficult_points: formData.pointSystemType === "auto_level" ? parseInt(formData.difficultPoints) : null,
+        point_system_type: effectivePointSystemType,
+        easy_points: effectivePointSystemType === "auto_level" && formData.easyPoints ? parseInt(formData.easyPoints) : null,
+        average_points: effectivePointSystemType === "auto_level" && formData.averagePoints ? parseInt(formData.averagePoints) : null,
+        difficult_points: effectivePointSystemType === "auto_level" && formData.difficultPoints ? parseInt(formData.difficultPoints) : null,
         status: status,
       };
 
@@ -303,23 +309,25 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         competition = data;
       }
 
-      // Insert competition problems
-      const problemsToInsert = selectedProblems.map(sp => ({
-        competition_id: competition.id,
-        problem_id: sp.problem.id,
-        points: sp.points,
-        order_index: sp.orderIndex,
-      }));
+      // Insert competition problems (only if there are selected problems)
+      if (selectedProblems.length > 0) {
+        const problemsToInsert = selectedProblems.map(sp => ({
+          competition_id: competition.id,
+          problem_id: sp.problem.id,
+          points: sp.points,
+          order_index: sp.orderIndex,
+        }));
 
-      const { error: problemsError } = await supabase
-        .from("competition_problems")
-        .insert(problemsToInsert);
+        const { error: problemsError } = await supabase
+          .from("competition_problems")
+          .insert(problemsToInsert);
 
-      if (problemsError) {
-        console.error("Error adding problems to competition:", problemsError);
-        setError(`Competition created but failed to add problems: ${problemsError.message}`);
-        setIsLoading(false);
-        return;
+        if (problemsError) {
+          console.error("Error adding problems to competition:", problemsError);
+          setError(`Competition created but failed to add problems: ${problemsError.message}`);
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Success! Redirect to competitions page
