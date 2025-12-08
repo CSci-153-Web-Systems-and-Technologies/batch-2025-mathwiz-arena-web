@@ -3,7 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
-import RegisterButton from "./components/RegisterButton";
+import JoinButton from "./components/JoinButton";
 import CompetitionCalendar from "./components/CompetitionCalendar";
 
 export default async function MathleteDashboard() {
@@ -361,17 +361,11 @@ export default async function MathleteDashboard() {
                             </svg>
                             <span className="font-medium">{timeText}</span>
                           </div>
-                          {isLive ? (
-                            <button disabled className="rounded-lg bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-500 cursor-not-allowed">
-                              In Progress
-                            </button>
-                          ) : (
-                            <RegisterButton 
-                              competitionId={competition.id} 
-                              competitionName={competition.name}
-                              isRegistered={isRegistered}
-                            />
-                          )}
+                          <JoinButton 
+                            competition={competition}
+                            isRegistered={isRegistered}
+                            isLive={isLive}
+                          />
                         </div>
                       </div>
                     );
