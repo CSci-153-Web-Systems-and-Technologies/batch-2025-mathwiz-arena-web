@@ -61,7 +61,7 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
   
   // Add empty cells for days before month starts
   for (let i = 0; i < startingDayOfWeek; i++) {
-    calendarDays.push(<div key={`empty-${i}`} className="h-10"></div>);
+    calendarDays.push(<div key={`empty-${i}`} className="h-8"></div>);
   }
   
   // Add days of the month
@@ -74,24 +74,27 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
     calendarDays.push(
       <div
         key={day}
-        className={`h-10 flex items-center justify-center text-sm rounded-lg relative group cursor-pointer
-          ${isToday ? "bg-[#2A64d1] text-white font-bold" : ""}
-          ${hasCompetition && !isToday ? "bg-[#25346A] text-white font-semibold" : ""}
+        className={`h-8 flex items-center justify-center text-sm rounded-lg relative group cursor-pointer
+          ${isToday && hasCompetition ? "bg-purple-100 text-purple-700 font-bold" : ""}
+          ${isToday && !hasCompetition ? "bg-blue-100 text-blue-700 font-bold" : ""}
+          ${hasCompetition && !isToday ? "bg-red-100 text-red-700 font-semibold" : ""}
           ${!hasCompetition && !isToday ? "text-slate-700 hover:bg-slate-100" : ""}
         `}
         title={hasCompetition ? competitions.map(c => c.name).join(", ") : ""}
       >
         {day}
         {hasCompetition && (
-          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+          <div className={`absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full ${
+            isToday ? "bg-purple-600" : "bg-red-600"
+          }`}></div>
         )}
       </div>
     );
   }
   
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-xl border bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold text-[#25346A] uppercase tracking-wide">Calendar</h2>
         <div className="flex items-center gap-2">
           <button
@@ -119,9 +122,9 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
       </div>
       
       {/* Day labels */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-1 mb-1">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(day => (
-          <div key={day} className="h-8 flex items-center justify-center text-xs font-semibold text-slate-500">
+          <div key={day} className="h-6 flex items-center justify-center text-xs font-semibold text-slate-500">
             {day}
           </div>
         ))}
@@ -133,13 +136,13 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
       </div>
       
       {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-4 text-xs">
+      <div className="mt-3 pt-3 border-t border-slate-200 flex items-center gap-4 text-xs">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-[#2A64d1]"></div>
+          <div className="w-3 h-3 rounded bg-blue-100 border border-blue-300"></div>
           <span className="text-slate-600">Today</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-[#25346A]"></div>
+          <div className="w-3 h-3 rounded bg-red-100 border border-red-300"></div>
           <span className="text-slate-600">Competition</span>
         </div>
       </div>

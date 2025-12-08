@@ -386,11 +386,15 @@ export default async function MathleteDashboard() {
             </div>
           </div>
 
-          {/* Recent Activity */}
+          {/* Calendar and Recent Activity */}
           <div className="space-y-6">
-            <div className="rounded-xl border bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-[#25346A] mb-6 uppercase tracking-wide">Recent Activity</h2>
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            {/* Competition Calendar */}
+            <CompetitionCalendar competitions={upcomingCompetitions || []} />
+            
+            {/* Recent Activity */}
+            <div className="rounded-xl border bg-white p-4 shadow-sm">
+              <h2 className="text-lg font-bold text-[#25346A] mb-4 uppercase tracking-wide">Recent Activity</h2>
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                 {allActivities.length > 0 ? (
                   allActivities.slice(0, 5).map((activity, index) => (
                     <div key={index} className="flex gap-3">
@@ -423,9 +427,6 @@ export default async function MathleteDashboard() {
                 )}
               </div>
             </div>
-            
-            {/* Competition Calendar */}
-            <CompetitionCalendar competitions={upcomingCompetitions || []} />
           </div>
         </div>
         </div>
