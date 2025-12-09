@@ -643,6 +643,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
               hasMaxTeams: formData.hasMaxTeams,
               maxTeams: formData.maxTeams,
               maxTeamMembers: formData.maxTeamMembers,
+              requireFullTeam: formData.requireFullTeam,
             }}
             setFormData={(data) => setFormData({ ...formData, ...data })}
             isLoading={isLoading}

@@ -20,6 +20,12 @@ type Props = {
 };
 
 export default function ParticipationSettingsStep({ formData, setFormData, isLoading }: Props) {
+  const handleTeamSizeChange = (requireFull: boolean) => {
+    console.log('Team size requirement changed to:', requireFull);
+    console.log('Current formData:', formData);
+    setFormData({ ...formData, requireFullTeam: requireFull });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -152,20 +158,23 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               Team Size Requirement
             </Label>
             <div className="space-y-3">
-              <div className="flex items-start gap-3">
+              <div 
+                className="flex items-start gap-3 cursor-pointer"
+                onClick={() => handleTeamSizeChange(false)}
+              >
                 <input
                   type="radio"
                   id="flexibleTeamSize"
                   name="teamSizeRequirement"
                   checked={!formData.requireFullTeam}
-                  onChange={() => setFormData({ ...formData, requireFullTeam: false })}
-                  className="mt-1 w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                  onChange={() => handleTeamSizeChange(false)}
+                  className="mt-1 w-4 h-4 text-[#f49700] focus:ring-[#f49700] cursor-pointer flex-shrink-0"
                   disabled={isLoading}
                 />
                 <div className="flex-1">
-                  <Label htmlFor="flexibleTeamSize" className="text-slate-700 font-medium cursor-pointer">
+                  <div className="text-slate-700 font-medium">
                     Flexible (Recommended)
-                  </Label>
+                  </div>
                   <p className="text-xs text-slate-600 mt-1">
                     Teams can register with <strong>2 or more members</strong> up to the maximum. 
                     Good for competitions where team size flexibility is acceptable.
@@ -173,20 +182,23 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div 
+                className="flex items-start gap-3 cursor-pointer"
+                onClick={() => handleTeamSizeChange(true)}
+              >
                 <input
                   type="radio"
                   id="strictTeamSize"
                   name="teamSizeRequirement"
                   checked={formData.requireFullTeam}
-                  onChange={() => setFormData({ ...formData, requireFullTeam: true })}
-                  className="mt-1 w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                  onChange={() => handleTeamSizeChange(true)}
+                  className="mt-1 w-4 h-4 text-[#f49700] focus:ring-[#f49700] cursor-pointer flex-shrink-0"
                   disabled={isLoading}
                 />
                 <div className="flex-1">
-                  <Label htmlFor="strictTeamSize" className="text-slate-700 font-medium cursor-pointer">
+                  <div className="text-slate-700 font-medium">
                     Strict Full Team
-                  </Label>
+                  </div>
                   <p className="text-xs text-slate-600 mt-1">
                     Teams must have <strong>exactly the maximum number</strong> of members to register. 
                     Use for relay-style or role-based competitions.
