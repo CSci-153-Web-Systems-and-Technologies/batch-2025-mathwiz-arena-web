@@ -12,6 +12,8 @@ interface Competition {
   duration_minutes: number;
   participation_type: string;
   max_participants: number | null;
+  max_team_members?: number | null;
+  require_full_team?: boolean;
 }
 
 interface CompetitionDetailsModalProps {
@@ -228,7 +230,17 @@ export default function CompetitionDetailsModal({
           {/* Team Selection for Team Competitions */}
           {competition.participation_type === "team" && !isRegistered && !isLive && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-slate-700">Select Your Team</h3>
+              <div className="flex items-start justify-between">
+                <h3 className="text-sm font-semibold text-slate-700">Select Your Team</h3>
+                {competition.max_team_members && (
+                  <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
+                    {competition.require_full_team 
+                      ? `Requires exactly ${competition.max_team_members} members`
+                      : `Min 2, Max ${competition.max_team_members} members`
+                    }
+                  </span>
+                )}
+              </div>
               {loadingTeams ? (
                 <div className="p-4 bg-slate-50 rounded-lg text-center text-slate-600">
                   Loading teams...
@@ -240,17 +252,31 @@ export default function CompetitionDetailsModal({
                   </p>
                 </div>
               ) : (
-                <select
-                  value={selectedTeamId}
-                  onChange={(e) => setSelectedTeamId(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25346A] focus:border-transparent"
-                >
-                  {userTeams.map((team) => (
-                    <option key={team.id} value={team.id}>
-                      {team.name} ({team.member_count}/{team.max_members} members)
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    value={selectedTeamId}
+                    onChange={(e) => setSelectedTeamId(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25346A] focus:border-transparent"
+                  >
+                    {userTeams.map((team) => {
+                      const meetsRequirement = competition.require_full_team && competition.max_team_members
+                        ? team.member_count === competition.max_team_members
+                        : team.member_count >= 2;
+                      
+                      return (
+                        <option key={team.id} value={team.id}>
+                          {team.name} ({team.member_count}/{team.max_members} members)
+                          {!meetsRequirement ? ' - Does not meet requirements' : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {competition.require_full_team && competition.max_team_members && (
+                    <p className="text-xs text-slate-600">
+                      ⚠️ This competition requires teams to have exactly {competition.max_team_members} members.
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -35,6 +35,8 @@ export default async function MathleteDashboard() {
       duration_minutes,
       participation_type,
       max_participants,
+      max_team_members,
+      require_full_team,
       status
     `)
     .eq("status", "published")

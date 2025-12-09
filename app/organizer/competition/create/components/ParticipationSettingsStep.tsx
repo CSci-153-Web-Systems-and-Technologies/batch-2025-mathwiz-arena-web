@@ -10,6 +10,7 @@ type FormData = {
   hasMaxTeams: boolean;
   maxTeams: string;
   maxTeamMembers: string;
+  requireFullTeam: boolean;
 };
 
 type Props = {
@@ -143,6 +144,56 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               required
             />
             <p className="text-xs text-slate-500">Minimum 2 members per team</p>
+          </div>
+
+          {/* Team Size Requirement */}
+          <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <Label className="text-slate-700 font-medium">
+              Team Size Requirement
+            </Label>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  id="flexibleTeamSize"
+                  name="teamSizeRequirement"
+                  checked={!formData.requireFullTeam}
+                  onChange={() => setFormData({ ...formData, requireFullTeam: false })}
+                  className="mt-1 w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                  disabled={isLoading}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="flexibleTeamSize" className="text-slate-700 font-medium cursor-pointer">
+                    Flexible (Recommended)
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Teams can register with <strong>2 or more members</strong> up to the maximum. 
+                    Good for competitions where team size flexibility is acceptable.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  id="strictTeamSize"
+                  name="teamSizeRequirement"
+                  checked={formData.requireFullTeam}
+                  onChange={() => setFormData({ ...formData, requireFullTeam: true })}
+                  className="mt-1 w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                  disabled={isLoading}
+                />
+                <div className="flex-1">
+                  <Label htmlFor="strictTeamSize" className="text-slate-700 font-medium cursor-pointer">
+                    Strict Full Team
+                  </Label>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Teams must have <strong>exactly the maximum number</strong> of members to register. 
+                    Use for relay-style or role-based competitions.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Max Teams Checkbox */}

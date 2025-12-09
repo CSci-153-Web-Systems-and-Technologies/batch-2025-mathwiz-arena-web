@@ -19,7 +19,7 @@ export async function registerForCompetition(competitionId: string, teamId?: str
   // Check if the competition exists and is published
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, status, start_datetime, max_participants, participation_type")
+    .select("id, status, start_datetime, max_participants, participation_type, max_team_members, require_full_team")
     .eq("id", competitionId)
     .single();
 
@@ -82,11 +82,30 @@ export async function registerForCompetition(competitionId: string, teamId?: str
       };
     }
 
-    // Check if any team member is already registered for this competition
+    // Get team member count and validate team size requirements
     const { data: teamMemberIds } = await supabase
       .from("team_members")
       .select("mathlete_id")
       .eq("team_id", teamId);
+
+    if (!teamMemberIds || teamMemberIds.length < 2) {
+      return {
+        success: false,
+        error: "Teams must have at least 2 members to register"
+      };
+    }
+
+    // Check if competition requires full team
+    if (competition.require_full_team && competition.max_team_members) {
+      if (teamMemberIds.length < competition.max_team_members) {
+        return {
+          success: false,
+          error: `This competition requires teams to have exactly ${competition.max_team_members} members. Your team has ${teamMemberIds.length} member${teamMemberIds.length !== 1 ? 's' : ''}.`
+        };
+      }
+    }
+
+    // Check if any team member is already registered for this competition
 
     if (teamMemberIds && teamMemberIds.length > 0) {
       const memberIds = teamMemberIds.map(m => m.mathlete_id);
