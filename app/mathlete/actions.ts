@@ -3,7 +3,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function registerForCompetition(competitionId: string) {
+export async function registerForCompetition(competitionId: string, teamId?: string) {
   const supabase = createClient();
   
   // Get the current user
@@ -19,7 +19,7 @@ export async function registerForCompetition(competitionId: string) {
   // Check if the competition exists and is published
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, status, start_datetime, max_participants")
+    .select("id, status, start_datetime, max_participants, participation_type")
     .eq("id", competitionId)
     .single();
 
@@ -34,6 +34,89 @@ export async function registerForCompetition(competitionId: string) {
     return {
       success: false,
       error: "This competition is not available for registration"
+    };
+  }
+
+  // Validate team participation requirements
+  if (competition.participation_type === "team") {
+    if (!teamId) {
+      return {
+        success: false,
+        error: "Team ID is required for team competitions"
+      };
+    }
+
+    // Verify user is the team leader
+    const { data: team, error: teamError } = await supabase
+      .from("teams")
+      .select("id, team_leader_id")
+      .eq("id", teamId)
+      .single();
+
+    if (teamError || !team) {
+      return {
+        success: false,
+        error: "Team not found"
+      };
+    }
+
+    if (team.team_leader_id !== user.id) {
+      return {
+        success: false,
+        error: "Only the team leader can register the team for competitions"
+      };
+    }
+
+    // Verify user is a member of the team (should always be true for leader)
+    const { data: membership, error: membershipError } = await supabase
+      .from("team_members")
+      .select("id")
+      .eq("team_id", teamId)
+      .eq("mathlete_id", user.id)
+      .single();
+
+    if (membershipError || !membership) {
+      return {
+        success: false,
+        error: "You are not a member of this team"
+      };
+    }
+
+    // Check if any team member is already registered for this competition
+    const { data: teamMemberIds } = await supabase
+      .from("team_members")
+      .select("mathlete_id")
+      .eq("team_id", teamId);
+
+    if (teamMemberIds && teamMemberIds.length > 0) {
+      const memberIds = teamMemberIds.map(m => m.mathlete_id);
+      
+      const { data: existingTeamRegistrations, error: teamRegError } = await supabase
+        .from("competition_registrations")
+        .select("mathlete_id")
+        .eq("competition_id", competitionId)
+        .eq("status", "registered")
+        .in("mathlete_id", memberIds);
+
+      if (teamRegError) {
+        return {
+          success: false,
+          error: "Failed to check team registration status"
+        };
+      }
+
+      if (existingTeamRegistrations && existingTeamRegistrations.length > 0) {
+        return {
+          success: false,
+          error: "One or more team members are already registered for this competition"
+        };
+      }
+    }
+  } else if (teamId) {
+    // Individual competition but team ID provided
+    return {
+      success: false,
+      error: "Cannot register with a team for individual competitions"
     };
   }
 
@@ -93,13 +176,20 @@ export async function registerForCompetition(competitionId: string) {
   // If there's an existing withdrawn registration, update it to 'registered'
   if (existingRegistration && existingRegistration.status === "withdrawn") {
     const currentTime = new Date().toISOString();
+    const updateData: any = { 
+      status: "registered",
+      registered_at: currentTime,
+      updated_at: currentTime
+    };
+    
+    // Add team_id for team competitions
+    if (competition.participation_type === "team" && teamId) {
+      updateData.team_id = teamId;
+    }
+    
     const { error: updateError } = await supabase
       .from("competition_registrations")
-      .update({ 
-        status: "registered",
-        registered_at: currentTime,  // Update registered_at to current time for new registration
-        updated_at: currentTime       // Also update updated_at
-      })
+      .update(updateData)
       .eq("id", existingRegistration.id);
 
     if (updateError) {
@@ -109,8 +199,41 @@ export async function registerForCompetition(competitionId: string) {
         error: "Failed to register for the competition. Please try again."
       };
     }
+  } else if (competition.participation_type === "team" && teamId) {
+    // Register all team members for team competition
+    const { data: teamMembers, error: teamMembersError } = await supabase
+      .from("team_members")
+      .select("mathlete_id")
+      .eq("team_id", teamId);
+
+    if (teamMembersError || !teamMembers || teamMembers.length === 0) {
+      return {
+        success: false,
+        error: "Failed to fetch team members"
+      };
+    }
+
+    // Create registration records for all team members
+    const registrations = teamMembers.map(member => ({
+      competition_id: competitionId,
+      mathlete_id: member.mathlete_id,
+      team_id: teamId,
+      status: "registered"
+    }));
+
+    const { error: insertError } = await supabase
+      .from("competition_registrations")
+      .insert(registrations);
+
+    if (insertError) {
+      console.error("Team registration error:", insertError);
+      return {
+        success: false,
+        error: "Failed to register team for the competition. Please try again."
+      };
+    }
   } else {
-    // Register the mathlete with a new record
+    // Register individual mathlete
     const { error: insertError } = await supabase
       .from("competition_registrations")
       .insert({
@@ -133,7 +256,9 @@ export async function registerForCompetition(competitionId: string) {
 
   return {
     success: true,
-    message: "Successfully registered for the competition!"
+    message: competition.participation_type === "team" 
+      ? "Successfully registered your team for the competition!"
+      : "Successfully registered for the competition!"
   };
 }
 
@@ -153,7 +278,7 @@ export async function unregisterFromCompetition(competitionId: string) {
   // Check if the competition exists
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, start_datetime")
+    .select("id, start_datetime, participation_type")
     .eq("id", competitionId)
     .single();
 
@@ -178,7 +303,7 @@ export async function unregisterFromCompetition(competitionId: string) {
   // Check if registered with status 'registered'
   const { data: existingRegistration } = await supabase
     .from("competition_registrations")
-    .select("id, status")
+    .select("id, status, team_id")
     .eq("competition_id", competitionId)
     .eq("mathlete_id", user.id)
     .eq("status", "registered")
@@ -191,23 +316,42 @@ export async function unregisterFromCompetition(competitionId: string) {
     };
   }
 
-  // Update status to 'withdrawn' instead of deleting
-  const { error: updateError } = await supabase
-    .from("competition_registrations")
-    .update({ 
-      status: "withdrawn",
-      updated_at: new Date().toISOString()
-    })
-    .eq("id", existingRegistration.id);
+  // For team competitions, withdraw all team members
+  if (competition.participation_type === "team" && existingRegistration.team_id) {
+    const { error: updateError } = await supabase
+      .from("competition_registrations")
+      .update({ 
+        status: "withdrawn",
+        updated_at: new Date().toISOString()
+      })
+      .eq("competition_id", competitionId)
+      .eq("team_id", existingRegistration.team_id)
+      .eq("status", "registered");
 
-  console.log("Withdrawal update:", { id: existingRegistration.id, updateError });
+    if (updateError) {
+      console.error("Team withdrawal error:", updateError);
+      return {
+        success: false,
+        error: "Failed to withdraw team from the competition. Please try again."
+      };
+    }
+  } else {
+    // Update individual registration status to 'withdrawn'
+    const { error: updateError } = await supabase
+      .from("competition_registrations")
+      .update({ 
+        status: "withdrawn",
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existingRegistration.id);
 
-  if (updateError) {
-    console.error("Unregister error:", updateError);
-    return {
-      success: false,
-      error: "Failed to unregister from the competition. Please try again."
-    };
+    if (updateError) {
+      console.error("Unregister error:", updateError);
+      return {
+        success: false,
+        error: "Failed to unregister from the competition. Please try again."
+      };
+    }
   }
 
   // Revalidate the page to show updated registration status
@@ -215,6 +359,8 @@ export async function unregisterFromCompetition(competitionId: string) {
 
   return {
     success: true,
-    message: "Successfully unregistered from the competition!"
+    message: competition.participation_type === "team"
+      ? "Successfully withdrawn your team from the competition!"
+      : "Successfully unregistered from the competition!"
   };
 }

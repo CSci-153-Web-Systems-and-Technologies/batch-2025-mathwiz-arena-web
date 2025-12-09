@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { registerForCompetition, unregisterFromCompetition } from "../actions";
+import { createClient } from "@/utils/supabase/client";
 
 interface Competition {
   id: string;
@@ -20,6 +21,13 @@ interface CompetitionDetailsModalProps {
   onClose: () => void;
 }
 
+interface Team {
+  id: string;
+  name: string;
+  max_members: number;
+  member_count: number;
+}
+
 export default function CompetitionDetailsModal({
   competition,
   isRegistered,
@@ -29,6 +37,57 @@ export default function CompetitionDetailsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [userTeams, setUserTeams] = useState<Team[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [loadingTeams, setLoadingTeams] = useState(false);
+
+  // Fetch user's teams when modal opens for team competitions
+  useEffect(() => {
+    if (isOpen && competition.participation_type === "team" && !isRegistered) {
+      fetchUserTeams();
+    }
+  }, [isOpen, competition.participation_type, isRegistered]);
+
+  const fetchUserTeams = async () => {
+    setLoadingTeams(true);
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Fetch teams where user is the team leader
+    const { data: teams, error } = await supabase
+      .from("teams")
+      .select("id, name, max_members")
+      .eq("team_leader_id", user.id);
+
+    if (!error && teams) {
+      // Get member count for each team
+      const teamsWithCounts = await Promise.all(
+        teams.map(async (team: any) => {
+          const { count } = await supabase
+            .from("team_members")
+            .select("*", { count: "exact", head: true })
+            .eq("team_id", team.id);
+
+          return {
+            id: team.id,
+            name: team.name,
+            max_members: team.max_members,
+            member_count: count || 0,
+          };
+        })
+      );
+
+      setUserTeams(teamsWithCounts);
+      // Auto-select first team if available
+      if (teamsWithCounts.length > 0) {
+        setSelectedTeamId(teamsWithCounts[0].id);
+      }
+    }
+
+    setLoadingTeams(false);
+  };
 
   if (!isOpen) return null;
 
@@ -38,11 +97,20 @@ export default function CompetitionDetailsModal({
   const isLive = now >= startTime && now < endTime;
 
   const handleRegister = async () => {
+    // Validate team selection for team competitions
+    if (competition.participation_type === "team" && !selectedTeamId) {
+      setMessage({ type: "error", text: "Please select a team" });
+      return;
+    }
+
     setIsLoading(true);
     setMessage(null);
 
     try {
-      const result = await registerForCompetition(competition.id);
+      const result = await registerForCompetition(
+        competition.id,
+        competition.participation_type === "team" ? selectedTeamId : undefined
+      );
 
       if (result.success) {
         setMessage({ type: "success", text: result.message || "Successfully registered!" });
@@ -157,6 +225,36 @@ export default function CompetitionDetailsModal({
             </div>
           </div>
 
+          {/* Team Selection for Team Competitions */}
+          {competition.participation_type === "team" && !isRegistered && !isLive && (
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-slate-700">Select Your Team</h3>
+              {loadingTeams ? (
+                <div className="p-4 bg-slate-50 rounded-lg text-center text-slate-600">
+                  Loading teams...
+                </div>
+              ) : userTeams.length === 0 ? (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    You are not a team leader. Only team leaders can register their teams for competitions.
+                  </p>
+                </div>
+              ) : (
+                <select
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25346A] focus:border-transparent"
+                >
+                  {userTeams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name} ({team.member_count}/{team.max_members} members)
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
           {/* Message Display */}
           {message && (
             <div
@@ -209,8 +307,8 @@ export default function CompetitionDetailsModal({
             ) : (
               <button
                 onClick={handleRegister}
-                disabled={isLoading}
-                className="px-6 py-2.5 text-sm font-semibold text-white bg-[#25346A] hover:bg-[#2A64d1] rounded-lg transition-colors disabled:opacity-50"
+                disabled={isLoading || (competition.participation_type === "team" && userTeams.length === 0)}
+                className="px-6 py-2.5 text-sm font-semibold text-white bg-[#25346A] hover:bg-[#2A64d1] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Registering..." : "Register Now"}
               </button>
