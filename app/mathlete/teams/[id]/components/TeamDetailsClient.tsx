@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import InviteMemberModal from "../../components/InviteMemberModal";
+import { leaveTeam, removeMember } from "../../actions";
 
 interface Team {
   id: string;
@@ -39,6 +41,42 @@ export default function TeamDetailsClient({
   userId 
 }: TeamDetailsClientProps) {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleLeaveTeam = async () => {
+    setError("");
+    setIsProcessing(true);
+
+    const result = await leaveTeam(team.id);
+
+    if (result.success) {
+      router.push("/mathlete/teams");
+      router.refresh();
+    } else {
+      setError(result.error || "Failed to leave team");
+      setIsProcessing(false);
+      setShowLeaveConfirm(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    setError("");
+    setIsProcessing(true);
+
+    const result = await removeMember(team.id, memberId);
+
+    if (result.success) {
+      router.refresh();
+      setShowRemoveConfirm(null);
+    } else {
+      setError(result.error || "Failed to remove member");
+    }
+    setIsProcessing(false);
+  };
 
   return (
     <>
@@ -140,7 +178,10 @@ export default function TeamDetailsClient({
                     </div>
 
                     {isLeader && member.role !== 'leader' && (
-                      <button className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => setShowRemoveConfirm(member.profile?.id || "")}
+                        className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
                         Remove
                       </button>
                     )}
@@ -159,9 +200,19 @@ export default function TeamDetailsClient({
           {/* Leave Team Button for non-leaders */}
           {!isLeader && (
             <div className="mt-6 flex justify-end">
-              <button className="px-6 py-3 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors">
+              <button 
+                onClick={() => setShowLeaveConfirm(true)}
+                className="px-6 py-3 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors"
+              >
                 Leave Team
               </button>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
             </div>
           )}
         </div>
@@ -173,6 +224,62 @@ export default function TeamDetailsClient({
         teamId={team.id}
         teamName={team.name}
       />
+
+      {/* Leave Team Confirmation Dialog */}
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Leave Team?</h3>
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to leave <strong>{team.name}</strong>? You'll need to be invited again to rejoin.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                disabled={isProcessing}
+                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLeaveTeam}
+                disabled={isProcessing}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isProcessing ? "Leaving..." : "Leave Team"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Member Confirmation Dialog */}
+      {showRemoveConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Remove Member?</h3>
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to remove this member from the team? They'll need to be invited again to rejoin.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowRemoveConfirm(null)}
+                disabled={isProcessing}
+                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRemoveMember(showRemoveConfirm)}
+                disabled={isProcessing}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isProcessing ? "Removing..." : "Remove Member"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

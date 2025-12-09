@@ -272,3 +272,105 @@ export async function rejectTeamInvitation(invitationId: string) {
   revalidatePath("/mathlete/notifications");
   return { success: true };
 }
+
+export async function leaveTeam(teamId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "User not authenticated" };
+  }
+
+  // Check if user is a member of this team
+  const { data: membership } = await supabase
+    .from("team_members")
+    .select("id, role")
+    .eq("team_id", teamId)
+    .eq("mathlete_id", user.id)
+    .maybeSingle();
+
+  if (!membership) {
+    return { success: false, error: "You are not a member of this team" };
+  }
+
+  // Prevent team leader from leaving
+  if (membership.role === "leader") {
+    return { success: false, error: "Team leader cannot leave the team. You must transfer leadership or delete the team." };
+  }
+
+  // Remove the member from the team
+  const { error: deleteError } = await supabase
+    .from("team_members")
+    .delete()
+    .eq("id", membership.id);
+
+  if (deleteError) {
+    console.error("Error leaving team:", deleteError);
+    return { success: false, error: "Failed to leave team" };
+  }
+
+  revalidatePath("/mathlete/teams");
+  revalidatePath(`/mathlete/teams/${teamId}`);
+  return { success: true };
+}
+
+export async function removeMember(teamId: string, memberId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "User not authenticated" };
+  }
+
+  // Verify the user is the team leader
+  const { data: team } = await supabase
+    .from("teams")
+    .select("team_leader_id")
+    .eq("id", teamId)
+    .single();
+
+  if (!team) {
+    return { success: false, error: "Team not found" };
+  }
+
+  if (team.team_leader_id !== user.id) {
+    return { success: false, error: "Only team leader can remove members" };
+  }
+
+  // Get the member to be removed
+  const { data: memberToRemove } = await supabase
+    .from("team_members")
+    .select("id, role, mathlete_id")
+    .eq("id", memberId)
+    .eq("team_id", teamId)
+    .maybeSingle();
+
+  if (!memberToRemove) {
+    return { success: false, error: "Member not found" };
+  }
+
+  // Prevent removing the team leader
+  if (memberToRemove.role === "leader") {
+    return { success: false, error: "Cannot remove team leader" };
+  }
+
+  // Remove the member
+  const { error: deleteError } = await supabase
+    .from("team_members")
+    .delete()
+    .eq("id", memberId);
+
+  if (deleteError) {
+    console.error("Error removing member:", deleteError);
+    return { success: false, error: "Failed to remove member" };
+  }
+
+  revalidatePath(`/mathlete/teams/${teamId}`);
+  return { success: true };
+}
