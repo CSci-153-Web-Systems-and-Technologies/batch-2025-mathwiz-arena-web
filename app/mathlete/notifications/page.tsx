@@ -94,5 +94,8 @@ export default async function NotificationsPage() {
     invitee: resp.invitee
   })) || [];
 
-  return <NotificationsClient invitations={pendingInvitations} responses={invitationResponses} />;
+  // Calculate total notification count
+  const notificationCount = pendingInvitations.length + invitationResponses.length;
+
+  return <NotificationsClient invitations={pendingInvitations} responses={invitationResponses} notificationCount={notificationCount} />;
 }

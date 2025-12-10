@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { acceptTeamInvitation, rejectTeamInvitation, markResponseAsRead } from "../../teams/actions";
+import MathleteSidebar from "@/app/mathlete/components/MathleteSidebar";
 
 interface Invitation {
   id: string;
@@ -41,9 +42,10 @@ interface Response {
 interface NotificationsClientProps {
   invitations: Invitation[];
   responses: Response[];
+  notificationCount: number;
 }
 
-export default function NotificationsClient({ invitations, responses }: NotificationsClientProps) {
+export default function NotificationsClient({ invitations, responses, notificationCount }: NotificationsClientProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -85,23 +87,27 @@ export default function NotificationsClient({ invitations, responses }: Notifica
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link
-            href="/mathlete"
-            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-[#25346A]">Notifications</h1>
-          <p className="text-slate-600 mt-1">Stay updated with your team invitations and activities</p>
-        </div>
-      </div>
+    <>
+      <div className="flex min-h-screen bg-slate-50">
+        <MathleteSidebar notificationCount={notificationCount} />
+        
+        <main className="flex-1 ml-64">
+          {/* Header */}
+          <div className="bg-white border-b border-slate-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <Link
+                href="/mathlete"
+                className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+              </Link>
+              <h1 className="text-3xl font-bold text-[#25346A]">Notifications</h1>
+              <p className="text-slate-600 mt-1">Stay updated with your team invitations and activities</p>
+            </div>
+          </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -248,6 +254,8 @@ export default function NotificationsClient({ invitations, responses }: Notifica
           </div>
         )}
       </div>
+      </main>
     </div>
+    </>
   );
 }
