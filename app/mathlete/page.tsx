@@ -181,12 +181,21 @@ export default async function MathleteDashboard() {
   // Sort by timestamp descending
   allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  // Fetch unread notifications count
-  const { count: notificationCount } = await supabase
+  // Fetch notification count (pending invitations + unread responses)
+  const { count: pendingInvites } = await supabase
     .from("team_invitations")
     .select("*", { count: "exact", head: true })
     .eq("invitee_id", user.id)
     .eq("status", "pending");
+
+  const { count: unreadResponses } = await supabase
+    .from("team_invitations")
+    .select("*", { count: "exact", head: true })
+    .eq("inviter_id", user.id)
+    .in("status", ["accepted", "rejected"])
+    .eq("inviter_notified", false);
+
+  const notificationCount = (pendingInvites || 0) + (unreadResponses || 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
