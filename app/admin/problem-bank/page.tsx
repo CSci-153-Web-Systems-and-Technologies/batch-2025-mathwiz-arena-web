@@ -34,6 +34,12 @@ export default async function AdminProblemBankPage() {
     `)
         .order("created_at", { ascending: false });
 
+    // Debug logging
+    console.log('Admin Problem Banks Query:');
+    console.log('Error:', error);
+    console.log('Problem Banks:', problemBanks);
+    console.log('Count:', problemBanks?.length || 0);
+
     return (
         <div className="min-h-screen bg-slate-50 flex">
             {/* Sidebar Navigation */}
