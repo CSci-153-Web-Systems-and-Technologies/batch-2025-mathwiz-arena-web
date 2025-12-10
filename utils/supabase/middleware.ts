@@ -83,14 +83,21 @@ export async function updateSession(request: NextRequest) {
 
     console.log(`[Middleware] Path: ${pathname}, User: ${user.id}, Profile:`, profile, 'Error:', profileError)
 
-    // If no profile exists, redirect to complete profile
+    // If no profile exists, redirect to role selection
     if (!profile) {
       const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/signup/complete-profile'
+      redirectUrl.pathname = '/signup/select-role'
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Redirect to complete profile if not completed
+    // If profile exists but no role selected, redirect to role selection
+    if (!profile.role) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/signup/select-role'
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Redirect to complete profile if not completed (after role is selected)
     if (!profile?.profile_completed) {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/signup/complete-profile'
@@ -99,7 +106,7 @@ export async function updateSession(request: NextRequest) {
 
     // Role-based access control
     const userRole = profile.role
-    
+
     // Check if user is accessing the correct role route
     if (pathname.startsWith('/mathlete') && userRole !== 'mathlete') {
       console.log(`[Middleware] Access denied: User role '${userRole}' trying to access /mathlete`)
