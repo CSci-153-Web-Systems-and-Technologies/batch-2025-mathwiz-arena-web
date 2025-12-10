@@ -3,6 +3,8 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
+import JoinButton from "./components/JoinButton";
+import CompetitionCalendar from "./components/CompetitionCalendar";
 
 export default async function MathleteDashboard() {
   const supabase = createClient();
@@ -33,6 +35,8 @@ export default async function MathleteDashboard() {
       duration_minutes,
       participation_type,
       max_participants,
+      max_team_members,
+      require_full_team,
       status
     `)
     .eq("status", "published")
@@ -51,26 +55,44 @@ export default async function MathleteDashboard() {
     return endTime > currentTime; // Show if competition hasn't ended
   }) || [];
 
+  // Get competition IDs to check registration status
+  const competitionIds = upcomingCompetitions.map(comp => comp.id);
+
+  // Check if mathlete is already registered for any of these competitions
+  const { data: existingRegistrations } = await supabase
+    .from("competition_registrations")
+    .select("competition_id, status")
+    .eq("mathlete_id", user.id)
+    .eq("status", "registered")
+    .in("competition_id", competitionIds);
+
+  // Create a map of competition_id -> registration status for quick lookup
+  const registrationMap = new Map(
+    existingRegistrations?.map(reg => [reg.competition_id, reg.status]) || []
+  );
+
   // Fetch recent activity for this mathlete (last 7 days)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoISO = sevenDaysAgo.toISOString();
 
-  // Get recent registrations
+  // Get recent registrations (both current and withdrawn)
   const { data: recentRegistrations } = await supabase
     .from("competition_registrations")
     .select(`
       id,
       registered_at,
+      status,
+      updated_at,
       competitions (
         id,
         name
       )
     `)
     .eq("mathlete_id", user.id)
-    .gte("registered_at", sevenDaysAgoISO)
+    .or(`registered_at.gte.${sevenDaysAgoISO},updated_at.gte.${sevenDaysAgoISO}`)
     .order("registered_at", { ascending: false })
-    .limit(5);
+    .limit(20);
 
   // Get recent ratings given
   const { data: recentRatings } = await supabase
@@ -109,7 +131,7 @@ export default async function MathleteDashboard() {
 
   // Combine and sort all activities
   const allActivities: Array<{
-    type: 'registration' | 'rating';
+    type: 'registration' | 'rating' | 'withdrawal';
     timestamp: string;
     competitionName: string;
     rating?: number;
@@ -118,11 +140,29 @@ export default async function MathleteDashboard() {
   recentRegistrations?.forEach(reg => {
     const comp = reg.competitions as any;
     if (comp && comp.name) {
-      allActivities.push({
-        type: 'registration',
-        timestamp: reg.registered_at,
-        competitionName: comp.name,
-      });
+      const registeredTime = new Date(reg.registered_at);
+      const sevenDaysAgoDate = new Date(sevenDaysAgoISO);
+      
+      // Add registration activity if it's within the last 7 days
+      if (registeredTime >= sevenDaysAgoDate) {
+        allActivities.push({
+          type: 'registration',
+          timestamp: reg.registered_at,
+          competitionName: comp.name,
+        });
+      }
+      
+      // Add withdrawal activity if status is withdrawn and updated_at is within last 7 days
+      if (reg.status === 'withdrawn' && reg.updated_at) {
+        const updatedTime = new Date(reg.updated_at);
+        if (updatedTime >= sevenDaysAgoDate) {
+          allActivities.push({
+            type: 'withdrawal',
+            timestamp: reg.updated_at,
+            competitionName: comp.name,
+          });
+        }
+      }
     }
   });
 
@@ -140,6 +180,13 @@ export default async function MathleteDashboard() {
 
   // Sort by timestamp descending
   allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  // Fetch unread notifications count
+  const { count: notificationCount } = await supabase
+    .from("team_invitations")
+    .select("*", { count: "exact", head: true })
+    .eq("invitee_id", user.id)
+    .eq("status", "pending");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
@@ -173,6 +220,31 @@ export default async function MathleteDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Profile
+            </Link>
+
+            <Link
+              href="/mathlete/teams"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Teams
+            </Link>
+
+            <Link
+              href="/mathlete/notifications"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors relative"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="flex-1">Notifications</span>
+              {notificationCount !== null && notificationCount > 0 && (
+                <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              )}
             </Link>
 
             <Link
@@ -216,8 +288,28 @@ export default async function MathleteDashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Join Competitions */}
           <div className="lg:col-span-2">
-            <div className="rounded-xl border bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-[#25346A] mb-4">Join Competitions</h2>
+            <div>
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="relative">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search competitions..."
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#2A64d1] focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <h2 className="text-lg font-bold text-[#25346A] mb-6 uppercase tracking-wide">Join Competitions</h2>
               <div className="space-y-4">
                 {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
                   upcomingCompetitions.map((competition) => {
@@ -233,7 +325,8 @@ export default async function MathleteDashboard() {
                     let timeText = "";
                     let statusBadge = null;
                     const isLive = now >= startTime && now < endTime;
-                    const canRegister = !isLive; // Can only register if competition hasn't started
+                    const isRegistered = registrationMap.has(competition.id);
+                    const canRegister = !isLive && !isRegistered; // Can only register if competition hasn't started and not already registered
                     
                     if (isLive) {
                       // Competition is currently live
@@ -253,30 +346,60 @@ export default async function MathleteDashboard() {
                     }
 
                     return (
-                      <div key={competition.id} className="rounded-lg border-l-4 border-[#2A64d1] bg-[#2A64d1]/5 p-4">
-                        <div className="flex items-start justify-between">
+                      <div key={competition.id} className="rounded-xl border bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                        {/* Header with status badge */}
+                        <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-[#25346A]">{competition.name}</h3>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-lg font-semibold text-[#25346A]">{competition.name}</h3>
                               {statusBadge}
+                              {isRegistered && !isLive && (
+                                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Registered</span>
+                              )}
                             </div>
-                            <p className="text-sm text-slate-600 mt-1">
-                              {competition.participation_type.charAt(0).toUpperCase() + competition.participation_type.slice(1)} • {competition.duration_minutes} minutes
-                            </p>
-                            {competition.description && (
-                              <p className="text-xs text-slate-500 mt-1 line-clamp-2">{competition.description}</p>
-                            )}
-                            <p className="text-xs text-slate-500 mt-2">{timeText}</p>
+                            <div className="flex items-center gap-4 text-sm text-slate-600">
+                              <span className="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                {competition.participation_type.charAt(0).toUpperCase() + competition.participation_type.slice(1)}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {competition.duration_minutes} minutes
+                              </span>
+                              {competition.max_participants && (
+                                <span className="flex items-center gap-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                  </svg>
+                                  Max {competition.max_participants} participants
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          {canRegister ? (
-                            <button className="rounded-md bg-[#25346A] px-4 py-2 text-sm text-white hover:bg-[#2A64d1]">
-                              Register
-                            </button>
-                          ) : (
-                            <button disabled className="rounded-md bg-slate-300 px-4 py-2 text-sm text-slate-500 cursor-not-allowed">
-                              In Progress
-                            </button>
-                          )}
+                        </div>
+
+                        {/* Description */}
+                        {competition.description && (
+                          <p className="text-slate-600 mb-4 leading-relaxed">{competition.description}</p>
+                        )}
+
+                        {/* Footer with time and action */}
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="font-medium">{timeText}</span>
+                          </div>
+                          <JoinButton 
+                            competition={competition}
+                            isRegistered={isRegistered}
+                            isLive={isLive}
+                          />
                         </div>
                       </div>
                     );
@@ -291,19 +414,29 @@ export default async function MathleteDashboard() {
             </div>
           </div>
 
-          {/* Recent Activity */}
-          <div>
-            <div className="rounded-xl border bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-[#25346A] mb-4">Recent Activity</h2>
-              <div className="space-y-4">
+          {/* Calendar and Recent Activity */}
+          <div className="space-y-6">
+            {/* Competition Calendar */}
+            <CompetitionCalendar competitions={upcomingCompetitions || []} />
+            
+            {/* Recent Activity */}
+            <div className="rounded-xl border bg-white p-4 shadow-sm">
+              <h2 className="text-lg font-bold text-[#25346A] mb-4 uppercase tracking-wide">Recent Activity</h2>
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                 {allActivities.length > 0 ? (
                   allActivities.slice(0, 5).map((activity, index) => (
                     <div key={index} className="flex gap-3">
-                      <div className="flex-shrink-0 w-2 h-2 mt-2 rounded-full bg-[#2A64d1]"></div>
+                      <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${
+                        activity.type === 'withdrawal' ? 'bg-red-500' : 'bg-[#2A64d1]'
+                      }`}></div>
                       <div>
                         {activity.type === 'registration' ? (
                           <p className="text-sm font-medium text-[#25346A]">
                             Registered for <span className="font-semibold">{activity.competitionName}</span>
+                          </p>
+                        ) : activity.type === 'withdrawal' ? (
+                          <p className="text-sm font-medium text-[#25346A]">
+                            Withdrew from <span className="font-semibold">{activity.competitionName}</span>
                           </p>
                         ) : (
                           <p className="text-sm font-medium text-[#25346A]">

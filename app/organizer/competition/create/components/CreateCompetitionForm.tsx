@@ -75,6 +75,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     hasMaxTeams: false,
     maxTeams: "",
     maxTeamMembers: "",
+    requireFullTeam: false,
     pointSystemType: "auto_level" as "auto_level" | "manual",
     easyPoints: "",
     averagePoints: "",
@@ -101,6 +102,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         hasMaxTeams: competitionData.max_teams !== null,
         maxTeams: competitionData.max_teams?.toString() || "",
         maxTeamMembers: competitionData.max_team_members?.toString() || "",
+        requireFullTeam: (competitionData as any).require_full_team || false,
         pointSystemType: competitionData.point_system_type,
         easyPoints: competitionData.easy_points?.toString() || "",
         averagePoints: competitionData.average_points?.toString() || "",
@@ -259,6 +261,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         max_team_members: formData.participationType === "team" && formData.maxTeamMembers
           ? parseInt(formData.maxTeamMembers) 
           : null,
+        require_full_team: formData.participationType === "team" ? formData.requireFullTeam : false,
         point_system_type: effectivePointSystemType,
         easy_points: effectivePointSystemType === "auto_level" && formData.easyPoints ? parseInt(formData.easyPoints) : null,
         average_points: effectivePointSystemType === "auto_level" && formData.averagePoints ? parseInt(formData.averagePoints) : null,
@@ -640,6 +643,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
               hasMaxTeams: formData.hasMaxTeams,
               maxTeams: formData.maxTeams,
               maxTeamMembers: formData.maxTeamMembers,
+              requireFullTeam: formData.requireFullTeam,
             }}
             setFormData={(data) => setFormData({ ...formData, ...data })}
             isLoading={isLoading}

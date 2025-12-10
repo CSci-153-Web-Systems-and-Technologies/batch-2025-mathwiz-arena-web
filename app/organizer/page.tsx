@@ -38,7 +38,8 @@ export default async function OrganizerDashboard() {
   const { count: totalParticipants } = await supabase
     .from("competition_registrations")
     .select("*, competitions!inner(organizer_id)", { count: "exact", head: true })
-    .eq("competitions.organizer_id", user.id);
+    .eq("competitions.organizer_id", user.id)
+    .eq("status", "registered");
 
   // Fetch average rating across all competitions
   const { data: ratingsData } = await supabase
@@ -66,12 +67,14 @@ export default async function OrganizerDashboard() {
     .select(`
       registered_at,
       competition_id,
+      status,
       competitions (
         id,
         name
       )
     `)
     .eq("competitions.organizer_id", user.id)
+    .eq("status", "registered")
     .gte("registered_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
     .order("registered_at", { ascending: false })
     .limit(10);
