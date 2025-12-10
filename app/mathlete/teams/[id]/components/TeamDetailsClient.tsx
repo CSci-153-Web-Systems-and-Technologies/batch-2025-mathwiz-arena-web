@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import InviteMemberModal from "../../components/InviteMemberModal";
-import { leaveTeam, removeMember } from "../../actions";
+import { leaveTeam, removeMember, deleteTeam } from "../../actions";
+import MathleteSidebar from "@/app/mathlete/components/MathleteSidebar";
 
 interface Team {
   id: string;
@@ -31,6 +32,7 @@ interface TeamDetailsClientProps {
   currentMemberCount: number;
   isLeader: boolean;
   userId: string;
+  notificationCount: number;
 }
 
 export default function TeamDetailsClient({ 
@@ -38,11 +40,13 @@ export default function TeamDetailsClient({
   membersList, 
   currentMemberCount, 
   isLeader,
-  userId 
+  userId,
+  notificationCount
 }: TeamDetailsClientProps) {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -78,26 +82,45 @@ export default function TeamDetailsClient({
     setIsProcessing(false);
   };
 
+  const handleDeleteTeam = async () => {
+    setError("");
+    setIsProcessing(true);
+
+    const result = await deleteTeam(team.id);
+
+    if (result.success) {
+      router.push("/mathlete/teams");
+      router.refresh();
+    } else {
+      setError(result.error || "Failed to delete team");
+      setIsProcessing(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <>
-      <div className="min-h-screen bg-slate-50">
-        {/* Header */}
-        <div className="bg-white border-b border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <Link
-              href="/mathlete/teams"
-              className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-4"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Teams
-            </Link>
+      <div className="flex min-h-screen bg-slate-50">
+        <MathleteSidebar notificationCount={notificationCount} />
+        
+        <main className="flex-1 ml-64">
+          {/* Header */}
+          <div className="bg-white border-b border-slate-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <Link
+                href="/mathlete/teams"
+                className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-4"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Teams
+              </Link>
 
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-[#25346A] mb-2">{team.name}</h1>
-                <div className="flex items-center gap-4 text-sm text-slate-600">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-[#25346A] mb-2">{team.name}</h1>
+                  <div className="flex items-center gap-4 text-sm text-slate-600">
                   <div className="flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -119,12 +142,20 @@ export default function TeamDetailsClient({
               </div>
 
               {isLeader && (
-                <button
-                  onClick={() => setIsInviteModalOpen(true)}
-                  className="px-6 py-3 bg-[#25346A] text-white font-semibold rounded-lg hover:bg-[#2A64d1] transition-colors"
-                >
-                  Invite Members
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="px-6 py-3 bg-[#25346A] text-white font-semibold rounded-lg hover:bg-[#2A64d1] transition-colors"
+                  >
+                    Invite Members
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="px-6 py-3 border border-red-300 text-red-600 font-semibold rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    Delete Team
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -216,6 +247,7 @@ export default function TeamDetailsClient({
             </div>
           )}
         </div>
+        </main>
       </div>
 
       <InviteMemberModal 
@@ -275,6 +307,34 @@ export default function TeamDetailsClient({
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {isProcessing ? "Removing..." : "Remove Member"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Team Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Delete Team?</h3>
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to delete <strong>{team.name}</strong>? This action cannot be undone. All team members will be removed and any pending invitations will be cancelled.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isProcessing}
+                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteTeam}
+                disabled={isProcessing}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isProcessing ? "Deleting..." : "Delete Team"}
               </button>
             </div>
           </div>

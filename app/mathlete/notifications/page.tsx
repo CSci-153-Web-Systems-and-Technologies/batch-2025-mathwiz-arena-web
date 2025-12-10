@@ -10,6 +10,8 @@ export default async function NotificationsPage() {
     redirect("/login");
   }
 
+  console.log("Notifications page - User ID:", user.id);
+
   // Fetch pending team invitations
   const { data: invitations, error: invitationsError } = await supabase
     .from("team_invitations")
@@ -17,6 +19,8 @@ export default async function NotificationsPage() {
       id,
       created_at,
       status,
+      invitee_id,
+      inviter_id,
       teams (
         id,
         name,
@@ -31,6 +35,9 @@ export default async function NotificationsPage() {
     .eq("invitee_id", user.id)
     .eq("status", "pending")
     .order("created_at", { ascending: false });
+
+  console.log("Invitations query result:", invitations);
+  console.log("Invitations count:", invitations?.length || 0);
 
   if (invitationsError) {
     console.error("Error fetching invitations:", invitationsError);
