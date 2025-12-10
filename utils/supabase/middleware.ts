@@ -61,7 +61,7 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Define protected routes
-  const protectedRoutes = ['/mathlete', '/organizer']
+  const protectedRoutes = ['/mathlete', '/organizer', '/admin']
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
   // If accessing a protected route
@@ -111,7 +111,13 @@ export async function updateSession(request: NextRequest) {
     if (pathname.startsWith('/mathlete') && userRole !== 'mathlete') {
       console.log(`[Middleware] Access denied: User role '${userRole}' trying to access /mathlete`)
       const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = userRole === 'organizer' ? '/organizer' : '/error'
+      if (userRole === 'organizer') {
+        redirectUrl.pathname = '/organizer'
+      } else if (userRole === 'admin') {
+        redirectUrl.pathname = '/admin'
+      } else {
+        redirectUrl.pathname = '/error'
+      }
       redirectUrl.searchParams.set('message', 'You do not have access to this page.')
       return NextResponse.redirect(redirectUrl)
     }
@@ -119,7 +125,27 @@ export async function updateSession(request: NextRequest) {
     if (pathname.startsWith('/organizer') && userRole !== 'organizer') {
       console.log(`[Middleware] Access denied: User role '${userRole}' trying to access /organizer`)
       const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = userRole === 'mathlete' ? '/mathlete' : '/error'
+      if (userRole === 'mathlete') {
+        redirectUrl.pathname = '/mathlete'
+      } else if (userRole === 'admin') {
+        redirectUrl.pathname = '/admin'
+      } else {
+        redirectUrl.pathname = '/error'
+      }
+      redirectUrl.searchParams.set('message', 'You do not have access to this page.')
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    if (pathname.startsWith('/admin') && userRole !== 'admin') {
+      console.log(`[Middleware] Access denied: User role '${userRole}' trying to access /admin`)
+      const redirectUrl = request.nextUrl.clone()
+      if (userRole === 'mathlete') {
+        redirectUrl.pathname = '/mathlete'
+      } else if (userRole === 'organizer') {
+        redirectUrl.pathname = '/organizer'
+      } else {
+        redirectUrl.pathname = '/error'
+      }
       redirectUrl.searchParams.set('message', 'You do not have access to this page.')
       return NextResponse.redirect(redirectUrl)
     }

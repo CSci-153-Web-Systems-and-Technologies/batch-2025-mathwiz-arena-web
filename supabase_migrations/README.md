@@ -49,8 +49,11 @@ psql -h <your-supabase-db-host> -U postgres -d postgres -f supabase_migrations/2
 
 Migrations should be run in chronological order (by the date prefix in the filename).
 
-1. `20251210_create_notifications_table.sql`
-2. (Future migrations will be added here)
+1. `20251210_create_notifications_table.sql` - Creates notifications system
+2. `20251210_add_admin_role.sql` - Adds admin role support
+3. `20251210_promote_mathwiz_to_admin.sql` - Promotes specific user to admin
+4. `20251210_fix_role_auto_assignment.sql` - (Optional) Fixes default role issue
+5. (Future migrations will be added here)
 
 ## Testing After Migration
 
