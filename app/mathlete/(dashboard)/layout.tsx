@@ -14,25 +14,16 @@ export default async function MathleteLayout({
     redirect("/login");
   }
 
-  // Fetch notification count (pending invitations + unread responses)
-  const { count: pendingInvites } = await supabase
-    .from("team_invitations")
+  // Fetch notification count (unread notifications)
+  const { count: notificationCount } = await supabase
+    .from("notifications")
     .select("*", { count: "exact", head: true })
-    .eq("invitee_id", user.id)
-    .eq("status", "pending");
-
-  const { count: unreadResponses } = await supabase
-    .from("team_invitations")
-    .select("*", { count: "exact", head: true })
-    .eq("inviter_id", user.id)
-    .in("status", ["accepted", "rejected"])
-    .eq("inviter_notified", false);
-
-  const notificationCount = (pendingInvites || 0) + (unreadResponses || 0);
+    .eq("user_id", user.id)
+    .eq("status", "unread");
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <MathleteSidebar notificationCount={notificationCount} />
+      <MathleteSidebar notificationCount={notificationCount || 0} />
       <main className="flex-1 ml-64">
         {children}
       </main>

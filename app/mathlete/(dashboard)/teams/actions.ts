@@ -163,11 +163,11 @@ export async function sendTeamInvitation(teamId: string, username: string) {
 
   if (existingInvitation) {
     console.log("Found existing invitation - Status:", existingInvitation.status, "Invitee ID:", existingInvitation.invitee_id);
-    
+
     if (existingInvitation.status === "pending") {
       return { success: false, error: "Invitation already sent to this user" };
     }
-    
+
     // If invitation is accepted but user is not a member (shouldn't happen but handle gracefully)
     if (existingInvitation.status === "accepted") {
       // Check again if they're truly not a member (defensive check)
@@ -189,15 +189,15 @@ export async function sendTeamInvitation(teamId: string, username: string) {
         .from("team_invitations")
         .delete()
         .eq("id", existingInvitation.id);
-      
+
       // Continue to create new invitation below
     } else if (existingInvitation.status === "rejected") {
       // If status is "rejected", update it back to "pending" to resend invitation
       console.log("Updating rejected invitation back to pending");
       const { error: updateError } = await supabase
         .from("team_invitations")
-        .update({ 
-          status: "pending", 
+        .update({
+          status: "pending",
           inviter_id: user.id,
           updated_at: new Date().toISOString()
         })
@@ -226,7 +226,7 @@ export async function sendTeamInvitation(teamId: string, username: string) {
 
   // Create the invitation
   console.log("Creating new invitation - Team:", teamId, "Inviter:", user.id, "Invitee:", invitee.id);
-  
+
   const { data: newInvitation, error: inviteError } = await supabase
     .from("team_invitations")
     .insert({
@@ -329,7 +329,7 @@ export async function rejectTeamInvitation(invitationId: string) {
   // Update invitation status to rejected and set responded_at for inviter notification
   const { error: rejectError } = await supabase
     .from("team_invitations")
-    .update({ 
+    .update({
       status: "rejected",
       responded_at: new Date().toISOString(),
       inviter_notified: false
@@ -368,7 +368,9 @@ export async function markResponseAsRead(invitationId: string) {
     return { success: false, error: "Failed to mark as read" };
   }
 
+  // Revalidate both notifications page and dashboard to update badge count
   revalidatePath("/mathlete/notifications");
+  revalidatePath("/mathlete");
   return { success: true };
 }
 
