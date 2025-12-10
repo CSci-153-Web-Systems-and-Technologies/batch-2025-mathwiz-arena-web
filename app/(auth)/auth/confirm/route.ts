@@ -44,9 +44,6 @@ export async function GET(request: NextRequest) {
       console.log('Profile query result:', profile);
       console.log('Profile error:', profileError);
       
-      // Check if user has selected a role in their metadata
-      const hasSelectedRole = data.user.user_metadata?.role_selected === true || data.user.user_metadata?.role;
-      
       // If no profile exists, this is a brand new OAuth user - redirect to role selection
       if (!profile) {
         console.log('✅ New OAuth user (no profile), redirecting to role selection');
@@ -55,9 +52,11 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(redirectTo)
       }
       
-      // If profile exists but user hasn't selected a role yet, redirect to role selection
-      if (!profile.role || !hasSelectedRole) {
-        console.log('Profile exists but no role selected, redirecting to role selection');
+      // If profile exists but has no role assigned, redirect to role selection
+      // Note: We only check the database profile.role, not user metadata
+      // This is because existing users should have their role in the database
+      if (!profile.role) {
+        console.log('Profile exists but no role in database, redirecting to role selection');
         redirectTo.pathname = '/signup/select-role'
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)

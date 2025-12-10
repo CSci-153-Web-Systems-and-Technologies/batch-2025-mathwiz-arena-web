@@ -112,16 +112,23 @@ export async function sendTeamInvitation(teamId: string, username: string) {
     return { success: false, error: "Only team leader can send invitations" };
   }
 
-  // Find the invitee by username
-  const { data: invitee } = await supabase
+  // Find the invitee by username (case-insensitive)
+  const { data: invitee, error: inviteeError } = await supabase
     .from("profiles")
-    .select("id")
-    .eq("username", username.trim())
+    .select("id, username")
+    .ilike("username", username.trim())
     .maybeSingle();
+
+  if (inviteeError) {
+    console.error("Error finding invitee:", inviteeError);
+    return { success: false, error: "Error searching for user" };
+  }
 
   if (!invitee) {
     return { success: false, error: "User not found" };
   }
+
+  console.log("Found invitee:", invitee.id, "Username:", invitee.username);
 
   // Check if trying to invite self
   if (invitee.id === user.id) {
@@ -140,17 +147,71 @@ export async function sendTeamInvitation(teamId: string, username: string) {
     return { success: false, error: "User is already a team member" };
   }
 
-  // Check if there's already a pending invitation
-  const { data: existingInvitation } = await supabase
+  // Check if there's already an invitation (any status)
+  const { data: existingInvitation, error: checkError } = await supabase
     .from("team_invitations")
-    .select("id, status")
+    .select("id, status, invitee_id")
     .eq("team_id", teamId)
     .eq("invitee_id", invitee.id)
-    .eq("status", "pending")
     .maybeSingle();
 
+  if (checkError) {
+    console.error("Error checking existing invitation:", checkError);
+  }
+
+  console.log("Existing invitation check:", existingInvitation);
+
   if (existingInvitation) {
-    return { success: false, error: "Invitation already sent to this user" };
+    console.log("Found existing invitation - Status:", existingInvitation.status, "Invitee ID:", existingInvitation.invitee_id);
+
+    if (existingInvitation.status === "pending") {
+      return { success: false, error: "Invitation already sent to this user" };
+    }
+
+    // If invitation is accepted but user is not a member (shouldn't happen but handle gracefully)
+    if (existingInvitation.status === "accepted") {
+      // Check again if they're truly not a member (defensive check)
+      const { data: memberCheck } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("team_id", teamId)
+        .eq("mathlete_id", invitee.id)
+        .maybeSingle();
+
+      if (memberCheck) {
+        return { success: false, error: "User is already a team member" };
+      }
+
+      // Invitation marked as accepted but user not in team_members - data inconsistency
+      // Delete the stale invitation and allow creating a new one
+      console.log("Found stale accepted invitation - deleting and allowing new invite");
+      await supabase
+        .from("team_invitations")
+        .delete()
+        .eq("id", existingInvitation.id);
+
+      // Continue to create new invitation below
+    } else if (existingInvitation.status === "rejected") {
+      // If status is "rejected", update it back to "pending" to resend invitation
+      console.log("Updating rejected invitation back to pending");
+      const { error: updateError } = await supabase
+        .from("team_invitations")
+        .update({
+          status: "pending",
+          inviter_id: user.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existingInvitation.id);
+
+      if (updateError) {
+        console.error("Error resending invitation:", updateError);
+        return { success: false, error: "Failed to resend invitation" };
+      }
+
+      revalidatePath(`/mathlete/teams/${teamId}`);
+      revalidatePath("/mathlete/notifications");
+      return { success: true };
+    }
   }
 
   // Check if team is at capacity
@@ -164,19 +225,26 @@ export async function sendTeamInvitation(teamId: string, username: string) {
   }
 
   // Create the invitation
-  const { error: inviteError } = await supabase
+  console.log("Creating new invitation - Team:", teamId, "Inviter:", user.id, "Invitee:", invitee.id);
+
+  const { data: newInvitation, error: inviteError } = await supabase
     .from("team_invitations")
     .insert({
       team_id: teamId,
       inviter_id: user.id,
       invitee_id: invitee.id,
       status: "pending",
-    });
+    })
+    .select()
+    .single();
 
   if (inviteError) {
     console.error("Error creating invitation:", inviteError);
+    console.error("Error details:", JSON.stringify(inviteError, null, 2));
     return { success: false, error: "Failed to send invitation" };
   }
+
+  console.log("Invitation created successfully:", newInvitation);
 
   revalidatePath(`/mathlete/teams/${teamId}`);
   revalidatePath("/mathlete/notifications");
@@ -258,10 +326,14 @@ export async function rejectTeamInvitation(invitationId: string) {
     return { success: false, error: "Invitation is no longer pending" };
   }
 
-  // Update invitation status to rejected
+  // Update invitation status to rejected and set responded_at for inviter notification
   const { error: rejectError } = await supabase
     .from("team_invitations")
-    .update({ status: "rejected" })
+    .update({
+      status: "rejected",
+      responded_at: new Date().toISOString(),
+      inviter_notified: false
+    })
     .eq("id", invitationId);
 
   if (rejectError) {
@@ -270,6 +342,35 @@ export async function rejectTeamInvitation(invitationId: string) {
   }
 
   revalidatePath("/mathlete/notifications");
+  return { success: true };
+}
+
+export async function markResponseAsRead(invitationId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "User not authenticated" };
+  }
+
+  // Mark the invitation response as read by the inviter
+  const { error: updateError } = await supabase
+    .from("team_invitations")
+    .update({ inviter_notified: true })
+    .eq("id", invitationId)
+    .eq("inviter_id", user.id);
+
+  if (updateError) {
+    console.error("Error marking response as read:", updateError);
+    return { success: false, error: "Failed to mark as read" };
+  }
+
+  // Revalidate both notifications page and dashboard to update badge count
+  revalidatePath("/mathlete/notifications");
+  revalidatePath("/mathlete");
   return { success: true };
 }
 
@@ -311,6 +412,13 @@ export async function leaveTeam(teamId: string) {
     console.error("Error leaving team:", deleteError);
     return { success: false, error: "Failed to leave team" };
   }
+
+  // Delete the invitation record so they can be re-invited later
+  await supabase
+    .from("team_invitations")
+    .delete()
+    .eq("team_id", teamId)
+    .eq("invitee_id", user.id);
 
   revalidatePath("/mathlete/teams");
   revalidatePath(`/mathlete/teams/${teamId}`);
@@ -371,6 +479,76 @@ export async function removeMember(teamId: string, memberId: string) {
     return { success: false, error: "Failed to remove member" };
   }
 
+  // Delete the invitation record so they can be re-invited later
+  await supabase
+    .from("team_invitations")
+    .delete()
+    .eq("team_id", teamId)
+    .eq("invitee_id", memberToRemove.mathlete_id);
+
   revalidatePath(`/mathlete/teams/${teamId}`);
+  return { success: true };
+}
+
+export async function deleteTeam(teamId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "User not authenticated" };
+  }
+
+  // Verify the user is the team leader
+  const { data: team } = await supabase
+    .from("teams")
+    .select("team_leader_id, name")
+    .eq("id", teamId)
+    .single();
+
+  if (!team) {
+    return { success: false, error: "Team not found" };
+  }
+
+  if (team.team_leader_id !== user.id) {
+    return { success: false, error: "Only the team leader can delete the team" };
+  }
+
+  // Delete all team invitations first
+  const { error: invitationsError } = await supabase
+    .from("team_invitations")
+    .delete()
+    .eq("team_id", teamId);
+
+  if (invitationsError) {
+    console.error("Error deleting team invitations:", invitationsError);
+    return { success: false, error: "Failed to delete team invitations" };
+  }
+
+  // Delete all team members
+  const { error: membersError } = await supabase
+    .from("team_members")
+    .delete()
+    .eq("team_id", teamId);
+
+  if (membersError) {
+    console.error("Error deleting team members:", membersError);
+    return { success: false, error: "Failed to delete team members" };
+  }
+
+  // Delete the team itself
+  const { error: teamError } = await supabase
+    .from("teams")
+    .delete()
+    .eq("id", teamId);
+
+  if (teamError) {
+    console.error("Error deleting team:", teamError);
+    return { success: false, error: "Failed to delete team" };
+  }
+
+  revalidatePath("/mathlete/teams");
   return { success: true };
 }

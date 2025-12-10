@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import TeamsClient from "@/app/mathlete/teams/components/TeamsClient";
+import TeamsClient from "./components/TeamsClient";
 
 export default async function TeamsPage() {
   const supabase = await createClient();
@@ -31,6 +31,13 @@ export default async function TeamsPage() {
   if (membershipsError) {
     console.error("Error fetching teams:", membershipsError);
   }
+
+  // Fetch notification count (pending invitations + unread responses)
+  const { count: pendingInvites } = await supabase
+    .from("team_invitations")
+    .select("*", { count: "exact", head: true })
+    .eq("invitee_id", user.id)
+    .eq("status", "pending");
 
   const teams = teamMemberships?.map(membership => {
     const team = membership.teams as any;

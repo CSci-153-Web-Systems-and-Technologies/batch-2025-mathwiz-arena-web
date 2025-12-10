@@ -85,13 +85,13 @@ export async function completeProfile(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   const fullName = user?.user_metadata?.full_name || user?.email || "";
 
-  // Check if username is already taken
+  // Check if username is already taken by another user
   const { data: existingProfile } = await supabase
     .from("profiles")
     .select("username")
     .eq("username", username)
     .neq("id", userId)
-    .single();
+    .maybeSingle();
 
   if (existingProfile) {
     return { error: "Username is already taken. Please choose another one." };
@@ -101,12 +101,15 @@ export async function completeProfile(formData: FormData) {
   console.log("User ID:", userId);
   console.log("Role:", role);
   console.log("Username:", username);
+  console.log("Full Name:", fullName);
+  console.log("Country:", country);
+  console.log("Province/City:", province_city);
   console.log("School:", school);
   console.log("Organization:", organization);
 
   // Use UPSERT to either insert or update the profile
   // This is safer and more PostgreSQL-idiomatic
-  const { error } = await supabase
+  const { data: upsertedData, error } = await supabase
     .from("profiles")
     .upsert({
       id: userId,
@@ -121,14 +124,18 @@ export async function completeProfile(formData: FormData) {
     }, {
       onConflict: 'id', // If id exists, update; otherwise insert
       ignoreDuplicates: false, // Always update if exists
-    });
+    })
+    .select()
+    .single();
 
   if (error) {
     console.error("❌ Error completing profile:", error);
-    return { error: "Failed to complete profile. Please try again." };
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    return { error: `Failed to complete profile: ${error.message || 'Please try again.'}` };
   }
 
   console.log("✅ Profile completed successfully!");
+  console.log("Updated profile data:", upsertedData);
   revalidatePath("/", "layout");
   return { success: true };
 }
