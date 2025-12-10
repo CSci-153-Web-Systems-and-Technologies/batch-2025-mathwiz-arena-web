@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import InviteMemberModal from "../../components/InviteMemberModal";
 import { leaveTeam, removeMember, deleteTeam } from "../../actions";
-import MathleteSidebar from "@/app/mathlete/components/MathleteSidebar";
 
 interface Team {
   id: string;
@@ -32,7 +31,6 @@ interface TeamDetailsClientProps {
   currentMemberCount: number;
   isLeader: boolean;
   userId: string;
-  notificationCount: number;
 }
 
 export default function TeamDetailsClient({ 
@@ -40,8 +38,7 @@ export default function TeamDetailsClient({
   membersList, 
   currentMemberCount, 
   isLeader,
-  userId,
-  notificationCount
+  userId
 }: TeamDetailsClientProps) {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -100,12 +97,8 @@ export default function TeamDetailsClient({
 
   return (
     <>
-      <div className="flex min-h-screen bg-slate-50">
-        <MathleteSidebar notificationCount={notificationCount} />
-        
-        <main className="flex-1 ml-64">
-          {/* Header */}
-          <div className="bg-white border-b border-slate-200">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <Link
                 href="/mathlete/teams"
@@ -247,8 +240,6 @@ export default function TeamDetailsClient({
             </div>
           )}
         </div>
-        </main>
-      </div>
 
       <InviteMemberModal 
         isOpen={isInviteModalOpen}

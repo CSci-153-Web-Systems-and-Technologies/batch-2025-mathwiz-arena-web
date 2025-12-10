@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { acceptTeamInvitation, rejectTeamInvitation, markResponseAsRead } from "../../teams/actions";
-import MathleteSidebar from "@/app/mathlete/components/MathleteSidebar";
 
 interface Invitation {
   id: string;
@@ -42,10 +41,9 @@ interface Response {
 interface NotificationsClientProps {
   invitations: Invitation[];
   responses: Response[];
-  notificationCount: number;
 }
 
-export default function NotificationsClient({ invitations, responses, notificationCount }: NotificationsClientProps) {
+export default function NotificationsClient({ invitations, responses }: NotificationsClientProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -88,12 +86,8 @@ export default function NotificationsClient({ invitations, responses, notificati
 
   return (
     <>
-      <div className="flex min-h-screen bg-slate-50">
-        <MathleteSidebar notificationCount={notificationCount} />
-        
-        <main className="flex-1 ml-64">
-          {/* Header */}
-          <div className="bg-white border-b border-slate-200">
+      {/* Header */}
+      <div className="bg-white border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <Link
                 href="/mathlete"
@@ -109,8 +103,8 @@ export default function NotificationsClient({ invitations, responses, notificati
             </div>
           </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-700">{error}</p>
@@ -254,8 +248,6 @@ export default function NotificationsClient({ invitations, responses, notificati
           </div>
         )}
       </div>
-      </main>
-    </div>
     </>
   );
 }

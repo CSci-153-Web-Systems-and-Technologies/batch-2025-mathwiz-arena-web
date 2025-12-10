@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import TeamsClient from "@/app/mathlete/teams/components/TeamsClient";
+import TeamsClient from "./components/TeamsClient";
 
 export default async function TeamsPage() {
   const supabase = await createClient();
@@ -39,15 +39,6 @@ export default async function TeamsPage() {
     .eq("invitee_id", user.id)
     .eq("status", "pending");
 
-  const { count: unreadResponses } = await supabase
-    .from("team_invitations")
-    .select("*", { count: "exact", head: true })
-    .eq("inviter_id", user.id)
-    .in("status", ["accepted", "rejected"])
-    .eq("inviter_notified", false);
-
-  const notificationCount = (pendingInvites || 0) + (unreadResponses || 0);
-
   const teams = teamMemberships?.map(membership => {
     const team = membership.teams as any;
     return {
@@ -61,5 +52,5 @@ export default async function TeamsPage() {
     };
   }) || [];
 
-  return <TeamsClient teams={teams} notificationCount={notificationCount} />;
+  return <TeamsClient teams={teams} />;
 }

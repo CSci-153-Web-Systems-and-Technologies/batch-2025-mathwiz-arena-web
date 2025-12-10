@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import CreateTeamModal from "./CreateTeamModal";
-import MathleteSidebar from "@/app/mathlete/components/MathleteSidebar";
 
 interface Team {
   id: string;
@@ -17,21 +16,15 @@ interface Team {
 
 interface TeamsClientProps {
   teams: Team[];
-  notificationCount?: number;
 }
 
-export default function TeamsClient({ teams, notificationCount = 0 }: TeamsClientProps) {
+export default function TeamsClient({ teams }: TeamsClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
-        {/* Sidebar */}
-        <MathleteSidebar notificationCount={notificationCount} />
-
-        {/* Main Content */}
-        <main className="flex-1 ml-64 p-8">
+      <div className="p-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
@@ -109,7 +102,6 @@ export default function TeamsClient({ teams, notificationCount = 0 }: TeamsClien
               </div>
             )}
           </div>
-        </main>
       </div>
 
       <CreateTeamModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

@@ -52,22 +52,6 @@ export default async function TeamDetailsPage({ params }: { params: Promise<{ id
     redirect("/mathlete/teams");
   }
 
-  // Fetch notification count (pending invitations + unread responses)
-  const { count: pendingInvites } = await supabase
-    .from("team_invitations")
-    .select("*", { count: "exact", head: true })
-    .eq("invitee_id", user.id)
-    .eq("status", "pending");
-
-  const { count: unreadResponses } = await supabase
-    .from("team_invitations")
-    .select("*", { count: "exact", head: true })
-    .eq("inviter_id", user.id)
-    .in("status", ["accepted", "rejected"])
-    .eq("inviter_notified", false);
-
-  const notificationCount = (pendingInvites || 0) + (unreadResponses || 0);
-
   const membersList = members?.map((member: any) => ({
     id: member.id,
     role: member.role,
@@ -84,7 +68,6 @@ export default async function TeamDetailsPage({ params }: { params: Promise<{ id
       currentMemberCount={currentMemberCount}
       isLeader={isLeader}
       userId={user.id}
-      notificationCount={notificationCount}
     />
   );
 }
