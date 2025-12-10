@@ -88,19 +88,21 @@ export async function registerForCompetition(competitionId: string, teamId?: str
       .select("mathlete_id")
       .eq("team_id", teamId);
 
-    if (!teamMemberIds || teamMemberIds.length < 2) {
-      return {
-        success: false,
-        error: "Teams must have at least 2 members to register"
-      };
-    }
-
-    // Check if competition requires full team
+    // Check if competition requires full team FIRST (more specific requirement)
     if (competition.require_full_team && competition.max_team_members) {
-      if (teamMemberIds.length < competition.max_team_members) {
+      if (!teamMemberIds || teamMemberIds.length !== competition.max_team_members) {
+        const currentCount = teamMemberIds?.length || 0;
         return {
           success: false,
-          error: `This competition requires teams to have exactly ${competition.max_team_members} members. Your team has ${teamMemberIds.length} member${teamMemberIds.length !== 1 ? 's' : ''}.`
+          error: `This competition requires teams to have exactly ${competition.max_team_members} members. Your team has ${currentCount} member${currentCount !== 1 ? 's' : ''}.`
+        };
+      }
+    } else {
+      // Flexible requirement - minimum 2 members
+      if (!teamMemberIds || teamMemberIds.length < 2) {
+        return {
+          success: false,
+          error: "Teams must have at least 2 members to register"
         };
       }
     }
