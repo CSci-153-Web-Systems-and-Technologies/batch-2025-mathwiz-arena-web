@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { acceptTeamInvitation, rejectTeamInvitation } from "../../teams/actions";
+import { acceptTeamInvitation, rejectTeamInvitation, markResponseAsRead } from "../../teams/actions";
 
 interface Invitation {
   id: string;
@@ -21,11 +21,29 @@ interface Invitation {
   };
 }
 
-interface NotificationsClientProps {
-  invitations: Invitation[];
+interface Response {
+  id: string;
+  createdAt: string;
+  respondedAt: string;
+  status: string;
+  team: {
+    id: string;
+    name: string;
+    max_members: number;
+  };
+  invitee: {
+    id: string;
+    username: string;
+    full_name: string;
+  };
 }
 
-export default function NotificationsClient({ invitations }: NotificationsClientProps) {
+interface NotificationsClientProps {
+  invitations: Invitation[];
+  responses: Response[];
+}
+
+export default function NotificationsClient({ invitations, responses }: NotificationsClientProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -57,6 +75,13 @@ export default function NotificationsClient({ invitations }: NotificationsClient
       setError(result.error || "Failed to reject invitation");
     }
     setProcessingId(null);
+  };
+
+  const handleDismissResponse = async (invitationId: string) => {
+    const result = await markResponseAsRead(invitationId);
+    if (result.success) {
+      router.refresh();
+    }
   };
 
   return (
@@ -157,6 +182,71 @@ export default function NotificationsClient({ invitations }: NotificationsClient
             </div>
           )}
         </div>
+
+        {/* Invitation Responses */}
+        {responses.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-6">
+            <div className="px-6 py-4 border-b border-slate-200">
+              <h2 className="text-xl font-bold text-slate-900">Invitation Responses</h2>
+              <p className="text-sm text-slate-600 mt-1">
+                {responses.length} new response{responses.length !== 1 ? 's' : ''} to your invitations
+              </p>
+            </div>
+
+            <div className="divide-y divide-slate-200">
+              {responses.map((response) => (
+                <div key={response.id} className="px-6 py-5 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                          {response.invitee.full_name?.charAt(0).toUpperCase() || response.invitee.username?.charAt(0).toUpperCase() || '?'}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-slate-900">
+                              {response.invitee.full_name || response.invitee.username}
+                            </h3>
+                            {response.status === "accepted" ? (
+                              <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Accepted
+                              </span>
+                            ) : (
+                              <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Declined
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-slate-600">
+                            {response.status === "accepted" 
+                              ? `Joined your team "${response.team.name}"` 
+                              : `Declined your invitation to "${response.team.name}"`}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {new Date(response.respondedAt).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleDismissResponse(response.id)}
+                      className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

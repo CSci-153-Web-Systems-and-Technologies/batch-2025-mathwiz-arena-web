@@ -32,12 +32,21 @@ export default async function TeamsPage() {
     console.error("Error fetching teams:", membershipsError);
   }
 
-  // Fetch notification count
-  const { count: notificationCount } = await supabase
+  // Fetch notification count (pending invitations + unread responses)
+  const { count: pendingInvites } = await supabase
     .from("team_invitations")
     .select("*", { count: "exact", head: true })
     .eq("invitee_id", user.id)
     .eq("status", "pending");
+
+  const { count: unreadResponses } = await supabase
+    .from("team_invitations")
+    .select("*", { count: "exact", head: true })
+    .eq("inviter_id", user.id)
+    .in("status", ["accepted", "rejected"])
+    .eq("inviter_notified", false);
+
+  const notificationCount = (pendingInvites || 0) + (unreadResponses || 0);
 
   const teams = teamMemberships?.map(membership => {
     const team = membership.teams as any;
@@ -52,5 +61,5 @@ export default async function TeamsPage() {
     };
   }) || [];
 
-  return <TeamsClient teams={teams} notificationCount={notificationCount || 0} />;
+  return <TeamsClient teams={teams} notificationCount={notificationCount} />;
 }

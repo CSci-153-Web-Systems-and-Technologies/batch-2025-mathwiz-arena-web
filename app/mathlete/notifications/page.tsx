@@ -12,7 +12,7 @@ export default async function NotificationsPage() {
 
   console.log("Notifications page - User ID:", user.id);
 
-  // Fetch pending team invitations
+  // Fetch pending team invitations (invitations TO this user)
   const { data: invitations, error: invitationsError } = await supabase
     .from("team_invitations")
     .select(`
@@ -43,6 +43,40 @@ export default async function NotificationsPage() {
     console.error("Error fetching invitations:", invitationsError);
   }
 
+  // Fetch invitation responses (responses to invitations FROM this user)
+  const { data: responses, error: responsesError } = await supabase
+    .from("team_invitations")
+    .select(`
+      id,
+      created_at,
+      responded_at,
+      status,
+      invitee_id,
+      inviter_id,
+      inviter_notified,
+      teams (
+        id,
+        name,
+        max_members
+      ),
+      invitee:invitee_id (
+        id,
+        username,
+        full_name
+      )
+    `)
+    .eq("inviter_id", user.id)
+    .in("status", ["accepted", "rejected"])
+    .eq("inviter_notified", false)
+    .order("responded_at", { ascending: false });
+
+  if (responsesError) {
+    console.error("Error fetching responses:", responsesError);
+  }
+
+  console.log("Responses query result:", responses);
+  console.log("Responses count:", responses?.length || 0);
+
   const pendingInvitations = invitations?.map((inv: any) => ({
     id: inv.id,
     createdAt: inv.created_at,
@@ -51,5 +85,14 @@ export default async function NotificationsPage() {
     inviter: inv.inviter
   })) || [];
 
-  return <NotificationsClient invitations={pendingInvitations} />;
+  const invitationResponses = responses?.map((resp: any) => ({
+    id: resp.id,
+    createdAt: resp.created_at,
+    respondedAt: resp.responded_at,
+    status: resp.status,
+    team: resp.teams,
+    invitee: resp.invitee
+  })) || [];
+
+  return <NotificationsClient invitations={pendingInvitations} responses={invitationResponses} />;
 }

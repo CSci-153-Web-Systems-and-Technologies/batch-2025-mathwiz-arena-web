@@ -29,6 +29,8 @@ CREATE TABLE IF NOT EXISTS team_invitations (
   status VARCHAR(50) NOT NULL DEFAULT 'pending', -- 'pending', 'accepted', 'rejected'
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  responded_at TIMESTAMP WITH TIME ZONE,
+  inviter_notified BOOLEAN DEFAULT FALSE,
   CONSTRAINT team_invitations_status_check CHECK (status IN ('pending', 'accepted', 'rejected')),
   CONSTRAINT team_invitations_unique UNIQUE(team_id, invitee_id)
 );
@@ -41,6 +43,7 @@ ADD COLUMN IF NOT EXISTS team_id UUID REFERENCES teams(id) ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id);
 CREATE INDEX IF NOT EXISTS idx_team_members_mathlete_id ON team_members(mathlete_id);
 CREATE INDEX IF NOT EXISTS idx_team_invitations_invitee_id ON team_invitations(invitee_id);
+CREATE INDEX IF NOT EXISTS idx_team_invitations_inviter_id ON team_invitations(inviter_id);
 CREATE INDEX IF NOT EXISTS idx_team_invitations_team_id ON team_invitations(team_id);
 CREATE INDEX IF NOT EXISTS idx_competition_registrations_team_id ON competition_registrations(team_id);
 
@@ -196,9 +199,9 @@ BEGIN
   INSERT INTO team_members (team_id, mathlete_id, role)
   VALUES (v_invitation.team_id, v_invitation.invitee_id, 'member');
   
-  -- Update invitation status
+  -- Update invitation status and set responded_at for inviter notification
   UPDATE team_invitations
-  SET status = 'accepted', updated_at = NOW()
+  SET status = 'accepted', updated_at = NOW(), responded_at = NOW(), inviter_notified = FALSE
   WHERE id = invitation_id;
   
   RETURN json_build_object('success', true, 'message', 'Successfully joined team');

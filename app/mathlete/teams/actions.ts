@@ -326,15 +326,46 @@ export async function rejectTeamInvitation(invitationId: string) {
     return { success: false, error: "Invitation is no longer pending" };
   }
 
-  // Update invitation status to rejected
+  // Update invitation status to rejected and set responded_at for inviter notification
   const { error: rejectError } = await supabase
     .from("team_invitations")
-    .update({ status: "rejected" })
+    .update({ 
+      status: "rejected",
+      responded_at: new Date().toISOString(),
+      inviter_notified: false
+    })
     .eq("id", invitationId);
 
   if (rejectError) {
     console.error("Error rejecting invitation:", rejectError);
     return { success: false, error: "Failed to reject invitation" };
+  }
+
+  revalidatePath("/mathlete/notifications");
+  return { success: true };
+}
+
+export async function markResponseAsRead(invitationId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "User not authenticated" };
+  }
+
+  // Mark the invitation response as read by the inviter
+  const { error: updateError } = await supabase
+    .from("team_invitations")
+    .update({ inviter_notified: true })
+    .eq("id", invitationId)
+    .eq("inviter_id", user.id);
+
+  if (updateError) {
+    console.error("Error marking response as read:", updateError);
+    return { success: false, error: "Failed to mark as read" };
   }
 
   revalidatePath("/mathlete/notifications");
