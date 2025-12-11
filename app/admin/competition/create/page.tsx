@@ -3,9 +3,13 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
-import CreateProblemBankForm from "./components/CreateProblemBankForm";
+import CreateCompetitionForm from "./components/CreateCompetitionForm";
 
-export default async function CreateProblemBankPage() {
+export default async function AdminCreateCompetitionPage({
+    searchParams,
+}: {
+    searchParams: { edit?: string };
+}) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -22,6 +26,44 @@ export default async function CreateProblemBankPage() {
 
     if (profile?.role !== 'admin') {
         redirect("/error?message=Access denied");
+    }
+
+    // Fetch competition data if editing
+    let competitionData: any = null;
+    let competitionProblems: any = null;
+
+    if (searchParams.edit) {
+        const { data: competition } = await supabase
+            .from("competitions")
+            .select("*")
+            .eq("id", searchParams.edit)
+            .eq("organizer_id", user.id)
+            .single();
+
+        if (competition) {
+            competitionData = competition;
+
+            // Fetch competition problems
+            const { data: problems } = await supabase
+                .from("competition_problems")
+                .select(`
+          points,
+          order_index,
+          problems (
+            id,
+            question,
+            type,
+            difficulty,
+            correct_answer,
+            options,
+            problem_bank_id
+          )
+        `)
+                .eq("competition_id", searchParams.edit)
+                .order("order_index", { ascending: true });
+
+            competitionProblems = problems;
+        }
     }
 
     return (
@@ -50,7 +92,7 @@ export default async function CreateProblemBankPage() {
 
                         <Link
                             href="/admin/problem-bank"
-                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -60,7 +102,7 @@ export default async function CreateProblemBankPage() {
 
                         <Link
                             href="/admin/competition"
-                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                            className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -68,6 +110,7 @@ export default async function CreateProblemBankPage() {
                             Competitions
                         </Link>
 
+                        {/* Future features - grayed out */}
                         <div className="opacity-50 cursor-not-allowed">
                             <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,25 +141,34 @@ export default async function CreateProblemBankPage() {
 
             {/* Main Content */}
             <main className="flex-1 ml-64 p-8">
-                <div className="max-w-3xl mx-auto">
+                <div className="max-w-4xl mx-auto">
                     {/* Header */}
-                    <div className="mb-8">
+                    <div className="mb-6">
                         <Link
-                            href="/admin/problem-bank"
-                            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-purple-600 mb-4 transition-colors"
+                            href="/admin/competition"
+                            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-purple-600 transition-colors mb-4"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
-                            Back to Problem Banks
+                            Back to Competitions
                         </Link>
-                        <h1 className="text-3xl font-bold text-slate-800 mb-2">Create Problem Bank</h1>
-                        <p className="text-slate-600">Add a new problem bank to organize your questions</p>
+                        <h1 className="text-3xl font-bold text-slate-800">
+                            {searchParams.edit ? "Edit Competition" : "Create Competition"}
+                        </h1>
+                        <p className="text-slate-600 mt-1">
+                            {searchParams.edit
+                                ? "Update your competition details"
+                                : "Set up basic information for your competition"}
+                        </p>
                     </div>
 
                     {/* Form Card */}
-                    <div className="bg-white rounded-lg border border-slate-200 p-8 shadow-sm">
-                        <CreateProblemBankForm />
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+                        <CreateCompetitionForm
+                            competitionData={competitionData}
+                            competitionProblems={competitionProblems}
+                        />
                     </div>
                 </div>
             </main>
