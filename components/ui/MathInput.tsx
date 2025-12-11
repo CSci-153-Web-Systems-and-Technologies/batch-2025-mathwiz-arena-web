@@ -17,44 +17,104 @@ interface MathInputProps {
 
 // Common math symbols organized by category
 const MATH_SYMBOLS = {
-    "Basic": [
+    "Equations": [
+        // Fractions & Powers
+        { label: "a/b", latex: "\\frac{a}{b}", title: "Fraction" },
+        { label: "x²", latex: "^{2}", title: "Squared" },
+        { label: "x³", latex: "^{3}", title: "Cubed" },
+        { label: "xⁿ", latex: "^{n}", title: "Power" },
+        { label: "xₙ", latex: "_{n}", title: "Subscript" },
+        { label: "√", latex: "\\sqrt{}", title: "Square Root" },
+        { label: "³√", latex: "\\sqrt[3]{}", title: "Cube Root" },
+        { label: "ⁿ√", latex: "\\sqrt[n]{}", title: "Nth Root" },
+        // Brackets
+        { label: "|x|", latex: "\\left|x\\right|", title: "Absolute Value" },
+        { label: "⌊x⌋", latex: "\\lfloor x \\rfloor", title: "Floor" },
+        { label: "⌈x⌉", latex: "\\lceil x \\rceil", title: "Ceiling" },
+        // Trigonometry
+        { label: "sin", latex: "\\sin", title: "Sine" },
+        { label: "cos", latex: "\\cos", title: "Cosine" },
+        { label: "tan", latex: "\\tan", title: "Tangent" },
+        { label: "sin⁻¹", latex: "\\sin^{-1}", title: "Inverse Sine" },
+        { label: "cos⁻¹", latex: "\\cos^{-1}", title: "Inverse Cosine" },
+        { label: "tan⁻¹", latex: "\\tan^{-1}", title: "Inverse Tangent" },
+        // Logarithms
+        { label: "log", latex: "\\log", title: "Logarithm" },
+        { label: "ln", latex: "\\ln", title: "Natural Log" },
+        { label: "logₐ", latex: "\\log_{a}", title: "Log Base a" },
+        // Calculus
+        { label: "∫", latex: "\\int", title: "Integral" },
+        { label: "∫ₐᵇ", latex: "\\int_{a}^{b}", title: "Definite Integral" },
+        { label: "∑", latex: "\\sum", title: "Summation" },
+        { label: "∑ₙ", latex: "\\sum_{n=1}^{}", title: "Sum from n" },
+        { label: "∏", latex: "\\prod", title: "Product" },
+        { label: "lim", latex: "\\lim_{x \\to }", title: "Limit" },
+        { label: "d/dx", latex: "\\frac{d}{dx}", title: "Derivative" },
+        // Combinatorics
+        { label: "n!", latex: "n!", title: "Factorial" },
+        { label: "nCr", latex: "\\binom{n}{r}", title: "Combination" },
+        // Geometry
+        { label: "⃗", latex: "\\vec{}", title: "Vector" },
+        { label: "‾", latex: "\\overline{}", title: "Line Segment" },
+    ],
+    "Symbols": [
+        // Basic operators
         { label: "×", latex: "\\times", title: "Multiplication" },
         { label: "÷", latex: "\\div", title: "Division" },
         { label: "±", latex: "\\pm", title: "Plus/Minus" },
+        { label: "·", latex: "\\cdot", title: "Dot" },
+        // Comparisons
         { label: "≠", latex: "\\neq", title: "Not Equal" },
+        { label: "≈", latex: "\\approx", title: "Approximately" },
         { label: "≤", latex: "\\leq", title: "Less or Equal" },
         { label: "≥", latex: "\\geq", title: "Greater or Equal" },
         { label: "∞", latex: "\\infty", title: "Infinity" },
-    ],
-    "Powers & Roots": [
-        { label: "x²", latex: "^{2}", title: "Squared" },
-        { label: "xⁿ", latex: "^{n}", title: "Power" },
-        { label: "√", latex: "\\sqrt{}", title: "Square Root" },
-        { label: "ⁿ√", latex: "\\sqrt[n]{}", title: "Nth Root" },
-    ],
-    "Fractions": [
-        { label: "a/b", latex: "\\frac{a}{b}", title: "Fraction" },
-    ],
-    "Greek Letters": [
+        // Geometry
+        { label: "∠", latex: "\\angle", title: "Angle" },
+        { label: "°", latex: "^{\\circ}", title: "Degree" },
+        { label: "△", latex: "\\triangle", title: "Triangle" },
+        { label: "□", latex: "\\square", title: "Square" },
+        { label: "⊥", latex: "\\perp", title: "Perpendicular" },
+        { label: "∥", latex: "\\parallel", title: "Parallel" },
+        { label: "≅", latex: "\\cong", title: "Congruent" },
+        { label: "∼", latex: "\\sim", title: "Similar" },
+        // Greek Letters
         { label: "π", latex: "\\pi", title: "Pi" },
         { label: "θ", latex: "\\theta", title: "Theta" },
         { label: "α", latex: "\\alpha", title: "Alpha" },
         { label: "β", latex: "\\beta", title: "Beta" },
-        { label: "Σ", latex: "\\Sigma", title: "Sigma (Sum)" },
-        { label: "Δ", latex: "\\Delta", title: "Delta" },
-    ],
-    "Calculus": [
-        { label: "∫", latex: "\\int", title: "Integral" },
-        { label: "∑", latex: "\\sum", title: "Summation" },
-        { label: "∏", latex: "\\prod", title: "Product" },
-        { label: "lim", latex: "\\lim_{x \\to }", title: "Limit" },
-    ],
-    "Sets": [
+        { label: "γ", latex: "\\gamma", title: "Gamma" },
+        { label: "δ", latex: "\\delta", title: "Delta" },
+        { label: "Δ", latex: "\\Delta", title: "Delta (big)" },
+        { label: "ε", latex: "\\epsilon", title: "Epsilon" },
+        { label: "λ", latex: "\\lambda", title: "Lambda" },
+        { label: "σ", latex: "\\sigma", title: "Sigma" },
+        { label: "Σ", latex: "\\Sigma", title: "Sigma (big)" },
+        { label: "φ", latex: "\\phi", title: "Phi" },
+        { label: "ω", latex: "\\omega", title: "Omega" },
+        // Sets & Logic
         { label: "∈", latex: "\\in", title: "Element Of" },
         { label: "∉", latex: "\\notin", title: "Not Element Of" },
         { label: "⊂", latex: "\\subset", title: "Subset" },
         { label: "∪", latex: "\\cup", title: "Union" },
         { label: "∩", latex: "\\cap", title: "Intersection" },
+        { label: "∅", latex: "\\emptyset", title: "Empty Set" },
+        { label: "∀", latex: "\\forall", title: "For All" },
+        { label: "∃", latex: "\\exists", title: "Exists" },
+        { label: "∴", latex: "\\therefore", title: "Therefore" },
+        // Number Sets
+        { label: "ℕ", latex: "\\mathbb{N}", title: "Natural Numbers" },
+        { label: "ℤ", latex: "\\mathbb{Z}", title: "Integers" },
+        { label: "ℚ", latex: "\\mathbb{Q}", title: "Rationals" },
+        { label: "ℝ", latex: "\\mathbb{R}", title: "Real Numbers" },
+        { label: "ℂ", latex: "\\mathbb{C}", title: "Complex" },
+        // Arrows
+        { label: "→", latex: "\\rightarrow", title: "Right Arrow" },
+        { label: "←", latex: "\\leftarrow", title: "Left Arrow" },
+        { label: "⇒", latex: "\\Rightarrow", title: "Implies" },
+        { label: "⇔", latex: "\\Leftrightarrow", title: "If and Only If" },
+        // Partial
+        { label: "∂", latex: "\\partial", title: "Partial" },
     ],
 };
 
