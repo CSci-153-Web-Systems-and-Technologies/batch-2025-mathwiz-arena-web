@@ -225,14 +225,11 @@ export default function ProblemsPointsStep({
             type="button"
             onClick={() => setFormData({
               ...formData,
-              pointSystemType: "auto_level",
-              easyPoints: formData.easyPoints || "1",
-              averagePoints: formData.averagePoints || "3",
-              difficultPoints: formData.difficultPoints || "5"
+              pointSystemType: "auto_level"
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "auto_level"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -251,14 +248,11 @@ export default function ProblemsPointsStep({
             type="button"
             onClick={() => setFormData({
               ...formData,
-              pointSystemType: "manual",
-              easyPoints: "",
-              averagePoints: "",
-              difficultPoints: ""
+              pointSystemType: "manual"
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "manual"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -434,8 +428,8 @@ export default function ProblemsPointsStep({
                   type="button"
                   onClick={() => setSelectedBankId(bank.id === selectedBankId ? null : bank.id)}
                   className={`p-4 border-2 rounded-lg text-left transition-all ${selectedBankId === bank.id
-                      ? "border-[#f49700] bg-[#f49700]/5"
-                      : "border-slate-200 hover:border-slate-300"
+                    ? "border-[#f49700] bg-[#f49700]/5"
+                    : "border-slate-200 hover:border-slate-300"
                     }`}
                   disabled={isLoading}
                 >

@@ -220,10 +220,7 @@ export default function ProblemsPointsStep({
                         type="button"
                         onClick={() => setFormData({
                             ...formData,
-                            pointSystemType: "auto_level",
-                            easyPoints: formData.easyPoints || "1",
-                            averagePoints: formData.averagePoints || "3",
-                            difficultPoints: formData.difficultPoints || "5"
+                            pointSystemType: "auto_level"
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "auto_level"
                             ? "border-purple-500 bg-purple-50 text-purple-700"
@@ -246,10 +243,7 @@ export default function ProblemsPointsStep({
                         type="button"
                         onClick={() => setFormData({
                             ...formData,
-                            pointSystemType: "manual",
-                            easyPoints: "",
-                            averagePoints: "",
-                            difficultPoints: ""
+                            pointSystemType: "manual"
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "manual"
                             ? "border-purple-500 bg-purple-50 text-purple-700"
