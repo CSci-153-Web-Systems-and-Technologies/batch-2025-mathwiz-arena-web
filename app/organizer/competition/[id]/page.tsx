@@ -6,7 +6,7 @@ import LoginButton from "@/components/LoginLogoutButton";
 import { Button } from "@/components/ui/button";
 
 export default async function CompetitionDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -194,7 +194,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                 </div>
               </div>
               {competition.status === "draft" && (
-                  <Link
+                <Link
                   href={`/organizer/competition/create?edit=${competition.id}`}
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
                 >

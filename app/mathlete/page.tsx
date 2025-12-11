@@ -7,7 +7,7 @@ import JoinButton from "./components/JoinButton";
 import CompetitionCalendar from "./components/CompetitionCalendar";
 
 export default async function MathleteDashboard() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -37,22 +37,35 @@ export default async function MathleteDashboard() {
       max_participants,
       max_team_members,
       require_full_team,
-      status
+      status,
+      competition_mode,
+      max_attempts,
+      is_active
     `)
     .eq("status", "published")
-    .order("start_datetime", { ascending: true });
+    .order("start_datetime", { ascending: true, nullsFirst: false });
 
   // Log error if any (for debugging RLS issues)
   if (competitionsError) {
     console.error("Error fetching competitions:", competitionsError);
   }
 
-  // Filter competitions that haven't ended yet (upcoming or ongoing)
+  // Filter competitions that are available (Live + active, or Scheduled + not ended)
   const upcomingCompetitions = allPublishedCompetitions?.filter(competition => {
-    const startTime = new Date(competition.start_datetime);
-    const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
-    const currentTime = new Date();
-    return endTime > currentTime; // Show if competition hasn't ended
+    const isLiveCompetition = (competition as any).competition_mode === "live";
+    const isActive = (competition as any).is_active !== false; // default to true if undefined
+
+    if (isLiveCompetition) {
+      // Live competitions are shown if they are active
+      return isActive;
+    } else {
+      // Scheduled competitions: show if not ended yet
+      if (!competition.start_datetime) return false; // Skip if no start time (shouldn't happen for scheduled)
+      const startTime = new Date(competition.start_datetime);
+      const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+      const currentTime = new Date();
+      return endTime > currentTime; // Show if competition hasn't ended
+    }
   }) || [];
 
   // Get competition IDs to check registration status
@@ -394,36 +407,52 @@ export default async function MathleteDashboard() {
                 <div className="space-y-4">
                   {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
                     upcomingCompetitions.map((competition) => {
-                      const startTime = new Date(competition.start_datetime);
-                      const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+                      const isLiveCompetition = (competition as any).competition_mode === "live";
+                      const maxAttempts = (competition as any).max_attempts;
+
+                      // For scheduled competitions
+                      const startTime = competition.start_datetime ? new Date(competition.start_datetime) : null;
+                      const endTime = startTime ? new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000) : null;
                       const now = new Date();
-                      const timeUntilStart = startTime.getTime() - now.getTime();
-                      const timeUntilEnd = endTime.getTime() - now.getTime();
-                      const hoursUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60));
-                      const daysUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24));
-                      const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
 
                       let timeText = "";
                       let statusBadge = null;
-                      const isLive = now >= startTime && now < endTime;
+                      let isScheduledLive = false; // For scheduled competitions that are currently active
                       const isRegistered = registrationMap.has(competition.id);
-                      const canRegister = !isLive && !isRegistered; // Can only register if competition hasn't started and not already registered
 
-                      if (isLive) {
-                        // Competition is currently live
-                        timeText = `Ends in ${minutesUntilEnd} minute${minutesUntilEnd !== 1 ? 's' : ''}`;
-                        statusBadge = <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Live Now</span>;
-                      } else if (daysUntilStart > 0) {
-                        timeText = `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
-                      } else if (hoursUntilStart > 0) {
-                        timeText = `Starts in ${hoursUntilStart} hour${hoursUntilStart > 1 ? 's' : ''}`;
-                      } else {
-                        timeText = startTime.toLocaleString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit'
-                        });
+                      if (isLiveCompetition) {
+                        // Live competition - available anytime
+                        timeText = "Available anytime";
+                        statusBadge = (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            Live
+                          </span>
+                        );
+                      } else if (startTime && endTime) {
+                        // Scheduled competition
+                        const timeUntilStart = startTime.getTime() - now.getTime();
+                        const timeUntilEnd = endTime.getTime() - now.getTime();
+                        const hoursUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60));
+                        const daysUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24));
+                        const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
+                        isScheduledLive = now >= startTime && now < endTime;
+
+                        if (isScheduledLive) {
+                          timeText = `Ends in ${minutesUntilEnd} minute${minutesUntilEnd !== 1 ? 's' : ''}`;
+                          statusBadge = <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Live Now</span>;
+                        } else if (daysUntilStart > 0) {
+                          timeText = `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
+                        } else if (hoursUntilStart > 0) {
+                          timeText = `Starts in ${hoursUntilStart} hour${hoursUntilStart > 1 ? 's' : ''}`;
+                        } else {
+                          timeText = startTime.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          });
+                        }
                       }
 
                       return (
@@ -434,7 +463,7 @@ export default async function MathleteDashboard() {
                               <div className="flex items-center gap-3 mb-2">
                                 <h3 className="text-lg font-semibold text-[#25346A]">{competition.name}</h3>
                                 {statusBadge}
-                                {isRegistered && !isLive && (
+                                {isRegistered && !isScheduledLive && (
                                   <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Registered</span>
                                 )}
                               </div>
@@ -449,8 +478,17 @@ export default async function MathleteDashboard() {
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  {competition.duration_minutes} minutes
+                                  {competition.duration_minutes} minutes{isLiveCompetition ? "/attempt" : ""}
                                 </span>
+                                {/* Show attempts for Live competitions */}
+                                {isLiveCompetition && (
+                                  <span className="flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    {maxAttempts === null ? "Unlimited attempts" : `${maxAttempts} attempt${maxAttempts !== 1 ? 's' : ''}`}
+                                  </span>
+                                )}
                                 {competition.max_participants && (
                                   <span className="flex items-center gap-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -479,7 +517,8 @@ export default async function MathleteDashboard() {
                             <JoinButton
                               competition={competition}
                               isRegistered={isRegistered}
-                              isLive={isLive}
+                              isScheduledLive={isScheduledLive}
+                              isLiveCompetition={isLiveCompetition}
                             />
                           </div>
                         </div>

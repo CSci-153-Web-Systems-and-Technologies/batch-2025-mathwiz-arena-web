@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 
 export async function registerForCompetition(competitionId: string, teamId?: string) {
   const supabase = createClient();
-  
+
   // Get the current user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError || !user) {
     return {
       success: false,
@@ -19,7 +19,7 @@ export async function registerForCompetition(competitionId: string, teamId?: str
   // Check if the competition exists and is published
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, status, start_datetime, max_participants, participation_type, max_team_members, require_full_team")
+    .select("id, status, start_datetime, max_participants, participation_type, max_team_members, require_full_team, competition_mode, is_active")
     .eq("id", competitionId)
     .single();
 
@@ -111,7 +111,7 @@ export async function registerForCompetition(competitionId: string, teamId?: str
 
     if (teamMemberIds && teamMemberIds.length > 0) {
       const memberIds = teamMemberIds.map(m => m.mathlete_id);
-      
+
       const { data: existingTeamRegistrations, error: teamRegError } = await supabase
         .from("competition_registrations")
         .select("mathlete_id")
@@ -141,15 +141,29 @@ export async function registerForCompetition(competitionId: string, teamId?: str
     };
   }
 
-  // Check if competition has already started
-  const now = new Date();
-  const startTime = new Date(competition.start_datetime);
-  
-  if (now >= startTime) {
-    return {
-      success: false,
-      error: "This competition has already started"
-    };
+  // Check if competition has already started (only for scheduled competitions)
+  // Live competitions don't have a fixed start time - they're always available when active
+  const isLiveCompetition = competition.competition_mode === 'live';
+
+  if (isLiveCompetition) {
+    // For Live competitions, check if the competition is active
+    if (competition.is_active === false) {
+      return {
+        success: false,
+        error: "This Live competition is currently paused and not accepting registrations"
+      };
+    }
+  } else {
+    // For scheduled competitions, check if it has already started
+    const now = new Date();
+    const startTime = competition.start_datetime ? new Date(competition.start_datetime) : null;
+
+    if (startTime && now >= startTime) {
+      return {
+        success: false,
+        error: "This competition has already started"
+      };
+    }
   }
 
   // Check if already registered with status 'registered'
@@ -197,17 +211,17 @@ export async function registerForCompetition(competitionId: string, teamId?: str
   // If there's an existing withdrawn registration, update it to 'registered'
   if (existingRegistration && existingRegistration.status === "withdrawn") {
     const currentTime = new Date().toISOString();
-    const updateData: any = { 
+    const updateData: any = {
       status: "registered",
       registered_at: currentTime,
       updated_at: currentTime
     };
-    
+
     // Add team_id for team competitions
     if (competition.participation_type === "team" && teamId) {
       updateData.team_id = teamId;
     }
-    
+
     const { error: updateError } = await supabase
       .from("competition_registrations")
       .update(updateData)
@@ -277,7 +291,7 @@ export async function registerForCompetition(competitionId: string, teamId?: str
 
   return {
     success: true,
-    message: competition.participation_type === "team" 
+    message: competition.participation_type === "team"
       ? "Successfully registered your team for the competition!"
       : "Successfully registered for the competition!"
   };
@@ -285,10 +299,10 @@ export async function registerForCompetition(competitionId: string, teamId?: str
 
 export async function unregisterFromCompetition(competitionId: string) {
   const supabase = createClient();
-  
+
   // Get the current user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError || !user) {
     return {
       success: false,
@@ -299,7 +313,7 @@ export async function unregisterFromCompetition(competitionId: string) {
   // Check if the competition exists
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, start_datetime, participation_type")
+    .select("id, start_datetime, participation_type, competition_mode")
     .eq("id", competitionId)
     .single();
 
@@ -310,15 +324,20 @@ export async function unregisterFromCompetition(competitionId: string) {
     };
   }
 
-  // Check if competition has already started
-  const now = new Date();
-  const startTime = new Date(competition.start_datetime);
-  
-  if (now >= startTime) {
-    return {
-      success: false,
-      error: "Cannot withdraw from a competition that has already started"
-    };
+  // Check if competition has already started (only for scheduled competitions)
+  // For Live competitions, users can withdraw at any time before they start an attempt
+  const isLiveCompetition = competition.competition_mode === 'live';
+
+  if (!isLiveCompetition) {
+    const now = new Date();
+    const startTime = competition.start_datetime ? new Date(competition.start_datetime) : null;
+
+    if (startTime && now >= startTime) {
+      return {
+        success: false,
+        error: "Cannot withdraw from a competition that has already started"
+      };
+    }
   }
 
   // Check if registered with status 'registered'
@@ -341,7 +360,7 @@ export async function unregisterFromCompetition(competitionId: string) {
   if (competition.participation_type === "team" && existingRegistration.team_id) {
     const { error: updateError } = await supabase
       .from("competition_registrations")
-      .update({ 
+      .update({
         status: "withdrawn",
         updated_at: new Date().toISOString()
       })
@@ -360,7 +379,7 @@ export async function unregisterFromCompetition(competitionId: string) {
     // Update individual registration status to 'withdrawn'
     const { error: updateError } = await supabase
       .from("competition_registrations")
-      .update({ 
+      .update({
         status: "withdrawn",
         updated_at: new Date().toISOString()
       })

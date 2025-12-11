@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
+import CompetitionModeStep from "./CompetitionModeStep";
 import CompetitionDetailsStep from "./CompetitionDetailsStep";
 import ParticipationSettingsStep from "./ParticipationSettingsStep";
 import ProblemsPointsStep from "./ProblemsPointsStep";
@@ -28,7 +29,7 @@ type CompetitionData = {
     id: string;
     name: string;
     description: string | null;
-    start_datetime: string;
+    start_datetime: string | null;
     duration_minutes: number;
     participation_type: "individual" | "team";
     max_participants: number | null;
@@ -39,6 +40,9 @@ type CompetitionData = {
     average_points: number | null;
     difficult_points: number | null;
     status: string;
+    competition_mode?: "scheduled" | "live";
+    max_attempts?: number | null;
+    is_active?: boolean;
 };
 
 type CompetitionProblem = {
@@ -54,13 +58,17 @@ type Props = {
 
 export default function CreateCompetitionForm({ competitionData, competitionProblems }: Props) {
     const router = useRouter();
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(0); // Start at Step 0 (Competition Mode)
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
     const [showReview, setShowReview] = useState(false);
     const [competitionId, setCompetitionId] = useState<string | null>(null);
     const [originalStatus, setOriginalStatus] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Competition mode state
+    const [competitionMode, setCompetitionMode] = useState<"scheduled" | "live">("scheduled");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -80,20 +88,28 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         easyPoints: "",
         averagePoints: "",
         difficultPoints: "",
+        // Live competition fields
+        attemptType: "set" as "set" | "unlimited",
+        maxAttempts: "3",
     });
 
     // Initialize form with existing competition data
     useEffect(() => {
         if (competitionData) {
-            const startDateTime = new Date(competitionData.start_datetime);
+            const startDateTime = competitionData.start_datetime
+                ? new Date(competitionData.start_datetime)
+                : null;
             const hours = Math.floor(competitionData.duration_minutes / 60);
             const minutes = competitionData.duration_minutes % 60;
+
+            // Determine attempt type from max_attempts
+            const attemptType = competitionData.max_attempts === null ? "unlimited" : "set";
 
             setFormData({
                 name: competitionData.name,
                 description: competitionData.description || "",
-                startDate: startDateTime.toISOString().split("T")[0],
-                startTime: startDateTime.toTimeString().slice(0, 5),
+                startDate: startDateTime ? startDateTime.toISOString().split("T")[0] : "",
+                startTime: startDateTime ? startDateTime.toTimeString().slice(0, 5) : "",
                 durationHours: hours.toString(),
                 durationMinutes: minutes.toString(),
                 participationType: competitionData.participation_type,
@@ -107,9 +123,14 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                 easyPoints: competitionData.easy_points?.toString() || "",
                 averagePoints: competitionData.average_points?.toString() || "",
                 difficultPoints: competitionData.difficult_points?.toString() || "",
+                attemptType: attemptType,
+                maxAttempts: competitionData.max_attempts?.toString() || "3",
             });
+            setCompetitionMode(competitionData.competition_mode || "scheduled");
             setCompetitionId(competitionData.id);
             setOriginalStatus(competitionData.status);
+            setIsEditing(true);
+            setCurrentStep(1); // Skip mode selection when editing
         }
     }, [competitionData]);
 
@@ -125,6 +146,11 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         }
     }, [competitionProblems]);
 
+    const validateStep0 = (): boolean => {
+        // Mode is always valid (defaults to "scheduled")
+        return true;
+    };
+
     const validateStep1 = (): boolean => {
         if (!formData.name.trim()) {
             setError("Please enter a competition name");
@@ -134,16 +160,34 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
             setError("Competition name must be at least 3 characters long");
             return false;
         }
-        if (!formData.startDate || !formData.startTime) {
-            setError("Please set the start date and time");
-            return false;
+
+        // Date/time validation only for scheduled competitions
+        if (competitionMode === "scheduled") {
+            if (!formData.startDate || !formData.startTime) {
+                setError("Please set the start date and time");
+                return false;
+            }
         }
+
         const hours = parseInt(formData.durationHours) || 0;
         const minutes = parseInt(formData.durationMinutes) || 0;
         if (hours === 0 && minutes === 0) {
-            setError("Please set a duration for the competition");
+            setError(competitionMode === "scheduled"
+                ? "Please set a duration for the competition"
+                : "Please set a time limit per attempt"
+            );
             return false;
         }
+
+        // Validate attempt settings for live competitions
+        if (competitionMode === "live" && formData.attemptType === "set") {
+            const maxAttempts = parseInt(formData.maxAttempts) || 0;
+            if (maxAttempts < 1) {
+                setError("Please set a valid number of attempts (minimum 1)");
+                return false;
+            }
+        }
+
         return true;
     };
 
@@ -190,6 +234,9 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     const handleNextStep = () => {
         setError(null);
 
+        if (currentStep === 0 && !validateStep0()) {
+            return;
+        }
         if (currentStep === 1 && !validateStep1()) {
             return;
         }
@@ -202,7 +249,9 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
     const handlePreviousStep = () => {
         setError(null);
-        setCurrentStep(prev => Math.max(prev - 1, 1));
+        // Don't go back to step 0 if editing
+        const minStep = isEditing ? 1 : 0;
+        setCurrentStep(prev => Math.max(prev - 1, minStep));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -232,24 +281,31 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                 return;
             }
 
-            // Prepare start datetime
-            const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+            // Prepare start datetime (null for live competitions)
+            const startDateTime = competitionMode === "scheduled" && formData.startDate && formData.startTime
+                ? new Date(`${formData.startDate}T${formData.startTime}`)
+                : null;
             const hours = parseInt(formData.durationHours) || 0;
             const minutes = parseInt(formData.durationMinutes) || 0;
             const totalMinutes = hours * 60 + minutes;
 
-            // For drafts with auto_level, check if points are filled, otherwise use manual to avoid constraint violation
+            // For drafts with auto_level, check if points are filled
             const hasAutoLevelPoints = formData.easyPoints && formData.averagePoints && formData.difficultPoints;
             const effectivePointSystemType = formData.pointSystemType === "auto_level" && !hasAutoLevelPoints && status === "draft"
                 ? "manual"
                 : formData.pointSystemType;
+
+            // Determine max_attempts for live competitions
+            const maxAttempts = competitionMode === "live"
+                ? (formData.attemptType === "unlimited" ? null : parseInt(formData.maxAttempts))
+                : null; // Scheduled competitions don't use max_attempts
 
             // Create competition payload
             const competitionPayload = {
                 organizer_id: user.id,
                 name: formData.name.trim(),
                 description: formData.description.trim() || null,
-                start_datetime: startDateTime.toISOString(),
+                start_datetime: startDateTime ? startDateTime.toISOString() : null,
                 duration_minutes: totalMinutes,
                 participation_type: formData.participationType,
                 max_participants: formData.participationType === "individual" && formData.hasMaxParticipants
@@ -267,15 +323,22 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                 average_points: effectivePointSystemType === "auto_level" && formData.averagePoints ? parseInt(formData.averagePoints) : null,
                 difficult_points: effectivePointSystemType === "auto_level" && formData.difficultPoints ? parseInt(formData.difficultPoints) : null,
                 status: status,
+                // New live competition fields
+                competition_mode: competitionMode,
+                max_attempts: maxAttempts,
+                is_active: true,
             };
 
             let competition;
 
             if (competitionId) {
-                // Update existing competition
+                // Update existing competition (don't change competition_mode)
+                const updatePayload = { ...competitionPayload };
+                delete (updatePayload as any).competition_mode; // Can't change mode after creation
+
                 const { data, error: competitionError } = await supabase
                     .from("competitions")
-                    .update(competitionPayload)
+                    .update(updatePayload)
                     .eq("id", competitionId)
                     .select()
                     .single();
@@ -363,11 +426,15 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
     // If showing review, display review screen
     if (showReview) {
-        const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+        const startDateTime = formData.startDate && formData.startTime
+            ? new Date(`${formData.startDate}T${formData.startTime}`)
+            : null;
         const hours = parseInt(formData.durationHours) || 0;
         const minutes = parseInt(formData.durationMinutes) || 0;
         const totalMinutes = hours * 60 + minutes;
-        const endDateTime = new Date(startDateTime.getTime() + totalMinutes * 60000);
+        const endDateTime = startDateTime
+            ? new Date(startDateTime.getTime() + totalMinutes * 60000)
+            : null;
 
         return (
             <div className="space-y-6">
@@ -396,6 +463,26 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                     </Button>
                 </div>
 
+                {/* Competition Mode Badge */}
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${competitionMode === "scheduled"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-green-100 text-green-700"
+                    }`}>
+                    {competitionMode === "scheduled" ? (
+                        <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Scheduled Competition
+                        </>
+                    ) : (
+                        <>
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            Live Competition
+                        </>
+                    )}
+                </div>
+
                 {/* Basic Information Card */}
                 <div className="bg-white border border-slate-200 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-slate-800 mb-4">Basic Information</h3>
@@ -410,26 +497,40 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                                 <p className="col-span-2 text-sm text-slate-800">{formData.description}</p>
                             </div>
                         )}
+                        {competitionMode === "scheduled" && startDateTime && endDateTime && (
+                            <>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <p className="text-sm text-slate-600">Start Date & Time</p>
+                                    <p className="col-span-2 text-sm text-slate-800 font-medium">
+                                        {startDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <p className="text-sm text-slate-600">End Date & Time</p>
+                                    <p className="col-span-2 text-sm text-slate-800 font-medium">
+                                        {endDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                                    </p>
+                                </div>
+                            </>
+                        )}
                         <div className="grid grid-cols-3 gap-2">
-                            <p className="text-sm text-slate-600">Start Date & Time</p>
-                            <p className="col-span-2 text-sm text-slate-800 font-medium">
-                                {startDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                            <p className="text-sm text-slate-600">
+                                {competitionMode === "scheduled" ? "Duration" : "Time per Attempt"}
                             </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                            <p className="text-sm text-slate-600">End Date & Time</p>
-                            <p className="col-span-2 text-sm text-slate-800 font-medium">
-                                {endDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
-                            </p>
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                            <p className="text-sm text-slate-600">Duration</p>
                             <p className="col-span-2 text-sm text-slate-800 font-medium">
                                 {hours > 0 && `${hours} hour${hours !== 1 ? 's' : ''}`}
                                 {hours > 0 && minutes > 0 && ' '}
                                 {minutes > 0 && `${minutes} minute${minutes !== 1 ? 's' : ''}`}
                             </p>
                         </div>
+                        {competitionMode === "live" && (
+                            <div className="grid grid-cols-3 gap-2">
+                                <p className="text-sm text-slate-600">Attempts</p>
+                                <p className="col-span-2 text-sm text-slate-800 font-medium">
+                                    {formData.attemptType === "unlimited" ? "Unlimited" : `${formData.maxAttempts} attempts max`}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -492,7 +593,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                     <h3 className="text-lg font-semibold text-slate-800 mb-4">
                         Problems ({selectedProblems.length})
                     </h3>
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-h-80 overflow-y-auto">
                         {selectedProblems.map((sp, index) => (
                             <div key={sp.problem.id} className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
                                 <div className="flex items-start gap-3">
@@ -573,6 +674,14 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         );
     }
 
+    // Step labels for the stepper
+    const stepLabels = isEditing
+        ? ["Competition Details", "Participation Settings", "Problems & Points"]
+        : ["Competition Type", "Competition Details", "Participation Settings", "Problems & Points"];
+
+    const totalSteps = isEditing ? 3 : 4;
+    const displayStep = isEditing ? currentStep : currentStep;
+
     // Regular multi-step form view
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -584,38 +693,48 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
             {/* Step Indicator */}
             <div className="mb-8">
-                <div className="flex items-center justify-between max-w-2xl mx-auto">
-                    {[1, 2, 3].map((step) => (
-                        <div key={step} className="flex items-center flex-1">
-                            <div className="flex flex-col items-center">
-                                <div
-                                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${currentStep >= step
-                                            ? "bg-purple-600 text-white"
-                                            : "bg-slate-200 text-slate-500"
-                                        }`}
-                                >
-                                    {step}
+                <div className="flex items-center justify-between max-w-3xl mx-auto">
+                    {stepLabels.map((label, index) => {
+                        const step = isEditing ? index + 1 : index;
+                        return (
+                            <div key={step} className="flex items-center flex-1">
+                                <div className="flex flex-col items-center">
+                                    <div
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${currentStep >= step
+                                                ? "bg-purple-600 text-white"
+                                                : "bg-slate-200 text-slate-500"
+                                            }`}
+                                    >
+                                        {isEditing ? index + 1 : index + 1}
+                                    </div>
+                                    <p className={`text-xs mt-2 font-medium transition-colors text-center ${currentStep >= step ? "text-purple-600" : "text-slate-500"
+                                        }`}>
+                                        {label}
+                                    </p>
                                 </div>
-                                <p className={`text-xs mt-2 font-medium transition-colors ${currentStep >= step ? "text-purple-600" : "text-slate-500"
-                                    }`}>
-                                    {step === 1 && "Competition Details"}
-                                    {step === 2 && "Participation Settings"}
-                                    {step === 3 && "Problems & Points"}
-                                </p>
+                                {index < stepLabels.length - 1 && (
+                                    <div
+                                        className={`h-1 flex-1 mx-2 rounded transition-colors ${currentStep > step ? "bg-purple-600" : "bg-slate-200"
+                                            }`}
+                                    />
+                                )}
                             </div>
-                            {step < 3 && (
-                                <div
-                                    className={`h-1 flex-1 mx-2 rounded transition-colors ${currentStep > step ? "bg-purple-600" : "bg-slate-200"
-                                        }`}
-                                />
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
             {/* Step Content */}
             <div className="min-h-[400px]">
+                {currentStep === 0 && !isEditing && (
+                    <CompetitionModeStep
+                        competitionMode={competitionMode}
+                        setCompetitionMode={setCompetitionMode}
+                        isLoading={isLoading}
+                        isEditing={isEditing}
+                    />
+                )}
+
                 {currentStep === 1 && (
                     <CompetitionDetailsStep
                         formData={{
@@ -625,9 +744,12 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                             startTime: formData.startTime,
                             durationHours: formData.durationHours,
                             durationMinutes: formData.durationMinutes,
+                            attemptType: formData.attemptType,
+                            maxAttempts: formData.maxAttempts,
                         }}
                         setFormData={(data) => setFormData({ ...formData, ...data })}
                         isLoading={isLoading}
+                        competitionMode={competitionMode}
                     />
                 )}
 
@@ -665,7 +787,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
             {/* Navigation Buttons */}
             <div className="flex gap-3 pt-4 border-t border-slate-200">
-                {currentStep > 1 && (
+                {currentStep > (isEditing ? 1 : 0) && (
                     <Button
                         type="button"
                         variant="outline"
@@ -705,8 +827,8 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                     </Button>
                 )}
 
-                {/* Save as Draft Button - Available on all steps */}
-                {originalStatus !== "published" && (
+                {/* Save as Draft Button - Available on step 1+ */}
+                {currentStep >= 1 && originalStatus !== "published" && (
                     <Button
                         type="button"
                         variant="outline"

@@ -26,26 +26,31 @@ export default async function AdminCompetitionDetailPage({ params }: { params: {
     // Fetch competition details (admins can view all)
     const { data: competition, error: competitionError } = await supabase
         .from("competitions")
-        .select(`
-      *,
-      profiles (
-        username
-      )
-    `)
+        .select("*")
         .eq("id", params.id)
         .single();
 
     if (competitionError || !competition) {
+        console.error("Competition fetch error:", competitionError);
         notFound();
     }
 
     // Check if admin owns this competition
     const isOwnCompetition = competition.organizer_id === user.id;
-    const organizer = competition.profiles as any;
-    const organizerName = organizer?.username || 'Unknown';
+
+    // Fetch organizer name if not own competition
+    let organizerName = 'Unknown';
+    if (!isOwnCompetition) {
+        const { data: organizerProfile } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("id", competition.organizer_id)
+            .single();
+        organizerName = organizerProfile?.username || 'Unknown';
+    }
 
     // Fetch competition problems with problem details
-    const { data: competitionProblems } = await supabase
+    const { data: competitionProblems, error: problemsError } = await supabase
         .from("competition_problems")
         .select(`
       points,
@@ -60,6 +65,10 @@ export default async function AdminCompetitionDetailPage({ params }: { params: {
     `)
         .eq("competition_id", params.id)
         .order("order_index", { ascending: true });
+
+    if (problemsError) {
+        console.error("Problems fetch error:", problemsError);
+    }
 
     const problems = competitionProblems || [];
 

@@ -39,6 +39,9 @@ export default async function AdminCompetitionPage() {
       status,
       created_at,
       organizer_id,
+      competition_mode,
+      max_attempts,
+      is_active,
       competition_problems (count)
     `)
         .order("created_at", { ascending: false });
@@ -194,14 +197,17 @@ export default async function AdminCompetitionPage() {
 
                                             const statusColor = statusColors[competition.status as keyof typeof statusColors] || statusColors.draft;
                                             const problemCount = competition.competition_problems?.[0]?.count || 0;
-                                            const startDate = new Date(competition.start_datetime);
-                                            const formattedDate = startDate.toLocaleDateString("en-US", {
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            });
+                                            const isLive = (competition as any).competition_mode === "live";
+                                            const startDate = competition.start_datetime ? new Date(competition.start_datetime) : null;
+                                            const formattedDate = startDate
+                                                ? startDate.toLocaleDateString("en-US", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })
+                                                : "Available anytime";
 
                                             return (
                                                 <div
@@ -217,6 +223,20 @@ export default async function AdminCompetitionPage() {
                                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                                                                     {competition.status.charAt(0).toUpperCase() + competition.status.slice(1)}
                                                                 </span>
+                                                                {/* Competition Mode Badge */}
+                                                                {(competition as any).competition_mode === "live" ? (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                                                        Live
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                        </svg>
+                                                                        Scheduled
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <p className="text-slate-600 text-sm mb-3">
                                                                 {competition.description}
@@ -328,14 +348,17 @@ export default async function AdminCompetitionPage() {
 
                                             const statusColor = statusColors[competition.status as keyof typeof statusColors] || statusColors.draft;
                                             const problemCount = competition.competition_problems?.[0]?.count || 0;
-                                            const startDate = new Date(competition.start_datetime);
-                                            const formattedDate = startDate.toLocaleDateString("en-US", {
-                                                year: "numeric",
-                                                month: "long",
-                                                day: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            });
+                                            const isLive = (competition as any).competition_mode === "live";
+                                            const startDate = competition.start_datetime ? new Date(competition.start_datetime) : null;
+                                            const formattedDate = startDate
+                                                ? startDate.toLocaleDateString("en-US", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                    hour: "2-digit",
+                                                    minute: "2-digit",
+                                                })
+                                                : "Available anytime";
 
                                             return (
                                                 <div
@@ -351,6 +374,20 @@ export default async function AdminCompetitionPage() {
                                                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                                                                     {competition.status.charAt(0).toUpperCase() + competition.status.slice(1)}
                                                                 </span>
+                                                                {/* Competition Mode Badge */}
+                                                                {isLive ? (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                                                        Live
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                        </svg>
+                                                                        Scheduled
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <p className="text-slate-600 text-sm mb-3">
                                                                 {competition.description}
