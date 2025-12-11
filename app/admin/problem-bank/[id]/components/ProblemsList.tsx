@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 type Problem = {
   id: string;
@@ -82,7 +83,7 @@ export default function ProblemsList({
                 </span>
               </div>
               <p className="text-slate-800 font-medium mb-1 group-hover:text-purple-600 transition-colors line-clamp-2">
-                {problem.question}
+                <MathRenderer text={problem.question} />
               </p>
               {problem.type === "multiple_choice" && problem.options && (
                 <p className="text-sm text-slate-500">

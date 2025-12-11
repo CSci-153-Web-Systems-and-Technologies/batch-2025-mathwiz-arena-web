@@ -576,7 +576,7 @@ export default function CompetitionEnvironment({
                                                     <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-600">
                                                         {String.fromCharCode(65 + idx)}
                                                     </span>
-                                                    <span className="text-slate-800">{option}</span>
+                                                    <span className="text-slate-800"><MathRenderer text={option} /></span>
                                                 </label>
                                             ))}
                                         </div>

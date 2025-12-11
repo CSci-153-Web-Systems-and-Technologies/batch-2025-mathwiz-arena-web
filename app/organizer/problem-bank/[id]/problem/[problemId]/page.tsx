@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import ProblemActions from "./components/ProblemActions";
+import { MathDisplay } from "./components/MathDisplay";
 
 export default async function ProblemDetailPage({
   params
@@ -177,7 +178,9 @@ export default async function ProblemDetailPage({
             {/* Question */}
             <div className="p-6 border-b border-slate-200">
               <h2 className="text-sm font-semibold text-slate-500 uppercase mb-2">Question</h2>
-              <p className="text-lg text-slate-800 whitespace-pre-wrap">{problem.question}</p>
+              <div className="text-lg text-slate-800 whitespace-pre-wrap">
+                <MathDisplay text={problem.question} />
+              </div>
             </div>
 
             {/* Options (for Multiple Choice) */}
@@ -189,15 +192,15 @@ export default async function ProblemDetailPage({
                     <div
                       key={index}
                       className={`p-3 rounded-lg border-2 ${option === problem.correct_answer
-                          ? "border-green-500 bg-green-50"
-                          : "border-slate-200 bg-slate-50"
+                        ? "border-green-500 bg-green-50"
+                        : "border-slate-200 bg-slate-50"
                         }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center text-xs font-medium">
                           {String.fromCharCode(65 + index)}
                         </span>
-                        <span className="text-slate-800">{option}</span>
+                        <span className="text-slate-800"><MathDisplay text={option} /></span>
                         {option === problem.correct_answer && (
                           <span className="ml-auto flex items-center gap-1 text-xs font-medium text-green-700">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,7 +225,7 @@ export default async function ProblemDetailPage({
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="text-lg font-medium text-slate-800 capitalize">{problem.correct_answer}</span>
+                    <span className="text-lg font-medium text-slate-800 capitalize"><MathDisplay text={problem.correct_answer} /></span>
                   </div>
                 </div>
                 {problem.type === "identification" && (

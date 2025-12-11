@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
-import MathInput from "@/components/ui/MathInput";
+import MathInput, { MathInputInline } from "@/components/ui/MathInput";
 
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
@@ -22,6 +21,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
     options: ["", "", "", ""],
     correctAnswer: "",
     correctAnswerIndex: 0,
+    alternativeAnswers: [""] as string[], // For identification - multiple acceptable answers
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,7 +98,9 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       } else if (formData.type === "true_false") {
         correctAnswer = formData.correctAnswer;
       } else {
-        correctAnswer = formData.correctAnswer.trim();
+        // For identification, combine primary + alternative answers with pipe delimiter
+        const allAnswers = [formData.correctAnswer.trim(), ...formData.alternativeAnswers.filter(a => a.trim())].join("|");
+        correctAnswer = allAnswers;
       }
 
       // Get the next order_index
@@ -302,18 +304,17 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                 className="w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
                 disabled={isLoading}
               />
-              <Input
-                type="text"
-                placeholder={`Option ${String.fromCharCode(65 + index)}`}
+              <span className="text-sm font-medium text-slate-600 w-6">{String.fromCharCode(65 + index)}.</span>
+              <MathInputInline
                 value={option}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-                className="flex-1"
-                required
+                onChange={(value) => handleOptionChange(index, value)}
+                placeholder={`Option ${String.fromCharCode(65 + index)} (use $...$ for math)`}
                 disabled={isLoading}
+                required
               />
             </div>
           ))}
-          <p className="text-sm text-slate-500">Select the radio button for the correct answer</p>
+          <p className="text-sm text-slate-500">Select the radio button for the correct answer. Use $...$ for math expressions.</p>
         </div>
       )}
 
@@ -350,22 +351,73 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       )}
 
       {formData.type === "identification" && (
-        <div className="space-y-2">
-          <Label htmlFor="correctAnswer" className="text-slate-700 font-medium">
-            Correct Answer <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="correctAnswer"
-            type="text"
-            placeholder="Enter the correct answer"
-            value={formData.correctAnswer}
-            onChange={(e) => setFormData({ ...formData, correctAnswer: e.target.value })}
-            className="w-full"
-            required
-            disabled={isLoading}
-          />
-          <p className="text-sm text-slate-500">
-            For numeric answers, equivalent formats will be accepted (e.g., 5, 5.0, 5.00)
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="correctAnswer" className="text-slate-700 font-medium">
+              Primary Answer <span className="text-red-500">*</span>
+            </Label>
+            <MathInputInline
+              value={formData.correctAnswer}
+              onChange={(value) => setFormData({ ...formData, correctAnswer: value })}
+              placeholder="Enter the primary correct answer (use $...$ for math)"
+              disabled={isLoading}
+              required
+            />
+          </div>
+
+          {/* Alternative Answers */}
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">
+              Alternative Acceptable Answers <span className="text-slate-400 font-normal">(optional)</span>
+            </Label>
+            <p className="text-xs text-slate-500 mb-2">
+              Add variations that should also be accepted (e.g., for "x=17": also accept "17", "x = 17", etc.)
+            </p>
+            {formData.alternativeAnswers.map((alt, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <MathInputInline
+                  value={alt}
+                  onChange={(value) => {
+                    const newAlts = [...formData.alternativeAnswers];
+                    newAlts[index] = value;
+                    setFormData({ ...formData, alternativeAnswers: newAlts });
+                  }}
+                  placeholder={`Alternative answer ${index + 1}`}
+                  disabled={isLoading}
+                />
+                {formData.alternativeAnswers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newAlts = formData.alternativeAnswers.filter((_, i) => i !== index);
+                      setFormData({ ...formData, alternativeAnswers: newAlts });
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                    disabled={isLoading}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, alternativeAnswers: [...formData.alternativeAnswers, ""] })}
+              className="text-sm text-[#f49700] hover:text-[#d68400] font-medium flex items-center gap-1"
+              disabled={isLoading}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Another Alternative
+            </button>
+          </div>
+
+          <p className="text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
+            💡 <strong>Tip:</strong> For quadratic equations with multiple solutions (e.g., x = 2 or x = 3), add each value as an alternative.
+            Numeric equivalents (5 = 5.0 = 5.00) are automatically accepted.
           </p>
         </div>
       )}

@@ -267,11 +267,70 @@ export async function submitAnswer(
 
     const problem = competitionProblem.problems as any;
 
-    // Check if answer is correct (case-insensitive for identification)
+    // Helper function to normalize an answer for comparison
+    const normalizeAnswer = (ans: string): string => {
+        let normalized = ans.trim().toLowerCase();
+        // Remove $ symbols used for LaTeX
+        normalized = normalized.replace(/\$/g, '');
+        // Normalize whitespace around = sign
+        normalized = normalized.replace(/\s*=\s*/g, '=');
+        return normalized;
+    };
+
+    // Helper function to check if two values are numerically equivalent
+    const areNumericallyEqual = (a: string, b: string): boolean => {
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return Math.abs(numA - numB) < 0.0001; // Allow small floating point differences
+        }
+        return false;
+    };
+
+    // Check if answer is correct
     let isCorrect = false;
     if (problem.type === "identification") {
-        isCorrect = answer.trim().toLowerCase() === problem.correct_answer.trim().toLowerCase();
+        // Split correct answers by pipe delimiter
+        const acceptableAnswers = problem.correct_answer.split('|').map((a: string) => a.trim());
+        const userAnswer = normalizeAnswer(answer);
+
+        // Check against each acceptable answer
+        for (const acceptable of acceptableAnswers) {
+            const normalizedAcceptable = normalizeAnswer(acceptable);
+
+            // Exact match (case-insensitive)
+            if (userAnswer === normalizedAcceptable) {
+                isCorrect = true;
+                break;
+            }
+
+            // Numeric equivalence check (e.g., 17 = 17.0 = 17.00)
+            if (areNumericallyEqual(userAnswer, normalizedAcceptable)) {
+                isCorrect = true;
+                break;
+            }
+
+            // Also check if the answer contains the value after = sign
+            // e.g., user enters "17" and acceptable is "x=17"
+            if (normalizedAcceptable.includes('=')) {
+                const valueAfterEquals = normalizedAcceptable.split('=').pop()?.trim() || '';
+                if (userAnswer === valueAfterEquals || areNumericallyEqual(userAnswer, valueAfterEquals)) {
+                    isCorrect = true;
+                    break;
+                }
+            }
+
+            // Reverse: user enters "x=17" and acceptable is "17"
+            if (userAnswer.includes('=')) {
+                const userValueAfterEquals = userAnswer.split('=').pop()?.trim() || '';
+                if (userValueAfterEquals === normalizedAcceptable || areNumericallyEqual(userValueAfterEquals, normalizedAcceptable)) {
+                    isCorrect = true;
+                    break;
+                }
+            }
+        }
     } else {
+        // For multiple choice and true/false, exact match
         isCorrect = answer === problem.correct_answer;
     }
 
