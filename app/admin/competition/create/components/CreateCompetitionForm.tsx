@@ -714,6 +714,19 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     const totalSteps = isEditing ? 3 : 4;
     const displayStep = isEditing ? currentStep : currentStep;
 
+    // Force individual participation for live competitions
+    useEffect(() => {
+        if (competitionMode === "live" && formData.participationType === "team") {
+            setFormData(prev => ({
+                ...prev,
+                participationType: "individual",
+                hasMaxTeams: false,
+                maxTeams: "",
+                maxTeamMembers: ""
+            }));
+        }
+    }, [competitionMode]);
+
     // Regular multi-step form view
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -798,6 +811,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                         }}
                         setFormData={(data) => setFormData({ ...formData, ...data })}
                         isLoading={isLoading}
+                        competitionMode={competitionMode}
                     />
                 )}
 

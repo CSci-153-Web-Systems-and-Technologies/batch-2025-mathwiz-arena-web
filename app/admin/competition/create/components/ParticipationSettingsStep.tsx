@@ -17,9 +17,10 @@ type Props = {
     formData: FormData;
     setFormData: (data: FormData) => void;
     isLoading: boolean;
+    competitionMode?: "scheduled" | "live";
 };
 
-export default function ParticipationSettingsStep({ formData, setFormData, isLoading }: Props) {
+export default function ParticipationSettingsStep({ formData, setFormData, isLoading, competitionMode = "scheduled" }: Props) {
     const handleTeamSizeChange = (requireFull: boolean) => {
         setFormData({ ...formData, requireFullTeam: requireFull });
     };
@@ -47,8 +48,8 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
                             maxTeamMembers: ""
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.participationType === "individual"
-                                ? "border-purple-500 bg-purple-50 text-purple-700"
-                                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : "border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
                         disabled={isLoading}
                     >
@@ -61,22 +62,32 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
 
                     <button
                         type="button"
-                        onClick={() => setFormData({
-                            ...formData,
-                            participationType: "team",
-                            hasMaxParticipants: false,
-                            maxParticipants: ""
-                        })}
+                        onClick={() => {
+                            if (competitionMode === "live") return;
+                            setFormData({
+                                ...formData,
+                                participationType: "team",
+                                hasMaxParticipants: false,
+                                maxParticipants: ""
+                            })
+                        }}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.participationType === "team"
-                                ? "border-purple-500 bg-purple-50 text-purple-700"
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : competitionMode === "live"
+                                ? "border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed opacity-70"
                                 : "border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
-                        disabled={isLoading}
+                        disabled={isLoading || competitionMode === "live"}
                     >
                         <div className="text-center">
                             <div className="text-2xl mb-2">👥</div>
                             <div className="font-semibold mb-1">Team</div>
-                            <div className="text-xs text-slate-600">Participants compete in teams</div>
+                            <div className="text-xs text-slate-600">
+                                {competitionMode === "live"
+                                    ? "Not available for Live competitions"
+                                    : "Participants compete in teams"
+                                }
+                            </div>
                         </div>
                     </button>
                 </div>

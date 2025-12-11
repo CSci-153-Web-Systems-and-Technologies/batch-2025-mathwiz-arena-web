@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import ProblemBankActions from "./components/ProblemBankActions";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 export default async function AdminProblemBankDetailPage({ params }: { params: { id: string } }) {
     const supabase = await createClient();
@@ -206,13 +207,15 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                                                 <span className="text-purple-600 font-semibold text-sm">{index + 1}</span>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-purple-600">{problem.question}</h3>
+                                                <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-purple-600">
+                                                    <MathRenderer text={problem.question || ""} />
+                                                </h3>
                                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                                     {problem.option_a && (
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-slate-500">A:</span>
                                                             <span className={problem.correct_answer === 'A' ? 'text-green-600 font-medium' : 'text-slate-600'}>
-                                                                {problem.option_a}
+                                                                <MathRenderer text={problem.option_a || ""} />
                                                             </span>
                                                         </div>
                                                     )}
@@ -220,7 +223,7 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-slate-500">B:</span>
                                                             <span className={problem.correct_answer === 'B' ? 'text-green-600 font-medium' : 'text-slate-600'}>
-                                                                {problem.option_b}
+                                                                <MathRenderer text={problem.option_b || ""} />
                                                             </span>
                                                         </div>
                                                     )}
@@ -228,7 +231,7 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-slate-500">C:</span>
                                                             <span className={problem.correct_answer === 'C' ? 'text-green-600 font-medium' : 'text-slate-600'}>
-                                                                {problem.option_c}
+                                                                <MathRenderer text={problem.option_c || ""} />
                                                             </span>
                                                         </div>
                                                     )}
@@ -236,7 +239,7 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-slate-500">D:</span>
                                                             <span className={problem.correct_answer === 'D' ? 'text-green-600 font-medium' : 'text-slate-600'}>
-                                                                {problem.option_d}
+                                                                <MathRenderer text={problem.option_d || ""} />
                                                             </span>
                                                         </div>
                                                     )}
@@ -254,8 +257,8 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                                                         </>
                                                     )}
                                                     <span>•</span>
-                                                    <span className="text-green-600 font-medium">
-                                                        Answer: {problem.correct_answer}
+                                                    <span className="text-green-600 font-medium flex gap-1">
+                                                        Answer: <MathRenderer text={problem.correct_answer || ""} />
                                                     </span>
                                                 </div>
                                             </div>
