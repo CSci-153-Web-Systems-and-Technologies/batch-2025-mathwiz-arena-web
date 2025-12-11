@@ -197,13 +197,17 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                         {problems && problems.length > 0 ? (
                             <div className="divide-y divide-slate-200">
                                 {problems.map((problem, index) => (
-                                    <div key={problem.id} className="p-6 hover:bg-slate-50 transition-colors">
+                                    <Link
+                                        key={problem.id}
+                                        href={`/admin/problem-bank/${params.id}/problem/${problem.id}`}
+                                        className="p-6 hover:bg-slate-50 transition-colors block cursor-pointer"
+                                    >
                                         <div className="flex items-start gap-4">
                                             <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                                                 <span className="text-purple-600 font-semibold text-sm">{index + 1}</span>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-semibold text-slate-800 mb-2">{problem.question}</h3>
+                                                <h3 className="font-semibold text-slate-800 mb-2 group-hover:text-purple-600">{problem.question}</h3>
                                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                                     {problem.option_a && (
                                                         <div className="flex items-center gap-2">
@@ -256,8 +260,14 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                                                     </span>
                                                 </div>
                                             </div>
+                                            {/* View Details Arrow */}
+                                            <div className="flex-shrink-0 text-slate-400 hover:text-purple-600 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         ) : (

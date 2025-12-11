@@ -5,28 +5,46 @@ import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import EditProblemForm from "./components/EditProblemForm";
 
-export default async function EditProblemPage({ 
-  params 
-}: { 
-  params: { id: string; problemId: string } 
+export default async function AdminEditProblemPage({
+  params
+}: {
+  params: { id: string; problemId: string }
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  // Fetch problem bank to verify ownership
+  // Verify admin role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== 'admin') {
+    redirect("/error?message=Access denied");
+  }
+
+  // Fetch problem bank to verify it exists and check ownership
   const { data: problemBank, error: bankError } = await supabase
     .from("problem_banks")
-    .select("*")
+    .select("*, profiles(username)")
     .eq("id", params.id)
-    .eq("organizer_id", user.id)
     .single();
 
   if (bankError || !problemBank) {
     notFound();
+  }
+
+  // Check if admin owns this problem bank
+  const isOwnBank = problemBank.created_by === user.id;
+
+  // Only allow editing if admin owns the bank
+  if (!isOwnBank) {
+    redirect(`/admin/problem-bank/${params.id}/problem/${params.problemId}?error=readonly`);
   }
 
   // Fetch the specific problem
@@ -50,13 +68,13 @@ export default async function EditProblemPage({
             <Image src="/icon.svg" alt="Mathwiz Logo" width={40} height={40} className="rounded-md" />
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Mathwiz</h1>
-              <p className="text-xs text-slate-500">Organizer</p>
+              <p className="text-xs text-purple-600 font-medium">Admin</p>
             </div>
           </Link>
 
           <nav className="space-y-1">
             <Link
-              href="/organizer"
+              href="/admin"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,8 +84,8 @@ export default async function EditProblemPage({
             </Link>
 
             <Link
-              href="/organizer/problem-bank"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#f49700] rounded-lg"
+              href="/admin/problem-bank"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -75,28 +93,29 @@ export default async function EditProblemPage({
               Problem Bank
             </Link>
 
-            <Link
-              href="/organizer/competition"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Create Competition
-            </Link>
+            {/* Future features - grayed out */}
+            <div className="opacity-50 cursor-not-allowed">
+              <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                Competitions
+                <span className="ml-auto text-xs bg-slate-100 px-2 py-0.5 rounded">Soon</span>
+              </div>
+            </div>
+
+            <div className="opacity-50 cursor-not-allowed">
+              <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                User Management
+                <span className="ml-auto text-xs bg-slate-100 px-2 py-0.5 rounded">Soon</span>
+              </div>
+            </div>
 
             <Link
-              href="/organizer/profile"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Profile
-            </Link>
-
-            <Link
-              href="/organizer/settings"
+              href="/admin/settings"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -104,16 +123,6 @@ export default async function EditProblemPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               Settings
-            </Link>
-
-            <Link
-              href="/organizer/history"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              History
             </Link>
 
             <div className="pt-4 mt-4 border-t border-slate-200">
@@ -129,8 +138,8 @@ export default async function EditProblemPage({
           {/* Header */}
           <div className="mb-8">
             <Link
-              href={`/organizer/problem-bank/${params.id}/problem/${params.problemId}`}
-              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] mb-4 transition-colors"
+              href={`/admin/problem-bank/${params.id}/problem/${params.problemId}`}
+              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-purple-600 mb-4 transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

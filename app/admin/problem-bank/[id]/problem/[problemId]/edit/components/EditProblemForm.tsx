@@ -19,17 +19,17 @@ type Problem = {
   correct_answer: string;
 };
 
-export default function EditProblemForm({ 
-  problem, 
-  problemBankId 
-}: { 
+export default function EditProblemForm({
+  problem,
+  problemBankId
+}: {
   problem: Problem;
   problemBankId: string;
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Initialize form data based on problem type
   const getCorrectAnswerIndex = () => {
     if (problem.type === "multiple_choice" && problem.options) {
@@ -61,7 +61,7 @@ export default function EditProblemForm({
         setIsLoading(false);
         return;
       }
-      
+
       if (formData.question.trim().length < 5) {
         setError("Question must be at least 5 characters long");
         setIsLoading(false);
@@ -76,7 +76,7 @@ export default function EditProblemForm({
           setIsLoading(false);
           return;
         }
-        
+
         // Check each option has minimum length
         for (let i = 0; i < formData.options.length; i++) {
           if (formData.options[i].trim().length < 1) {
@@ -85,7 +85,7 @@ export default function EditProblemForm({
             return;
           }
         }
-        
+
         if (!formData.options[formData.correctAnswerIndex].trim()) {
           setError("Please select a correct answer");
           setIsLoading(false);
@@ -103,7 +103,7 @@ export default function EditProblemForm({
           setIsLoading(false);
           return;
         }
-        
+
         if (formData.correctAnswer.trim().length < 1) {
           setError("Correct answer must be at least 1 character long");
           setIsLoading(false);
@@ -145,8 +145,8 @@ export default function EditProblemForm({
         return;
       }
 
-      // Redirect back to problem details
-      router.push(`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`);
+      // Redirect back to problem details (admin route)
+      router.push(`/admin/problem-bank/${problemBankId}/problem/${problem.id}`);
       router.refresh();
     } catch (err: any) {
       console.error("Unexpected error:", err);
@@ -180,7 +180,7 @@ export default function EditProblemForm({
           placeholder="Enter your question here..."
           value={formData.question}
           onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none"
+          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
           required
           disabled={isLoading}
         />
@@ -194,18 +194,17 @@ export default function EditProblemForm({
         <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "multiple_choice", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "multiple_choice",
               correctAnswer: "",
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "multiple_choice"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             <div className="text-center">
@@ -215,17 +214,16 @@ export default function EditProblemForm({
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "true_false", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "true_false",
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "true_false"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             <div className="text-center">
@@ -235,17 +233,16 @@ export default function EditProblemForm({
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "identification", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "identification",
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "identification"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             <div className="text-center">
@@ -265,11 +262,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "easy"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
                 ? "border-green-500 bg-green-50 text-green-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             Easy
@@ -277,11 +273,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "average"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
                 ? "border-yellow-500 bg-yellow-50 text-yellow-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             Average
@@ -289,11 +284,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "difficult"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
                 ? "border-red-500 bg-red-50 text-red-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             Difficult
@@ -314,7 +308,7 @@ export default function EditProblemForm({
                 name="correctAnswer"
                 checked={formData.correctAnswerIndex === index}
                 onChange={() => setFormData({ ...formData, correctAnswerIndex: index })}
-                className="w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 disabled={isLoading}
               />
               <Input
@@ -341,11 +335,10 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-                formData.correctAnswer === "true"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
+                  ? "border-purple-500 bg-purple-50 text-purple-700"
                   : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+                }`}
               disabled={isLoading}
             >
               True
@@ -353,11 +346,10 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-                formData.correctAnswer === "false"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
+                  ? "border-purple-500 bg-purple-50 text-purple-700"
                   : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+                }`}
               disabled={isLoading}
             >
               False
@@ -392,7 +384,7 @@ export default function EditProblemForm({
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-[#f49700] hover:bg-[#d68400] text-white font-medium px-6"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6"
         >
           {isLoading ? (
             <>
@@ -414,7 +406,7 @@ export default function EditProblemForm({
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`)}
+          onClick={() => router.push(`/admin/problem-bank/${problemBankId}/problem/${problem.id}`)}
           disabled={isLoading}
           className="font-medium"
         >

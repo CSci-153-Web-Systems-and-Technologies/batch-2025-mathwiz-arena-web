@@ -5,24 +5,39 @@ import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import ProblemActions from "./components/ProblemActions";
 
-export default async function ProblemDetailPage({ 
-  params 
-}: { 
-  params: { id: string; problemId: string } 
+export default async function AdminProblemDetailPage({
+  params
+}: {
+  params: { id: string; problemId: string }
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  // Fetch problem bank to verify ownership
+  // Verify admin role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== 'admin') {
+    redirect("/error?message=Access denied");
+  }
+
+  // Fetch problem bank (admins can view all but need to check ownership for edit permissions)
   const { data: problemBank, error: bankError } = await supabase
     .from("problem_banks")
-    .select("*")
+    .select(`
+      *,
+      profiles (
+        username
+      )
+    `)
     .eq("id", params.id)
-    .eq("organizer_id", user.id)
     .single();
 
   if (bankError || !problemBank) {
@@ -40,6 +55,11 @@ export default async function ProblemDetailPage({
   if (problemError || !problem) {
     notFound();
   }
+
+  // Check if admin owns this problem bank
+  const isOwnBank = problemBank.created_by === user.id;
+  const organizer = problemBank.profiles as any;
+  const organizerName = organizer?.username || 'Unknown';
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -68,13 +88,13 @@ export default async function ProblemDetailPage({
             <Image src="/icon.svg" alt="Mathwiz Logo" width={40} height={40} className="rounded-md" />
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Mathwiz</h1>
-              <p className="text-xs text-slate-500">Organizer</p>
+              <p className="text-xs text-purple-600 font-medium">Admin</p>
             </div>
           </Link>
 
           <nav className="space-y-1">
             <Link
-              href="/organizer"
+              href="/admin"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -84,8 +104,8 @@ export default async function ProblemDetailPage({
             </Link>
 
             <Link
-              href="/organizer/problem-bank"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-[#f49700] rounded-lg"
+              href="/admin/problem-bank"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-purple-600 rounded-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -93,28 +113,29 @@ export default async function ProblemDetailPage({
               Problem Bank
             </Link>
 
-            <Link
-              href="/organizer/competition"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Create Competition
-            </Link>
+            {/* Future features - grayed out */}
+            <div className="opacity-50 cursor-not-allowed">
+              <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                Competitions
+                <span className="ml-auto text-xs bg-slate-100 px-2 py-0.5 rounded">Soon</span>
+              </div>
+            </div>
+
+            <div className="opacity-50 cursor-not-allowed">
+              <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                User Management
+                <span className="ml-auto text-xs bg-slate-100 px-2 py-0.5 rounded">Soon</span>
+              </div>
+            </div>
 
             <Link
-              href="/organizer/profile"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Profile
-            </Link>
-
-            <Link
-              href="/organizer/settings"
+              href="/admin/settings"
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -122,16 +143,6 @@ export default async function ProblemDetailPage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               Settings
-            </Link>
-
-            <Link
-              href="/organizer/history"
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              History
             </Link>
 
             <div className="pt-4 mt-4 border-t border-slate-200">
@@ -147,18 +158,25 @@ export default async function ProblemDetailPage({
           {/* Header */}
           <div className="mb-8">
             <Link
-              href={`/organizer/problem-bank/${params.id}`}
-              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] mb-4 transition-colors"
+              href={`/admin/problem-bank/${params.id}`}
+              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-purple-600 mb-4 transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               Back to {problemBank.title}
             </Link>
-            
+
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-bold text-slate-800 mb-3">Problem Details</h1>
+                <div className="flex items-center gap-3 mb-3">
+                  <h1 className="text-3xl font-bold text-slate-800">Problem Details</h1>
+                  {!isOwnBank && (
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 text-sm font-medium rounded-full">
+                      Read-Only
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-medium px-2 py-1 rounded border capitalize ${getDifficultyColor(problem.difficulty)}`}>
                     {problem.difficulty}
@@ -166,11 +184,31 @@ export default async function ProblemDetailPage({
                   <span className="text-sm text-slate-500 font-medium">
                     {getTypeLabel(problem.type)}
                   </span>
+                  {!isOwnBank && (
+                    <>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-sm text-slate-500">
+                        By: <span className="text-purple-600 font-medium">{organizerName}</span>
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
-              <ProblemActions problemBankId={params.id} problemId={params.problemId} />
+              {isOwnBank && (
+                <ProblemActions problemBankId={params.id} problemId={params.problemId} />
+              )}
             </div>
           </div>
+
+          {/* Read-only notice for organizer-created problems */}
+          {!isOwnBank && (
+            <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4 text-purple-700 text-sm flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>This problem was created by an organizer. You have read-only access.</span>
+            </div>
+          )}
 
           {/* Problem Content */}
           <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -186,13 +224,12 @@ export default async function ProblemDetailPage({
                 <h2 className="text-sm font-semibold text-slate-500 uppercase mb-3">Options</h2>
                 <div className="space-y-2">
                   {problem.options.map((option: string, index: number) => (
-                    <div 
+                    <div
                       key={index}
-                      className={`p-3 rounded-lg border-2 ${
-                        option === problem.correct_answer
+                      className={`p-3 rounded-lg border-2 ${option === problem.correct_answer
                           ? "border-green-500 bg-green-50"
                           : "border-slate-200 bg-slate-50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center text-xs font-medium">
