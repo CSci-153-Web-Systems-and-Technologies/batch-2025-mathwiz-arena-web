@@ -3,6 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
+import ProblemBankActions from "./components/ProblemBankActions";
 
 export default async function AdminProblemBankDetailPage({ params }: { params: { id: string } }) {
     const supabase = await createClient();
@@ -46,6 +47,9 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
         .select("*")
         .eq("problem_bank_id", params.id)
         .order("order_index", { ascending: true });
+
+    // Check if admin owns this problem bank
+    const isOwnBank = problemBank.created_by === user.id;
 
     const organizer = problemBank.profiles as any;
     const organizerName = organizer?.username || 'Unknown';
@@ -142,27 +146,51 @@ export default async function AdminProblemBankDetailPage({ params }: { params: {
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
                                     <h1 className="text-3xl font-bold text-slate-800">{problemBank.title}</h1>
-                                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full">
-                                        Read-Only
-                                    </span>
+                                    {!isOwnBank && (
+                                        <span className="px-3 py-1 bg-slate-100 text-slate-600 text-sm font-medium rounded-full">
+                                            Read-Only
+                                        </span>
+                                    )}
                                 </div>
                                 <p className="text-slate-600 mb-2">{problemBank.description || "No description"}</p>
                                 <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
-                                    <span>By: <span className="text-purple-600 font-medium">{organizerName}</span></span>
-                                    <span>•</span>
+                                    {!isOwnBank && (
+                                        <>
+                                            <span>By: <span className="text-purple-600 font-medium">{organizerName}</span></span>
+                                            <span>•</span>
+                                        </>
+                                    )}
                                     <span>{new Date(problemBank.created_at).toLocaleDateString()}</span>
                                     <span>•</span>
                                     <span>{problems?.length || 0} problem{problems?.length !== 1 ? 's' : ''}</span>
                                 </div>
                             </div>
+                            {isOwnBank && (
+                                <ProblemBankActions problemBankId={params.id} />
+                            )}
                         </div>
                     </div>
 
                     {/* Problems Section */}
                     <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
-                        <div className="p-6 border-b border-slate-200">
-                            <h2 className="text-xl font-semibold text-slate-800">Problems</h2>
-                            <p className="text-sm text-slate-500 mt-1">View problems in this bank (read-only access)</p>
+                        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+                            <div>
+                                <h2 className="text-xl font-semibold text-slate-800">Problems</h2>
+                                <p className="text-sm text-slate-500 mt-1">
+                                    {isOwnBank ? 'Manage problems in your bank' : 'View problems in this bank (read-only access)'}
+                                </p>
+                            </div>
+                            {isOwnBank && (
+                                <Link
+                                    href={`/admin/problem-bank/${params.id}/add-problem`}
+                                    className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white font-medium hover:bg-purple-700 transition-colors text-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    Add Problem
+                                </Link>
+                            )}
                         </div>
 
                         {/* Problems List */}

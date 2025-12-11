@@ -10,17 +10,41 @@ import { createClient } from "@/utils/supabase/client";
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
 
-export default function AddProblemForm({ problemBankId }: { problemBankId: string }) {
+type Problem = {
+  id: string;
+  question: string;
+  type: ProblemType;
+  difficulty: Difficulty;
+  options: string[] | null;
+  correct_answer: string;
+};
+
+export default function EditProblemForm({ 
+  problem, 
+  problemBankId 
+}: { 
+  problem: Problem;
+  problemBankId: string;
+}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Initialize form data based on problem type
+  const getCorrectAnswerIndex = () => {
+    if (problem.type === "multiple_choice" && problem.options) {
+      return problem.options.findIndex(opt => opt === problem.correct_answer);
+    }
+    return 0;
+  };
+
   const [formData, setFormData] = useState({
-    question: "",
-    type: "multiple_choice" as ProblemType,
-    difficulty: "average" as Difficulty,
-    options: ["", "", "", ""],
-    correctAnswer: "",
-    correctAnswerIndex: 0,
+    question: problem.question,
+    type: problem.type,
+    difficulty: problem.difficulty,
+    options: problem.options || ["", "", "", ""],
+    correctAnswer: problem.correct_answer,
+    correctAnswerIndex: getCorrectAnswerIndex(),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +61,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         setIsLoading(false);
         return;
       }
-
+      
       if (formData.question.trim().length < 5) {
         setError("Question must be at least 5 characters long");
         setIsLoading(false);
@@ -52,7 +76,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           setIsLoading(false);
           return;
         }
-
+        
         // Check each option has minimum length
         for (let i = 0; i < formData.options.length; i++) {
           if (formData.options[i].trim().length < 1) {
@@ -61,7 +85,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             return;
           }
         }
-
+        
         if (!formData.options[formData.correctAnswerIndex].trim()) {
           setError("Please select a correct answer");
           setIsLoading(false);
@@ -79,7 +103,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           setIsLoading(false);
           return;
         }
-
+        
         if (formData.correctAnswer.trim().length < 1) {
           setError("Correct answer must be at least 1 character long");
           setIsLoading(false);
@@ -100,53 +124,29 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         correctAnswer = formData.correctAnswer.trim();
       }
 
-      // Get the next order_index
-      const { data: existingProblems } = await supabase
+      // Update problem
+      const { error: updateError } = await supabase
         .from("problems")
-        .select("order_index")
-        .eq("problem_bank_id", problemBankId)
-        .order("order_index", { ascending: false })
-        .limit(1);
+        .update({
+          question: formData.question.trim(),
+          type: formData.type,
+          difficulty: formData.difficulty,
+          options: options,
+          correct_answer: correctAnswer,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", problem.id);
 
-      const nextOrderIndex = existingProblems && existingProblems.length > 0
-        ? existingProblems[0].order_index + 1
-        : 0;
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setError("You must be logged in to add a problem");
+      if (updateError) {
+        console.error("Error updating problem:", updateError);
+        const errorMessage = updateError.message || updateError.hint || "Unknown error occurred";
+        setError(`Failed to update problem: ${errorMessage}`);
         setIsLoading(false);
         return;
       }
 
-      // Create problem
-      const { error: insertError } = await supabase
-        .from("problems")
-        .insert([
-          {
-            problem_bank_id: problemBankId,
-            created_by: user.id,  // Add created_by field
-            question: formData.question.trim(),
-            type: formData.type,
-            difficulty: formData.difficulty,
-            options: options,
-            correct_answer: correctAnswer,
-            order_index: nextOrderIndex,
-          },
-        ]);
-
-      if (insertError) {
-        console.error("Error creating problem:", insertError);
-        const errorMessage = insertError.message || insertError.hint || "Unknown error occurred";
-        setError(`Failed to create problem: ${errorMessage}`);
-        setIsLoading(false);
-        return;
-      }
-
-      // Redirect back to problem bank
-      router.push(`/organizer/problem-bank/${problemBankId}`);
+      // Redirect back to problem details
+      router.push(`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`);
       router.refresh();
     } catch (err: any) {
       console.error("Unexpected error:", err);
@@ -194,17 +194,18 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
-            onClick={() => setFormData({
-              ...formData,
-              type: "multiple_choice",
+            onClick={() => setFormData({ 
+              ...formData, 
+              type: "multiple_choice", 
               correctAnswer: "",
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+              formData.type === "multiple_choice"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+            }`}
             disabled={isLoading}
           >
             <div className="text-center">
@@ -214,16 +215,17 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           </button>
           <button
             type="button"
-            onClick={() => setFormData({
-              ...formData,
-              type: "true_false",
+            onClick={() => setFormData({ 
+              ...formData, 
+              type: "true_false", 
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+              formData.type === "true_false"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+            }`}
             disabled={isLoading}
           >
             <div className="text-center">
@@ -233,16 +235,17 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           </button>
           <button
             type="button"
-            onClick={() => setFormData({
-              ...formData,
-              type: "identification",
+            onClick={() => setFormData({ 
+              ...formData, 
+              type: "identification", 
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+              formData.type === "identification"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+            }`}
             disabled={isLoading}
           >
             <div className="text-center">
@@ -262,10 +265,11 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+              formData.difficulty === "easy"
                 ? "border-green-500 bg-green-50 text-green-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+            }`}
             disabled={isLoading}
           >
             Easy
@@ -273,10 +277,11 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+              formData.difficulty === "average"
                 ? "border-yellow-500 bg-yellow-50 text-yellow-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+            }`}
             disabled={isLoading}
           >
             Average
@@ -284,10 +289,11 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
+              formData.difficulty === "difficult"
                 ? "border-red-500 bg-red-50 text-red-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+            }`}
             disabled={isLoading}
           >
             Difficult
@@ -335,10 +341,11 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+                formData.correctAnswer === "true"
                   ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                   : "border-slate-200 text-slate-700 hover:border-slate-300"
-                }`}
+              }`}
               disabled={isLoading}
             >
               True
@@ -346,10 +353,11 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
+                formData.correctAnswer === "false"
                   ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                   : "border-slate-200 text-slate-700 hover:border-slate-300"
-                }`}
+              }`}
               disabled={isLoading}
             >
               False
@@ -392,21 +400,21 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Adding...
+              Saving...
             </>
           ) : (
             <>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Add Problem
+              Save Changes
             </>
           )}
         </Button>
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(`/organizer/problem-bank/${problemBankId}`)}
+          onClick={() => router.push(`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`)}
           disabled={isLoading}
           className="font-medium"
         >
