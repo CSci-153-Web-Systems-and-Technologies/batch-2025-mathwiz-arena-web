@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 
 export default async function OrganizerDashboard() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -118,7 +118,7 @@ export default async function OrganizerDashboard() {
     const now = new Date();
     const endTime = new Date(new Date(comp.start_datetime).getTime() + comp.duration_minutes * 60000);
     const timeSinceEnd = now.getTime() - endTime.getTime();
-    
+
     // If ended in last 7 days
     if (endTime < now && timeSinceEnd < 7 * 24 * 60 * 60 * 1000) {
       activities.push({
@@ -228,7 +228,7 @@ export default async function OrganizerDashboard() {
       const timeUntil = startTime.getTime() - now.getTime();
       const days = Math.floor(timeUntil / (1000 * 60 * 60 * 24));
       const hours = Math.floor((timeUntil % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      
+
       if (days > 0) {
         return `Starts in ${days} day${days > 1 ? 's' : ''}`;
       } else {
@@ -238,7 +238,7 @@ export default async function OrganizerDashboard() {
       const timeAgo = now.getTime() - endTime.getTime();
       const days = Math.floor(timeAgo / (1000 * 60 * 60 * 24));
       const hours = Math.floor((timeAgo % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      
+
       if (days > 0) {
         return `Ended ${days} day${days > 1 ? 's' : ''} ago`;
       } else {
@@ -338,187 +338,187 @@ export default async function OrganizerDashboard() {
             <p className="text-slate-600 mt-1">Here's what's happening with your competitions today.</p>
           </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-6 md:grid-cols-4 mb-8">
-          <div className="rounded-xl bg-white border-2 border-[#f49700] p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Total Competitions</p>
-                <p className="text-3xl font-bold text-[#f49700] mt-1">{totalContests || 0}</p>
+          {/* Stats Cards */}
+          <div className="grid gap-6 md:grid-cols-4 mb-8">
+            <div className="rounded-xl bg-white border-2 border-[#f49700] p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600">Total Competitions</p>
+                  <p className="text-3xl font-bold text-[#f49700] mt-1">{totalContests || 0}</p>
+                </div>
+                <div className="rounded-full bg-[#f49700]/10 p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
               </div>
-              <div className="rounded-full bg-[#f49700]/10 p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+            </div>
+
+            <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600">Published Competitions</p>
+                  <p className="text-3xl font-bold text-slate-800 mt-1">{publishedCompetitions || 0}</p>
+                </div>
+                <div className="rounded-full bg-slate-100 p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600">Total Participants</p>
+                  <p className="text-3xl font-bold text-slate-800 mt-1">{totalParticipants || 0}</p>
+                </div>
+                <div className="rounded-full bg-slate-100 p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-600">Avg. Rating</p>
+                  <p className="text-3xl font-bold text-slate-800 mt-1">{averageRating}</p>
+                </div>
+                <div className="rounded-full bg-slate-100 p-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Published Competitions</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">{publishedCompetitions || 0}</p>
-              </div>
-              <div className="rounded-full bg-slate-100 p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          {/* Main Grid */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Published Competitions */}
+            <div className="lg:col-span-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-slate-800">Published Competitions</h2>
+                  <Link href="/organizer/competition" className="text-sm text-[#f49700] hover:underline">
+                    View all
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {publishedCompetitionsList && publishedCompetitionsList.length > 0 ? (
+                    publishedCompetitionsList.map((competition) => {
+                      const status = getCompetitionStatus(competition);
+                      const timeInfo = getTimeInfo(competition);
 
-          <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Total Participants</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">{totalParticipants || 0}</p>
-              </div>
-              <div className="rounded-full bg-slate-100 p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-white border border-slate-200 p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600">Avg. Rating</p>
-                <p className="text-3xl font-bold text-slate-800 mt-1">{averageRating}</p>
-              </div>
-              <div className="rounded-full bg-slate-100 p-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Published Competitions */}
-          <div className="lg:col-span-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-800">Published Competitions</h2>
-                <Link href="/organizer/competition" className="text-sm text-[#f49700] hover:underline">
-                  View all
-                </Link>
-              </div>
-              <div className="space-y-4">
-                {publishedCompetitionsList && publishedCompetitionsList.length > 0 ? (
-                  publishedCompetitionsList.map((competition) => {
-                    const status = getCompetitionStatus(competition);
-                    const timeInfo = getTimeInfo(competition);
-                    
-                    return (
-                      <div key={competition.id} className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-slate-800">{competition.name}</h3>
-                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color}`}>
-                                {status.label}
-                              </span>
-                            </div>
-                            <p className="text-sm text-slate-600 mt-1">{timeInfo}</p>
-                            <div className="mt-2 flex gap-2">
-                              <Link
-                                href={`/organizer/competition/${competition.id}`}
-                                className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
-                              >
-                                View Details
-                              </Link>
-                              <Link
-                                href={`/organizer/competition/create?edit=${competition.id}`}
-                                className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
-                              >
-                                Edit
-                              </Link>
+                      return (
+                        <div key={competition.id} className="rounded-lg border-l-4 border-[#f49700] bg-slate-50 p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-slate-800">{competition.name}</h3>
+                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color}`}>
+                                  {status.label}
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-600 mt-1">{timeInfo}</p>
+                              <div className="mt-2 flex gap-2">
+                                <Link
+                                  href={`/organizer/competition/${competition.id}`}
+                                  className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                                >
+                                  View Details
+                                </Link>
+                                <Link
+                                  href={`/organizer/competition/create?edit=${competition.id}`}
+                                  className="rounded-md border border-slate-300 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100"
+                                >
+                                  Edit
+                                </Link>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-slate-500 mb-4">No published competitions yet</p>
-                    <Link
-                      href="/organizer/competition/create"
-                      className="inline-block rounded-md bg-[#f49700] px-4 py-2 text-sm text-white hover:bg-[#d68400]"
-                    >
-                      Create Your First Competition
-                    </Link>
-                  </div>
-                )}
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-slate-500 mb-4">No published competitions yet</p>
+                      <Link
+                        href="/organizer/competition/create"
+                        className="inline-block rounded-md bg-[#f49700] px-4 py-2 text-sm text-white hover:bg-[#d68400]"
+                      >
+                        Create Your First Competition
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Quick Stats */}
-          <div className="space-y-6">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-slate-800 mb-4">Recent Activity</h2>
-              <div className="space-y-4">
-                {recentActivities.length > 0 ? (
-                  recentActivities.map((activity, index) => {
-                    const activityConfig = {
-                      created: {
-                        label: "Competition created",
-                        color: "bg-slate-300",
-                        textColor: "text-slate-700"
-                      },
-                      registration: {
-                        label: "New registration",
-                        color: "bg-[#f49700]",
-                        textColor: "text-slate-800"
-                      },
-                      rating: {
-                        label: `Received ${activity.rating}-star rating`,
-                        color: "bg-[#f49700]",
-                        textColor: "text-slate-800"
-                      },
-                      ended: {
-                        label: "Competition ended",
-                        color: "bg-[#f49700]",
-                        textColor: "text-slate-800"
-                      }
-                    };
+            {/* Quick Stats */}
+            <div className="space-y-6">
+              <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-800 mb-4">Recent Activity</h2>
+                <div className="space-y-4">
+                  {recentActivities.length > 0 ? (
+                    recentActivities.map((activity, index) => {
+                      const activityConfig = {
+                        created: {
+                          label: "Competition created",
+                          color: "bg-slate-300",
+                          textColor: "text-slate-700"
+                        },
+                        registration: {
+                          label: "New registration",
+                          color: "bg-[#f49700]",
+                          textColor: "text-slate-800"
+                        },
+                        rating: {
+                          label: `Received ${activity.rating}-star rating`,
+                          color: "bg-[#f49700]",
+                          textColor: "text-slate-800"
+                        },
+                        ended: {
+                          label: "Competition ended",
+                          color: "bg-[#f49700]",
+                          textColor: "text-slate-800"
+                        }
+                      };
 
-                    const config = activityConfig[activity.type];
+                      const config = activityConfig[activity.type];
 
-                    return (
-                      <div key={`${activity.type}-${activity.timestamp}-${index}`} className="flex gap-3">
-                        <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${config.color}`}></div>
-                        <div>
-                          <p className={`text-sm font-medium ${config.textColor}`}>{config.label}</p>
-                          <p className="text-xs text-slate-500">
-                            {activity.competitionName} • {getTimeAgo(activity.timestamp)}
-                          </p>
+                      return (
+                        <div key={`${activity.type}-${activity.timestamp}-${index}`} className="flex gap-3">
+                          <div className={`flex-shrink-0 w-2 h-2 mt-2 rounded-full ${config.color}`}></div>
+                          <div>
+                            <p className={`text-sm font-medium ${config.textColor}`}>{config.label}</p>
+                            <p className="text-xs text-slate-500">
+                              {activity.competitionName} • {getTimeAgo(activity.timestamp)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-slate-500">No recent activity</p>
-                  </div>
-                )}
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-slate-500">No recent activity</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-xl border-2 border-[#f49700] bg-[#f49700]/5 p-6">
+                <h3 className="font-semibold text-[#f49700] mb-2">💡 Pro Tip</h3>
+                <p className="text-sm text-slate-700">
+                  Competitions with clear descriptions and sample problems get 40% more participants!
+                </p>
               </div>
             </div>
-
-            <div className="rounded-xl border-2 border-[#f49700] bg-[#f49700]/5 p-6">
-              <h3 className="font-semibold text-[#f49700] mb-2">💡 Pro Tip</h3>
-              <p className="text-sm text-slate-700">
-                Competitions with clear descriptions and sample problems get 40% more participants!
-              </p>
-            </div>
           </div>
-        </div>
         </div>
       </main>
     </div>

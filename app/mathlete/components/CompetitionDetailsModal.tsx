@@ -322,29 +322,23 @@ export default function CompetitionDetailsModal({
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t">
-            {isScheduledLive && !isLiveCompetition ? (
-              <button
-                disabled
-                className="px-6 py-2.5 text-sm font-semibold text-slate-500 bg-slate-200 rounded-lg cursor-not-allowed"
-              >
-                Competition In Progress
-              </button>
-            ) : isRegistered ? (
+            {isRegistered ? (
               <div className="flex items-center gap-2">
-                {/* Start Competition Button - Always show for Live, show for Scheduled during competition time */}
+                {/* Start Competition Button - Show for Live competitions OR Scheduled competitions during the time window */}
                 {(isLiveCompetition || isScheduledLive) && (
                   <Link
                     href={`/mathlete/competition/${competition.id}`}
                     className="px-6 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                   >
-                    Start Competition
+                    {isScheduledLive && !isLiveCompetition ? "Enter Competition" : "Start Competition"}
                   </Link>
                 )}
                 {!showWithdrawConfirm ? (
                   <button
                     onClick={() => setShowWithdrawConfirm(true)}
-                    disabled={isLoading}
-                    className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                    disabled={isLoading || isScheduledLive}
+                    className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={isScheduledLive ? "Cannot withdraw during competition" : "Withdraw from competition"}
                   >
                     Withdraw
                   </button>

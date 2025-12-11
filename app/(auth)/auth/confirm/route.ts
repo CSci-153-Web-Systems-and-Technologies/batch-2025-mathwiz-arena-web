@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
   redirectTo.searchParams.delete('type')
   redirectTo.searchParams.delete('code')
 
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Handle OAuth callback (Google, etc.)
   if (code) {

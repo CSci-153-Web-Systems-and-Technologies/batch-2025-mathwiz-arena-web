@@ -30,9 +30,10 @@ export default function JoinButton({
 }: JoinButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Only block registration if a SCHEDULED competition is currently in progress
-  // Live mode competitions should always allow registration/viewing
-  if (isScheduledLive && !isLiveCompetition) {
+  // For scheduled competitions in progress:
+  // - Registered users can view details and enter
+  // - Non-registered users see "In Progress" (too late to register)
+  if (isScheduledLive && !isLiveCompetition && !isRegistered) {
     return (
       <button
         disabled
@@ -43,16 +44,36 @@ export default function JoinButton({
     );
   }
 
+  // Determine button text based on competition state
+  const getButtonText = () => {
+    if (isRegistered) {
+      if (isScheduledLive && !isLiveCompetition) {
+        return "Enter Competition";
+      }
+      return "View Details";
+    }
+    return "Join";
+  };
+
+  // Determine button style
+  const getButtonStyle = () => {
+    if (isRegistered) {
+      if (isScheduledLive && !isLiveCompetition) {
+        // Highlight for registered users during scheduled competition
+        return "bg-green-600 text-white hover:bg-green-700";
+      }
+      return "bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100";
+    }
+    return "bg-[#25346A] text-white hover:bg-[#2A64d1]";
+  };
+
   return (
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-colors ${isRegistered
-            ? "bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
-            : "bg-[#25346A] text-white hover:bg-[#2A64d1]"
-          }`}
+        className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-colors ${getButtonStyle()}`}
       >
-        {isRegistered ? "View Details" : "Join"}
+        {getButtonText()}
       </button>
 
       <CompetitionDetailsModal

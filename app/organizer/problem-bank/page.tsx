@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 
 export default async function ProblemBankPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

@@ -6,7 +6,7 @@ import LoginButton from "@/components/LoginLogoutButton";
 import AddProblemForm from "./components/AddProblemForm";
 
 export default async function AddProblemPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

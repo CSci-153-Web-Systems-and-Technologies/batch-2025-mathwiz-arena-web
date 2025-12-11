@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import JoinButton from "./components/JoinButton";
 import CompetitionCalendar from "./components/CompetitionCalendar";
+import ErrorAlert from "./components/ErrorAlert";
 
 export default async function MathleteDashboard() {
   const supabase = await createClient();
@@ -284,6 +285,9 @@ export default async function MathleteDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#2A64d1]/10 via-white to-[#25346A]/10 flex">
+      {/* Error Alert */}
+      <ErrorAlert />
+
       {/* Sidebar Navigation */}
       <aside className="w-64 bg-white border-r border-slate-200 fixed h-full overflow-y-auto">
         <div className="p-6">
