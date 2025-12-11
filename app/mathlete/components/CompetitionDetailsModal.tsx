@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { registerForCompetition, unregisterFromCompetition } from "../actions";
 import { createClient } from "@/utils/supabase/client";
 
@@ -324,15 +322,6 @@ export default function CompetitionDetailsModal({
           <div className="flex items-center justify-end gap-3 pt-4 border-t">
             {isRegistered ? (
               <div className="flex items-center gap-2">
-                {/* Start Competition Button - Show for Live competitions OR Scheduled competitions during the time window */}
-                {(isLiveCompetition || isScheduledLive) && (
-                  <Link
-                    href={`/mathlete/competition/${competition.id}`}
-                    className="px-6 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                  >
-                    {isScheduledLive && !isLiveCompetition ? "Enter Competition" : "Start Competition"}
-                  </Link>
-                )}
                 {!showWithdrawConfirm ? (
                   <button
                     onClick={() => setShowWithdrawConfirm(true)}
