@@ -7,7 +7,7 @@ import ProblemBankActions from "./components/ProblemBankActions";
 import ProblemsList from "./components/ProblemsList";
 
 export default async function ProblemBankDetailPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -129,7 +129,7 @@ export default async function ProblemBankDetailPage({ params }: { params: { id: 
               </svg>
               Back to Problem Banks
             </Link>
-            
+
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-3xl font-bold text-slate-800 mb-2">{problemBank.title}</h1>
@@ -158,7 +158,7 @@ export default async function ProblemBankDetailPage({ params }: { params: { id: 
                 Add Problem
               </Link>
             </div>
-            
+
             <ProblemsList problems={problems || []} problemBankId={params.id} />
           </div>
         </div>

@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
 export async function signout() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.auth.signOut();
   if (error) {
     console.log(error);
@@ -17,8 +17,8 @@ export async function signout() {
 }
 
 export async function signInWithGoogle() {
-  const supabase = createClient();
-  
+  const supabase = await createClient();
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -39,12 +39,12 @@ export async function signInWithGoogle() {
 }
 
 export async function saveUserRole(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const role = formData.get("role") as string;
 
   // Update user metadata to include the selected role
   const { error } = await supabase.auth.updateUser({
-    data: { 
+    data: {
       role: role,
       role_selected: true // Mark that user explicitly selected this role
     }
@@ -54,7 +54,7 @@ export async function saveUserRole(formData: FormData) {
     console.log(error);
     redirect("/error");
   }
-  
+
   // Also update the profile table with the selected role
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
@@ -69,14 +69,14 @@ export async function saveUserRole(formData: FormData) {
 }
 
 export async function completeProfile(formData: FormData) {
-  const supabase = createClient();
-  
+  const supabase = await createClient();
+
   const userId = formData.get("userId") as string;
   const role = formData.get("role") as string;
   const username = formData.get("username") as string;
   const country = formData.get("country") as string;
   const province_city = formData.get("province_city") as string;
-  
+
   // Role-specific fields
   const school = formData.get("school") as string;
   const organization = formData.get("organization") as string;

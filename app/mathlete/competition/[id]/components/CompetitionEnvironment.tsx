@@ -89,13 +89,31 @@ export default function CompetitionEnvironment({
     const currentProblem = problems[currentProblemIndex];
 
     // Calculate time remaining
+    // For Live competitions: based on attempt start time + duration
+    // For Scheduled competitions: based on competition end time (all participants end together)
     useEffect(() => {
         if (!attempt || attempt.is_completed) return;
 
         const calculateTimeRemaining = () => {
-            const startTime = new Date(attempt.started_at);
-            const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
             const now = new Date();
+            let endTime: Date;
+
+            if (isLiveCompetition) {
+                // Live competition: timer based on when the attempt started
+                const startTime = new Date(attempt.started_at);
+                endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+            } else {
+                // Scheduled competition: timer based on competition end time
+                if (competition.start_datetime) {
+                    const competitionStart = new Date(competition.start_datetime);
+                    endTime = new Date(competitionStart.getTime() + competition.duration_minutes * 60 * 1000);
+                } else {
+                    // Fallback to attempt-based timing if no start_datetime
+                    const startTime = new Date(attempt.started_at);
+                    endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+                }
+            }
+
             const remaining = Math.max(0, Math.floor((endTime.getTime() - now.getTime()) / 1000));
             return remaining;
         };
@@ -113,7 +131,7 @@ export default function CompetitionEnvironment({
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [attempt, competition.duration_minutes]);
+    }, [attempt, competition.duration_minutes, competition.start_datetime, isLiveCompetition]);
 
     const formatTime = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
@@ -212,14 +230,28 @@ export default function CompetitionEnvironment({
 
     // Show start screen if no attempt
     if (!attempt) {
+        // Calculate time remaining in scheduled competition
+        let scheduledTimeRemaining: number | null = null;
+        if (!isLiveCompetition && competition.start_datetime) {
+            const competitionStart = new Date(competition.start_datetime);
+            const competitionEnd = new Date(competitionStart.getTime() + competition.duration_minutes * 60 * 1000);
+            const now = new Date();
+            scheduledTimeRemaining = Math.max(0, Math.floor((competitionEnd.getTime() - now.getTime()) / 1000));
+        }
+
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full p-8">
                     <div className="text-center mb-8">
-                        {isLiveCompetition && (
+                        {isLiveCompetition ? (
                             <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full bg-emerald-100 text-emerald-800 mb-4">
                                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
                                 Live Competition
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800 mb-4">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                Scheduled Competition
                             </span>
                         )}
                         <h1 className="text-3xl font-bold text-[#25346A] mb-2">{competition.name}</h1>
@@ -249,6 +281,21 @@ export default function CompetitionEnvironment({
                                 <span className="font-semibold text-slate-800">
                                     {attemptCount} / {competition.max_attempts || '∞'}
                                 </span>
+                            </div>
+                        )}
+                        {!isLiveCompetition && scheduledTimeRemaining !== null && (
+                            <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
+                                <span className="text-orange-700">Competition Ends In</span>
+                                <span className="font-semibold text-orange-800">
+                                    {formatTime(scheduledTimeRemaining)}
+                                </span>
+                            </div>
+                        )}
+                        {!isLiveCompetition && (
+                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
+                                <p className="text-sm text-blue-800">
+                                    <strong>Note:</strong> Scheduled competitions allow only one attempt. Make sure you're ready before starting!
+                                </p>
                             </div>
                         )}
                     </div>
@@ -312,10 +359,15 @@ export default function CompetitionEnvironment({
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <h1 className="text-lg font-bold text-[#25346A]">{competition.name}</h1>
-                        {isLiveCompetition && (
+                        {isLiveCompetition ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
                                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                                 Live
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                Scheduled
                             </span>
                         )}
                     </div>

@@ -50,6 +50,22 @@ export default async function CompetitionPage({ params, searchParams }: PageProp
         redirect("/mathlete?error=not_registered");
     }
 
+    // For scheduled competitions, validate the time window
+    const isLiveCompetition = competition.competition_mode === 'live';
+    if (!isLiveCompetition && competition.start_datetime) {
+        const now = new Date();
+        const startTime = new Date(competition.start_datetime);
+        const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+
+        if (now < startTime) {
+            redirect("/mathlete?error=competition_not_started");
+        }
+
+        if (now >= endTime) {
+            redirect("/mathlete?error=competition_ended");
+        }
+    }
+
     // Fetch competition problems with problem details
     const { data: competitionProblems, error: problemsError } = await supabase
         .from("competition_problems")
