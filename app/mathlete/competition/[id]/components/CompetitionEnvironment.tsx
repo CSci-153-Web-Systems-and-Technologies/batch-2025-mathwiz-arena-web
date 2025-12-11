@@ -85,6 +85,7 @@ export default function CompetitionEnvironment({
     const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
     const [showReview, setShowReview] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [startScreenTimeRemaining, setStartScreenTimeRemaining] = useState<number | null>(null);
 
     const isLiveCompetition = competition.competition_mode === 'live';
     const currentProblem = problems[currentProblemIndex];
@@ -134,6 +135,26 @@ export default function CompetitionEnvironment({
         return () => clearInterval(interval);
     }, [attempt, competition.duration_minutes, competition.start_datetime, isLiveCompetition]);
 
+    // Timer for start screen (Scheduled Competition)
+    useEffect(() => {
+        if (attempt || isLiveCompetition || !competition.start_datetime) return;
+
+        const calculateStartScreenTimer = () => {
+            const competitionStart = new Date(competition.start_datetime!);
+            const competitionEnd = new Date(competitionStart.getTime() + competition.duration_minutes * 60 * 1000);
+            const now = new Date();
+            return Math.max(0, Math.floor((competitionEnd.getTime() - now.getTime()) / 1000));
+        };
+
+        setStartScreenTimeRemaining(calculateStartScreenTimer());
+
+        const interval = setInterval(() => {
+            setStartScreenTimeRemaining(calculateStartScreenTimer());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [attempt, isLiveCompetition, competition.start_datetime, competition.duration_minutes]);
+
     const formatTime = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
@@ -171,6 +192,15 @@ export default function CompetitionEnvironment({
         }));
     };
 
+    const handleResetAnswer = () => {
+        if (!currentProblem) return;
+        setAnswers(prev => {
+            const newAnswers = { ...prev };
+            delete newAnswers[currentProblem.id];
+            return newAnswers;
+        });
+    };
+
     const handleSaveAnswer = async () => {
         if (!attempt || !currentProblem) return;
 
@@ -198,9 +228,24 @@ export default function CompetitionEnvironment({
 
         setIsSubmitting(true);
 
-        // Save current answer first
-        if (currentProblem && answers[currentProblem.id]) {
-            await submitAnswer(attempt.id, currentProblem.id, answers[currentProblem.id]);
+        // Identify answers that need saving (filled but not yet saved)
+        const unsavedProblemIds = Object.keys(answers).filter(problemId => !savedAnswers[problemId]);
+
+        // Auto-save all unsaved answers before completing
+        if (unsavedProblemIds.length > 0) {
+            try {
+                // Use Promise.all to save concurrently
+                await Promise.all(unsavedProblemIds.map(async (problemId) => {
+                    const answer = answers[problemId];
+                    if (answer) {
+                        await submitAnswer(attempt.id, problemId, answer);
+                    }
+                }));
+            } catch (err) {
+                console.error("Error auto-saving answers:", err);
+                // Continue with submission even if auto-save fails partially? 
+                // Better to try to complete.
+            }
         }
 
         const result = await completeAttempt(attempt.id);
@@ -232,13 +277,8 @@ export default function CompetitionEnvironment({
     // Show start screen if no attempt
     if (!attempt) {
         // Calculate time remaining in scheduled competition
-        let scheduledTimeRemaining: number | null = null;
-        if (!isLiveCompetition && competition.start_datetime) {
-            const competitionStart = new Date(competition.start_datetime);
-            const competitionEnd = new Date(competitionStart.getTime() + competition.duration_minutes * 60 * 1000);
-            const now = new Date();
-            scheduledTimeRemaining = Math.max(0, Math.floor((competitionEnd.getTime() - now.getTime()) / 1000));
-        }
+        // Moved to useEffect to prevent hydration mismatch
+
 
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -284,11 +324,11 @@ export default function CompetitionEnvironment({
                                 </span>
                             </div>
                         )}
-                        {!isLiveCompetition && scheduledTimeRemaining !== null && (
+                        {!isLiveCompetition && startScreenTimeRemaining !== null && (
                             <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
                                 <span className="text-orange-700">Competition Ends In</span>
                                 <span className="font-semibold text-orange-800">
-                                    {formatTime(scheduledTimeRemaining)}
+                                    {formatTime(startScreenTimeRemaining)}
                                 </span>
                             </div>
                         )}
@@ -439,7 +479,7 @@ export default function CompetitionEnvironment({
                                     {savedAnswers[currentProblem?.id]
                                         ? 'Solved'
                                         : answers[currentProblem?.id]
-                                            ? 'In Progress'
+                                            ? 'Filled'
                                             : 'Blank'}
                                 </span>
                             </div>
@@ -455,7 +495,7 @@ export default function CompetitionEnvironment({
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="w-4 h-4 rounded border-2 border-[#FFA726] bg-white"></div>
-                            <span className="text-slate-600">In Progress</span>
+                            <span className="text-slate-600">Filled</span>
                             <span className="ml-auto font-semibold text-slate-800">{inProgressCount}</span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -616,6 +656,13 @@ export default function CompetitionEnvironment({
                                 >
                                     {isSaving ? "Saving..." : savedAnswers[currentProblem?.id] ? "Saved ✓" : "Save"}
                                 </button>
+                                <button
+                                    onClick={handleResetAnswer}
+                                    disabled={!answers[currentProblem?.id] || (isLiveCompetition && !!savedAnswers[currentProblem?.id])}
+                                    className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                                >
+                                    Reset
+                                </button>
                             </div>
 
                             {/* Right: Review/Submit */}
@@ -661,7 +708,7 @@ export default function CompetitionEnvironment({
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded border-2 border-[#FFA726] bg-white"></div>
-                                    <span className="text-sm text-slate-600">In Progress: <span className="font-semibold text-slate-800">{inProgressCount}</span></span>
+                                    <span className="text-sm text-slate-600">Filled: <span className="font-semibold text-slate-800">{inProgressCount}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded bg-[#E0E0E0]"></div>
@@ -754,7 +801,7 @@ export default function CompetitionEnvironment({
                                     onClick={() => setShowReview(false)}
                                     className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
                                 >
-                                    Continue Working
+                                    Go Back
                                 </button>
                                 <button
                                     onClick={() => {
@@ -763,7 +810,7 @@ export default function CompetitionEnvironment({
                                     }}
                                     className="flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
                                 >
-                                    Submit Competition
+                                    Submit
                                 </button>
                             </div>
                         </div>
@@ -777,9 +824,9 @@ export default function CompetitionEnvironment({
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">Submit Competition?</h2>
                         <p className="text-slate-600 mb-2">
-                            You have answered <span className="font-semibold">{Object.keys(savedAnswers).length}</span> out of <span className="font-semibold">{problems.length}</span> problems.
+                            You have answered <span className="font-semibold">{Object.keys(answers).length}</span> out of <span className="font-semibold">{problems.length}</span> problems.
                         </p>
-                        {Object.keys(savedAnswers).length < problems.length && (
+                        {Object.keys(answers).length < problems.length && (
                             <p className="text-orange-600 text-sm mb-4">
                                 ⚠️ Some problems are not answered. Are you sure you want to submit?
                             </p>
@@ -789,7 +836,7 @@ export default function CompetitionEnvironment({
                                 onClick={() => setShowConfirmSubmit(false)}
                                 className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
                             >
-                                Keep Working
+                                Go Back
                             </button>
                             <button
                                 onClick={handleSubmitCompetition}
