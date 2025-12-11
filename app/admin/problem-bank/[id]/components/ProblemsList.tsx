@@ -12,10 +12,10 @@ type Problem = {
   order_index: number;
 };
 
-export default function ProblemsList({ 
-  problems, 
-  problemBankId 
-}: { 
+export default function ProblemsList({
+  problems,
+  problemBankId
+}: {
   problems: Problem[];
   problemBankId: string;
 }) {
@@ -30,8 +30,8 @@ export default function ProblemsList({
         <h3 className="text-lg font-semibold text-slate-800 mb-2">No Problems Yet</h3>
         <p className="text-slate-600 mb-6">Add your first problem to this bank</p>
         <Link
-          href={`/organizer/problem-bank/${problemBankId}/add-problem`}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-4 py-2 text-white font-medium hover:bg-[#d68400] transition-colors text-sm"
+          href={`/admin/problem-bank/${problemBankId}/add-problem`}
+          className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-white font-medium hover:bg-purple-700 transition-colors text-sm"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -65,11 +65,11 @@ export default function ProblemsList({
       {problems.map((problem, index) => (
         <Link
           key={problem.id}
-          href={`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`}
+          href={`/admin/problem-bank/${problemBankId}/problem/${problem.id}`}
           className="block p-6 hover:bg-slate-50 transition-colors group"
         >
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600 group-hover:bg-[#f49700]/10 group-hover:text-[#f49700] transition-colors">
+            <div className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600 group-hover:bg-purple-100 group-hover:text-purple-600 transition-colors">
               {index + 1}
             </div>
             <div className="flex-1 min-w-0">
@@ -81,7 +81,7 @@ export default function ProblemsList({
                   {getTypeLabel(problem.type)}
                 </span>
               </div>
-              <p className="text-slate-800 font-medium mb-1 group-hover:text-[#f49700] transition-colors line-clamp-2">
+              <p className="text-slate-800 font-medium mb-1 group-hover:text-purple-600 transition-colors line-clamp-2">
                 {problem.question}
               </p>
               {problem.type === "multiple_choice" && problem.options && (
@@ -90,7 +90,7 @@ export default function ProblemsList({
                 </p>
               )}
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 group-hover:text-[#f49700] transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 group-hover:text-purple-600 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>

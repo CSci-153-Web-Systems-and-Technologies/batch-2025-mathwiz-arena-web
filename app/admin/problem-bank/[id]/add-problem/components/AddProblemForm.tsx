@@ -146,7 +146,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       }
 
       // Redirect back to problem bank
-      router.push(`/organizer/problem-bank/${problemBankId}`);
+      router.push(`/admin/problem-bank/${problemBankId}`);
       router.refresh();
     } catch (err: any) {
       console.error("Unexpected error:", err);
@@ -180,7 +180,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           placeholder="Enter your question here..."
           value={formData.question}
           onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none"
+          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
           required
           disabled={isLoading}
         />
@@ -202,8 +202,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -221,8 +221,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -240,8 +240,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -263,8 +263,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
-                ? "border-green-500 bg-green-50 text-green-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -274,8 +274,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
-                ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -285,8 +285,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
-                ? "border-red-500 bg-red-50 text-red-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-red-500 bg-red-50 text-red-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -308,7 +308,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                 name="correctAnswer"
                 checked={formData.correctAnswerIndex === index}
                 onChange={() => setFormData({ ...formData, correctAnswerIndex: index })}
-                className="w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 disabled={isLoading}
               />
               <Input
@@ -336,8 +336,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               disabled={isLoading}
             >
@@ -347,8 +347,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               disabled={isLoading}
             >
@@ -384,7 +384,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-[#f49700] hover:bg-[#d68400] text-white font-medium px-6"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6"
         >
           {isLoading ? (
             <>
@@ -406,7 +406,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(`/organizer/problem-bank/${problemBankId}`)}
+          onClick={() => router.push(`/admin/problem-bank/${problemBankId}`)}
           disabled={isLoading}
           className="font-medium"
         >
