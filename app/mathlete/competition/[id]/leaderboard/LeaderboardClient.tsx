@@ -11,6 +11,8 @@ interface LeaderboardEntry {
     best_percentage: number;
     attempts_count: number;
     is_current_user: boolean;
+    is_team?: boolean;
+    team_members?: string[];
 }
 
 interface LeaderboardClientProps {
@@ -20,6 +22,7 @@ interface LeaderboardClientProps {
     userId: string;
     attemptId?: string;
     initialLeaderboard: LeaderboardEntry[];
+    isTeamCompetition?: boolean;
 }
 
 export default function LeaderboardClient({
@@ -28,7 +31,8 @@ export default function LeaderboardClient({
     totalPossiblePoints,
     userId,
     attemptId,
-    initialLeaderboard
+    initialLeaderboard,
+    isTeamCompetition = false
 }: LeaderboardClientProps) {
     const [leaderboard] = useState<LeaderboardEntry[]>(initialLeaderboard);
     const [loading] = useState(false);
