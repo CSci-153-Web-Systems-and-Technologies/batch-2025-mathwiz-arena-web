@@ -6,7 +6,7 @@ import LoginButton from "@/components/LoginLogoutButton";
 import DeleteCompetitionButton from "./components/DeleteCompetitionButton";
 
 export default async function CompetitionPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -146,7 +146,7 @@ export default async function CompetitionPage() {
               </div>
               <h2 className="text-xl font-semibold text-slate-800 mb-2">No Competitions Yet</h2>
               <p className="text-slate-600 mb-6">Get started by creating your first math competition</p>
-                <Link
+              <Link
                 href="/organizer/competition/create"
                 className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors"
               >
@@ -250,7 +250,7 @@ export default async function CompetitionPage() {
                           Edit
                         </Link>
                       )}
-                      <DeleteCompetitionButton 
+                      <DeleteCompetitionButton
                         competitionId={competition.id}
                         competitionName={competition.name}
                       />

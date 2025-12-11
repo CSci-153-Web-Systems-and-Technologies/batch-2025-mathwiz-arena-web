@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { registerForCompetition, unregisterFromCompetition } from "../actions";
 import { createClient } from "@/utils/supabase/client";
 
@@ -8,17 +10,20 @@ interface Competition {
   id: string;
   name: string;
   description: string | null;
-  start_datetime: string;
+  start_datetime: string | null;
   duration_minutes: number;
   participation_type: string;
   max_participants: number | null;
   max_team_members?: number | null;
   require_full_team?: boolean;
+  competition_mode?: string | null;
+  max_attempts?: number | null;
 }
 
 interface CompetitionDetailsModalProps {
   competition: Competition;
   isRegistered: boolean;
+  isLiveCompetition: boolean;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -33,6 +38,7 @@ interface Team {
 export default function CompetitionDetailsModal({
   competition,
   isRegistered,
+  isLiveCompetition,
   isOpen,
   onClose,
 }: CompetitionDetailsModalProps) {
@@ -93,10 +99,17 @@ export default function CompetitionDetailsModal({
 
   if (!isOpen) return null;
 
-  const startTime = new Date(competition.start_datetime);
-  const endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+  // Calculate scheduled live status only for scheduled competitions
   const now = new Date();
-  const isLive = now >= startTime && now < endTime;
+  let isScheduledLive = false;
+  let startTime: Date | null = null;
+  let endTime: Date | null = null;
+
+  if (competition.start_datetime) {
+    startTime = new Date(competition.start_datetime);
+    endTime = new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000);
+    isScheduledLive = now >= startTime && now < endTime;
+  }
 
   const handleRegister = async () => {
     // Validate team selection for team competitions
@@ -160,12 +173,18 @@ export default function CompetitionDetailsModal({
           <div className="flex-1">
             <h2 className="text-2xl font-bold text-[#25346A] mb-2">{competition.name}</h2>
             <div className="flex items-center gap-2">
-              {isLive && (
-                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                  Live Now
+              {isLiveCompetition && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                  Live Competition
                 </span>
               )}
-              {isRegistered && !isLive && (
+              {isScheduledLive && !isLiveCompetition && (
+                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                  In Progress
+                </span>
+              )}
+              {isRegistered && !isScheduledLive && (
                 <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                   Registered
                 </span>
@@ -196,15 +215,23 @@ export default function CompetitionDetailsModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-1">Start Time</h3>
+                <h3 className="text-sm font-semibold text-slate-700 mb-1">
+                  {isLiveCompetition ? 'Availability' : 'Start Time'}
+                </h3>
                 <p className="text-slate-600">
-                  {startTime.toLocaleString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
+                  {isLiveCompetition ? (
+                    'Available anytime'
+                  ) : startTime ? (
+                    startTime.toLocaleString("en-US", {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })
+                  ) : (
+                    'Not scheduled'
+                  )}
                 </p>
               </div>
 
@@ -228,13 +255,13 @@ export default function CompetitionDetailsModal({
           </div>
 
           {/* Team Selection for Team Competitions */}
-          {competition.participation_type === "team" && !isRegistered && !isLive && (
+          {competition.participation_type === "team" && !isRegistered && !(isScheduledLive && !isLiveCompetition) && (
             <div className="space-y-3">
               <div className="flex items-start justify-between">
                 <h3 className="text-sm font-semibold text-slate-700">Select Your Team</h3>
                 {competition.max_team_members && (
                   <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
-                    {competition.require_full_team 
+                    {competition.require_full_team
                       ? `Requires exactly ${competition.max_team_members} members`
                       : `Min 2, Max ${competition.max_team_members} members`
                     }
@@ -262,7 +289,7 @@ export default function CompetitionDetailsModal({
                       const meetsRequirement = competition.require_full_team && competition.max_team_members
                         ? team.member_count === competition.max_team_members
                         : team.member_count >= 2;
-                      
+
                       return (
                         <option key={team.id} value={team.id}>
                           {team.name} ({team.member_count}/{team.max_members} members)
@@ -284,11 +311,10 @@ export default function CompetitionDetailsModal({
           {/* Message Display */}
           {message && (
             <div
-              className={`p-4 rounded-lg ${
-                message.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
-              }`}
+              className={`p-4 rounded-lg ${message.type === "success"
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+                }`}
             >
               <p className="text-sm font-medium">{message.text}</p>
             </div>
@@ -296,7 +322,7 @@ export default function CompetitionDetailsModal({
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t">
-            {isLive ? (
+            {isScheduledLive && !isLiveCompetition ? (
               <button
                 disabled
                 className="px-6 py-2.5 text-sm font-semibold text-slate-500 bg-slate-200 rounded-lg cursor-not-allowed"
@@ -304,32 +330,43 @@ export default function CompetitionDetailsModal({
                 Competition In Progress
               </button>
             ) : isRegistered ? (
-              !showWithdrawConfirm ? (
-                <button
-                  onClick={() => setShowWithdrawConfirm(true)}
-                  disabled={isLoading}
-                  className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  Withdraw Registration
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleWithdraw}
-                    disabled={isLoading}
-                    className="px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+              <div className="flex items-center gap-2">
+                {/* Start Competition Button - Always show for Live, show for Scheduled during competition time */}
+                {(isLiveCompetition || isScheduledLive) && (
+                  <Link
+                    href={`/mathlete/competition/${competition.id}`}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                   >
-                    {isLoading ? "Withdrawing..." : "Confirm Withdraw"}
-                  </button>
+                    Start Competition
+                  </Link>
+                )}
+                {!showWithdrawConfirm ? (
                   <button
-                    onClick={() => setShowWithdrawConfirm(false)}
+                    onClick={() => setShowWithdrawConfirm(true)}
                     disabled={isLoading}
-                    className="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors"
+                    className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    Cancel
+                    Withdraw
                   </button>
-                </div>
-              )
+                ) : (
+                  <>
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={isLoading}
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? "Withdrawing..." : "Confirm"}
+                    </button>
+                    <button
+                      onClick={() => setShowWithdrawConfirm(false)}
+                      disabled={isLoading}
+                      className="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
             ) : (
               <button
                 onClick={handleRegister}

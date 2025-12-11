@@ -44,6 +44,7 @@ export default function CreateProblemBankForm() {
         .insert([
           {
             organizer_id: user.id,
+            created_by: user.id,  // Add created_by field
             title: formData.title.trim(),
             description: formData.description.trim() || null,
           },

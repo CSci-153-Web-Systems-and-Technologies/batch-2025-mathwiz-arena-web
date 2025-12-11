@@ -21,29 +21,29 @@ export async function GET(request: NextRequest) {
   // Handle OAuth callback (Google, etc.)
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (error) {
       console.error('OAuth exchange error:', error);
       redirectTo.pathname = '/error'
       redirectTo.searchParams.set('message', 'Failed to authenticate with Google. Please try again.')
       return NextResponse.redirect(redirectTo)
     }
-    
+
     if (data.user) {
       console.log('=== OAuth Callback ===');
       console.log('User authenticated:', data.user.id);
       console.log('User email:', data.user.email);
-      
+
       // Check if profile exists in database
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('profile_completed, role')
         .eq('id', data.user.id)
         .maybeSingle()
-      
+
       console.log('Profile query result:', profile);
       console.log('Profile error:', profileError);
-      
+
       // If no profile exists, this is a brand new OAuth user - redirect to role selection
       if (!profile) {
         console.log('✅ New OAuth user (no profile), redirecting to role selection');
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
       }
-      
+
       // If profile exists but has no role assigned, redirect to role selection
       // Note: We only check the database profile.role, not user metadata
       // This is because existing users should have their role in the database
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
       }
-      
+
       // If profile exists but not completed - redirect to complete profile
       if (!profile.profile_completed) {
         console.log('Profile incomplete, redirecting to complete profile');
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         redirectTo.searchParams.delete('next')
         return NextResponse.redirect(redirectTo)
       }
-      
+
       // Existing user with completed profile - redirect to appropriate dashboard
       console.log('✅ Existing user with completed profile, role:', profile.role);
       const role = profile.role
@@ -77,6 +77,8 @@ export async function GET(request: NextRequest) {
         redirectTo.pathname = '/organizer'
       } else if (role === 'mathlete') {
         redirectTo.pathname = '/mathlete'
+      } else if (role === 'admin') {
+        redirectTo.pathname = '/admin'
       } else {
         // Fallback if role is somehow invalid
         console.log('⚠️ Invalid role, redirecting to home');
@@ -93,10 +95,10 @@ export async function GET(request: NextRequest) {
       type,
       token_hash,
     })
-    
+
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (user) {
         // Check if profile is completed
         const { data: profile } = await supabase
@@ -104,7 +106,7 @@ export async function GET(request: NextRequest) {
           .select('profile_completed, role')
           .eq('id', user.id)
           .single()
-        
+
         if (!profile?.profile_completed) {
           // Email verified but profile not completed
           // Redirect to success page with instructions
@@ -113,7 +115,7 @@ export async function GET(request: NextRequest) {
           redirectTo.searchParams.delete('next')
           return NextResponse.redirect(redirectTo)
         }
-        
+
         // Profile already completed - redirect to appropriate dashboard
         console.log('Email verified, profile complete, redirecting to dashboard');
         const role = profile.role || user.user_metadata?.role
@@ -128,10 +130,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(redirectTo)
       }
     }
-    
+
     console.log('OTP error:', error);
   }
-  
+
   // return the user to an error page with some instructions
   redirectTo.pathname = '/error'
   return NextResponse.redirect(redirectTo)

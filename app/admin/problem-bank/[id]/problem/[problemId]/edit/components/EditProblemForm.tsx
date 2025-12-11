@@ -10,17 +10,41 @@ import { createClient } from "@/utils/supabase/client";
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
 
-export default function AddProblemForm({ problemBankId }: { problemBankId: string }) {
+type Problem = {
+  id: string;
+  question: string;
+  type: ProblemType;
+  difficulty: Difficulty;
+  options: string[] | null;
+  correct_answer: string;
+};
+
+export default function EditProblemForm({
+  problem,
+  problemBankId
+}: {
+  problem: Problem;
+  problemBankId: string;
+}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize form data based on problem type
+  const getCorrectAnswerIndex = () => {
+    if (problem.type === "multiple_choice" && problem.options) {
+      return problem.options.findIndex(opt => opt === problem.correct_answer);
+    }
+    return 0;
+  };
+
   const [formData, setFormData] = useState({
-    question: "",
-    type: "multiple_choice" as ProblemType,
-    difficulty: "average" as Difficulty,
-    options: ["", "", "", ""],
-    correctAnswer: "",
-    correctAnswerIndex: 0,
+    question: problem.question,
+    type: problem.type,
+    difficulty: problem.difficulty,
+    options: problem.options || ["", "", "", ""],
+    correctAnswer: problem.correct_answer,
+    correctAnswerIndex: getCorrectAnswerIndex(),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,53 +124,29 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         correctAnswer = formData.correctAnswer.trim();
       }
 
-      // Get the next order_index
-      const { data: existingProblems } = await supabase
+      // Update problem
+      const { error: updateError } = await supabase
         .from("problems")
-        .select("order_index")
-        .eq("problem_bank_id", problemBankId)
-        .order("order_index", { ascending: false })
-        .limit(1);
+        .update({
+          question: formData.question.trim(),
+          type: formData.type,
+          difficulty: formData.difficulty,
+          options: options,
+          correct_answer: correctAnswer,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", problem.id);
 
-      const nextOrderIndex = existingProblems && existingProblems.length > 0
-        ? existingProblems[0].order_index + 1
-        : 0;
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setError("You must be logged in to add a problem");
+      if (updateError) {
+        console.error("Error updating problem:", updateError);
+        const errorMessage = updateError.message || updateError.hint || "Unknown error occurred";
+        setError(`Failed to update problem: ${errorMessage}`);
         setIsLoading(false);
         return;
       }
 
-      // Create problem
-      const { error: insertError } = await supabase
-        .from("problems")
-        .insert([
-          {
-            problem_bank_id: problemBankId,
-            created_by: user.id,  // Add created_by field
-            question: formData.question.trim(),
-            type: formData.type,
-            difficulty: formData.difficulty,
-            options: options,
-            correct_answer: correctAnswer,
-            order_index: nextOrderIndex,
-          },
-        ]);
-
-      if (insertError) {
-        console.error("Error creating problem:", insertError);
-        const errorMessage = insertError.message || insertError.hint || "Unknown error occurred";
-        setError(`Failed to create problem: ${errorMessage}`);
-        setIsLoading(false);
-        return;
-      }
-
-      // Redirect back to problem bank
-      router.push(`/organizer/problem-bank/${problemBankId}`);
+      // Redirect back to problem details (admin route)
+      router.push(`/admin/problem-bank/${problemBankId}/problem/${problem.id}`);
       router.refresh();
     } catch (err: any) {
       console.error("Unexpected error:", err);
@@ -180,7 +180,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
           placeholder="Enter your question here..."
           value={formData.question}
           onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none"
+          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
           required
           disabled={isLoading}
         />
@@ -202,7 +202,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
@@ -221,7 +221,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
@@ -240,7 +240,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
@@ -308,7 +308,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                 name="correctAnswer"
                 checked={formData.correctAnswerIndex === index}
                 onChange={() => setFormData({ ...formData, correctAnswerIndex: index })}
-                className="w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
+                className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 disabled={isLoading}
               />
               <Input
@@ -336,7 +336,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                  ? "border-purple-500 bg-purple-50 text-purple-700"
                   : "border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               disabled={isLoading}
@@ -347,7 +347,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                  ? "border-purple-500 bg-purple-50 text-purple-700"
                   : "border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               disabled={isLoading}
@@ -384,7 +384,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         <Button
           type="submit"
           disabled={isLoading}
-          className="bg-[#f49700] hover:bg-[#d68400] text-white font-medium px-6"
+          className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6"
         >
           {isLoading ? (
             <>
@@ -392,21 +392,21 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Adding...
+              Saving...
             </>
           ) : (
             <>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              Add Problem
+              Save Changes
             </>
           )}
         </Button>
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push(`/organizer/problem-bank/${problemBankId}`)}
+          onClick={() => router.push(`/admin/problem-bank/${problemBankId}/problem/${problem.id}`)}
           disabled={isLoading}
           className="font-medium"
         >
