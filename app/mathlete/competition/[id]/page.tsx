@@ -70,6 +70,12 @@ export default async function CompetitionPage({ params, searchParams }: PageProp
 
     if (problemsError) {
         console.error("Failed to fetch problems:", problemsError);
+    } else {
+        console.log(`Fetched ${competitionProblems?.length || 0} problems for competition ${params.id}`);
+        // Debug: log first problem to see if joined data is present
+        if (competitionProblems && competitionProblems.length > 0) {
+            console.log("First competition problem structure:", JSON.stringify(competitionProblems[0], null, 2));
+        }
     }
 
     // Get attempt if provided
@@ -89,7 +95,10 @@ export default async function CompetitionPage({ params, searchParams }: PageProp
             .eq("mathlete_id", user.id)
             .single();
 
-        if (!attemptError && attemptData) {
+        if (attemptError) {
+            console.error("Error fetching attempt:", attemptError);
+        } else if (attemptData) {
+            console.log("Found attempt:", attemptData.id, "is_completed:", attemptData.is_completed);
             attempt = attemptData;
         }
     }
@@ -119,10 +128,29 @@ export default async function CompetitionPage({ params, searchParams }: PageProp
         .eq("competition_id", params.id)
         .eq("mathlete_id", user.id);
 
+    // Filter and sanitize problems
+    // distinct from RLS issues, this ensures the UI receives valid data structure
+    const validProblems = (competitionProblems || [])
+        .filter((cp: any) => cp.problems) // Filter out items where joined problem is null
+        .map((cp: any) => ({
+            ...cp,
+            problems: {
+                ...cp.problems,
+                // Handle options gracefully
+                options: cp.problems.options
+            }
+        }));
+
+    if ((competitionProblems || []).length > 0 && validProblems.length === 0) {
+        console.error("CRITICAL: Problems fetched but details are null. RLS policy on 'problems' table is likely blocking access.");
+    }
+
+    console.log(`Valid problems count: ${validProblems.length}, passing to CompetitionEnvironment`);
+
     return (
         <CompetitionEnvironment
             competition={competition}
-            problems={competitionProblems || []}
+            problems={validProblems}
             attempt={attempt}
             existingAnswers={existingAnswers}
             attemptCount={attemptCount || 0}

@@ -4,16 +4,19 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function startCompetitionAttempt(competitionId: string) {
-    const supabase = createClient();
+    console.log("[startCompetitionAttempt] Starting for competition:", competitionId);
+    const supabase = await createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+        console.log("[startCompetitionAttempt] Auth error:", authError);
         return {
             success: false,
             error: "You must be logged in to start a competition"
         };
     }
+    console.log("[startCompetitionAttempt] User:", user.id);
 
     // Check if user is registered for this competition
     const { data: registration, error: regError } = await supabase
@@ -95,12 +98,14 @@ export async function startCompetitionAttempt(competitionId: string) {
 
     if (activeAttempt) {
         // Return existing attempt
+        console.log("[startCompetitionAttempt] Found existing active attempt:", activeAttempt.id);
         return {
             success: true,
             attemptId: activeAttempt.id,
             message: "Resuming existing attempt"
         };
     }
+    console.log("[startCompetitionAttempt] No active attempt found, will create new one");
 
     // Check attempt limits
     const { count: attemptCount, error: countError } = await supabase
@@ -168,7 +173,7 @@ export async function submitAnswer(
     competitionProblemId: string,
     answer: string
 ) {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -302,7 +307,7 @@ export async function submitAnswer(
 }
 
 export async function completeAttempt(attemptId: string) {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 

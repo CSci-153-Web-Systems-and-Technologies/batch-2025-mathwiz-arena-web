@@ -4,11 +4,11 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function deleteCompetition(competitionId: string) {
-  const supabase = createClient();
-  
+  const supabase = await createClient();
+
   // Verify user is authenticated
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     return { success: false, error: "You must be logged in to delete a competition" };
   }

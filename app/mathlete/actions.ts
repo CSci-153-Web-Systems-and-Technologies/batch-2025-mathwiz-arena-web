@@ -4,7 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function registerForCompetition(competitionId: string, teamId?: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Get the current user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -298,7 +298,7 @@ export async function registerForCompetition(competitionId: string, teamId?: str
 }
 
 export async function unregisterFromCompetition(competitionId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Get the current user
   const { data: { user }, error: authError } = await supabase.auth.getUser();

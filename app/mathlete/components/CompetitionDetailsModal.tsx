@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { registerForCompetition, unregisterFromCompetition } from "../actions";
 import { createClient } from "@/utils/supabase/client";
 
@@ -331,12 +333,12 @@ export default function CompetitionDetailsModal({
               <div className="flex items-center gap-2">
                 {/* Start Competition Button - Always show for Live, show for Scheduled during competition time */}
                 {(isLiveCompetition || isScheduledLive) && (
-                  <a
+                  <Link
                     href={`/mathlete/competition/${competition.id}`}
                     className="px-6 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                   >
                     Start Competition
-                  </a>
+                  </Link>
                 )}
                 {!showWithdrawConfirm ? (
                   <button
