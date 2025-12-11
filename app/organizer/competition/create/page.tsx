@@ -10,7 +10,7 @@ export default async function CreateCompetitionPage({
 }: {
   searchParams: { edit?: string };
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -155,16 +155,16 @@ export default async function CreateCompetitionPage({
               {searchParams.edit ? "Edit Competition" : "Create Competition"}
             </h1>
             <p className="text-slate-600 mt-1">
-              {searchParams.edit 
-                ? "Update your competition details" 
+              {searchParams.edit
+                ? "Update your competition details"
                 : "Set up basic information for your competition"}
             </p>
           </div>
 
           {/* Form Card */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-            <CreateCompetitionForm 
-              competitionData={competitionData} 
+            <CreateCompetitionForm
+              competitionData={competitionData}
               competitionProblems={competitionProblems}
             />
           </div>

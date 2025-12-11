@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
@@ -66,6 +66,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     const [competitionId, setCompetitionId] = useState<string | null>(null);
     const [originalStatus, setOriginalStatus] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
+    const allowSubmitRef = useRef(false);
 
     // Competition mode state
     const [competitionMode, setCompetitionMode] = useState<"scheduled" | "live">("scheduled");
@@ -145,6 +146,16 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
             setSelectedProblems(loadedProblems);
         }
     }, [competitionProblems]);
+
+    // Debug: Log when showReview changes
+    useEffect(() => {
+        console.log('📺 ADMIN showReview changed to:', showReview);
+    }, [showReview]);
+
+    // Debug: Log when currentStep changes
+    useEffect(() => {
+        console.log('📍 ADMIN currentStep changed to:', currentStep);
+    }, [currentStep]);
 
     const validateStep0 = (): boolean => {
         // Mode is always valid (defaults to "scheduled")
@@ -232,19 +243,25 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     };
 
     const handleNextStep = () => {
+        console.log('handleNextStep called, current step:', currentStep);
         setError(null);
 
         if (currentStep === 0 && !validateStep0()) {
+            console.log('Step 0 validation failed');
             return;
         }
         if (currentStep === 1 && !validateStep1()) {
+            console.log('Step 1 validation failed');
             return;
         }
         if (currentStep === 2 && !validateStep2()) {
+            console.log('Step 2 validation failed');
             return;
         }
 
-        setCurrentStep(prev => Math.min(prev + 1, 3));
+        const nextStep = Math.min(currentStep + 1, 3);
+        console.log('Advancing to step:', nextStep);
+        setCurrentStep(nextStep);
     };
 
     const handlePreviousStep = () => {
@@ -256,14 +273,28 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('🔴 ADMIN handleSubmit called! Current step:', currentStep);
+
+        // IMPORTANT: Only proceed if submission was explicitly allowed via button click
+        // This prevents accidental submission when step changes or from other implicit events
+        if (!allowSubmitRef.current) {
+            console.log('🔴 ADMIN Ignoring implicit submit - not triggered by Review button');
+            return;
+        }
+
+        // Reset the flag immediately
+        allowSubmitRef.current = false;
+
         setError(null);
 
         // Validate final step
         if (!validateStep3()) {
+            console.log('🔴 ADMIN Step 3 validation failed');
             return;
         }
 
         // Show review screen
+        console.log('🔴 ADMIN Setting showReview to true');
         setShowReview(true);
     };
 
@@ -465,8 +496,8 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
                 {/* Competition Mode Badge */}
                 <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${competitionMode === "scheduled"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-green-100 text-green-700"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-green-100 text-green-700"
                     }`}>
                     {competitionMode === "scheduled" ? (
                         <>
@@ -701,8 +732,8 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                                 <div className="flex flex-col items-center">
                                     <div
                                         className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${currentStep >= step
-                                                ? "bg-purple-600 text-white"
-                                                : "bg-slate-200 text-slate-500"
+                                            ? "bg-purple-600 text-white"
+                                            : "bg-slate-200 text-slate-500"
                                             }`}
                                     >
                                         {isEditing ? index + 1 : index + 1}
@@ -817,6 +848,10 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                 ) : (
                     <Button
                         type="submit"
+                        onClick={() => {
+                            console.log('🔵 ADMIN Review button clicked - allowing submit');
+                            allowSubmitRef.current = true;
+                        }}
                         disabled={isLoading}
                         className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6"
                     >

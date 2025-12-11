@@ -84,39 +84,7 @@ export default async function MathleteHistoryPage() {
     return `${diffMins}m ${diffSecs}s`;
   };
 
-  // Get status badge
-  const getStatusBadge = (attempt: CompetitionAttempt) => {
-    if (!attempt.is_completed) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-          <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span>
-          In Progress
-        </span>
-      );
-    }
-    return (
-      <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-        Completed
-      </span>
-    );
-  };
 
-  // Get mode badge
-  const getModeBadge = (mode: string | null) => {
-    if (mode === "live") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-          Live
-        </span>
-      );
-    }
-    return (
-      <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-        Scheduled
-      </span>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -213,8 +181,26 @@ export default async function MathleteHistoryPage() {
                           <h3 className="text-lg font-semibold text-[#25346A]">
                             {competition?.name || "Unknown Competition"}
                           </h3>
-                          {getModeBadge(competition?.competition_mode)}
-                          {getStatusBadge(attempt)}
+                          {competition?.competition_mode === "live" ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                              Live
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              Scheduled
+                            </span>
+                          )}
+                          {!attempt.is_completed ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                              <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span>
+                              In Progress
+                            </span>
+                          ) : (
+                            <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                              Completed
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-slate-600">
                           <span className="flex items-center gap-1">
