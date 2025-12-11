@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 type Problem = {
     id: string;
@@ -225,8 +226,8 @@ export default function ProblemsPointsStep({
                             difficultPoints: formData.difficultPoints || "5"
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "auto_level"
-                                ? "border-purple-500 bg-purple-50 text-purple-700"
-                                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : "border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
                         disabled={isLoading}
                     >
@@ -251,8 +252,8 @@ export default function ProblemsPointsStep({
                             difficultPoints: ""
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "manual"
-                                ? "border-purple-500 bg-purple-50 text-purple-700"
-                                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : "border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
                         disabled={isLoading}
                     >
@@ -428,8 +429,8 @@ export default function ProblemsPointsStep({
                                     type="button"
                                     onClick={() => setSelectedBankId(bank.id === selectedBankId ? null : bank.id)}
                                     className={`p-4 border-2 rounded-lg text-left transition-all ${selectedBankId === bank.id
-                                            ? "border-purple-500 bg-purple-50"
-                                            : "border-slate-200 hover:border-slate-300"
+                                        ? "border-purple-500 bg-purple-50"
+                                        : "border-slate-200 hover:border-slate-300"
                                         }`}
                                     disabled={isLoading}
                                 >
@@ -501,11 +502,11 @@ export default function ProblemsPointsStep({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="text-sm text-slate-800 mb-2 line-clamp-2">{problem.question}</p>
+                                                    <p className="text-sm text-slate-800 mb-2 line-clamp-2"><MathRenderer text={problem.question} /></p>
                                                     <div className="flex items-center gap-2 text-xs">
                                                         <span className="text-slate-600 font-medium">Correct Answer:</span>
                                                         <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                                                            {problem.correct_answer}
+                                                            <MathRenderer text={problem.correct_answer.split('|')[0]} />
                                                         </span>
                                                     </div>
                                                 </div>
@@ -540,13 +541,13 @@ export default function ProblemsPointsStep({
                                                     {getTypeLabel(sp.problem.type)}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-slate-800 mb-2 line-clamp-2">{sp.problem.question}</p>
+                                            <p className="text-sm text-slate-800 mb-2 line-clamp-2"><MathRenderer text={sp.problem.question} /></p>
 
                                             {/* Correct Answer Display */}
                                             <div className="flex items-center gap-2 text-xs mb-2">
                                                 <span className="text-slate-600 font-medium">Correct Answer:</span>
                                                 <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                                                    {sp.problem.correct_answer}
+                                                    <MathRenderer text={sp.problem.correct_answer.split('|')[0]} />
                                                 </span>
                                             </div>
 

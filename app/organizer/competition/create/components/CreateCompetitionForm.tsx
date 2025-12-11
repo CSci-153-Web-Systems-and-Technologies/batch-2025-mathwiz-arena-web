@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import CompetitionDetailsStep from "./CompetitionDetailsStep";
 import ParticipationSettingsStep from "./ParticipationSettingsStep";
 import ProblemsPointsStep from "./ProblemsPointsStep";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 type Problem = {
   id: string;
@@ -537,11 +538,11 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                       <span className="text-xs text-slate-500 font-medium">{getTypeLabel(sp.problem.type)}</span>
                       <span className="text-xs font-semibold text-[#f49700]">{sp.points} pts</span>
                     </div>
-                    <p className="text-sm text-slate-800 mb-2">{sp.problem.question}</p>
+                    <p className="text-sm text-slate-800 mb-2"><MathRenderer text={sp.problem.question} /></p>
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-slate-600 font-medium">Correct Answer:</span>
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                        {sp.problem.correct_answer}
+                        <MathRenderer text={sp.problem.correct_answer.split('|')[0]} />
                       </span>
                     </div>
                   </div>

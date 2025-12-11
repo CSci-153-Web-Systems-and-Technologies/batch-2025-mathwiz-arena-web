@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 type Problem = {
   id: string;
@@ -42,12 +43,12 @@ type Props = {
   isLoading: boolean;
 };
 
-export default function ProblemsPointsStep({ 
-  formData, 
-  setFormData, 
-  selectedProblems, 
+export default function ProblemsPointsStep({
+  formData,
+  setFormData,
+  selectedProblems,
   setSelectedProblems,
-  isLoading 
+  isLoading
 }: Props) {
   const [problemBanks, setProblemBanks] = useState<ProblemBank[]>([]);
   const [selectedBankId, setSelectedBankId] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export default function ProblemsPointsStep({
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (user) {
           const { data, error } = await supabase
             .from("problem_banks")
@@ -117,7 +118,7 @@ export default function ProblemsPointsStep({
         const expectedPoints = getAutoLevelPoints(sp.problem.difficulty);
         return sp.points !== expectedPoints;
       });
-      
+
       if (hasInvalidPoints) {
         const updatedProblems = selectedProblems.map((sp) => ({
           ...sp,
@@ -179,7 +180,7 @@ export default function ProblemsPointsStep({
       const points = formData.pointSystemType === "auto_level"
         ? getAutoLevelPoints(problem.difficulty)
         : null;
-      
+
       setSelectedProblems([
         ...selectedProblems,
         {
@@ -222,18 +223,17 @@ export default function ProblemsPointsStep({
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
+            onClick={() => setFormData({
+              ...formData,
               pointSystemType: "auto_level",
               easyPoints: formData.easyPoints || "1",
               averagePoints: formData.averagePoints || "3",
               difficultPoints: formData.difficultPoints || "5"
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.pointSystemType === "auto_level"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "auto_level"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             <div className="text-left">
@@ -246,21 +246,20 @@ export default function ProblemsPointsStep({
               </div>
             </div>
           </button>
-          
+
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
+            onClick={() => setFormData({
+              ...formData,
               pointSystemType: "manual",
               easyPoints: "",
               averagePoints: "",
               difficultPoints: ""
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.pointSystemType === "manual"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "manual"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+              }`}
             disabled={isLoading}
           >
             <div className="text-left">
@@ -434,11 +433,10 @@ export default function ProblemsPointsStep({
                   key={bank.id}
                   type="button"
                   onClick={() => setSelectedBankId(bank.id === selectedBankId ? null : bank.id)}
-                  className={`p-4 border-2 rounded-lg text-left transition-all ${
-                    selectedBankId === bank.id
+                  className={`p-4 border-2 rounded-lg text-left transition-all ${selectedBankId === bank.id
                       ? "border-[#f49700] bg-[#f49700]/5"
                       : "border-slate-200 hover:border-slate-300"
-                  }`}
+                    }`}
                   disabled={isLoading}
                 >
                   <div className="flex items-start justify-between">
@@ -509,11 +507,11 @@ export default function ProblemsPointsStep({
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-slate-800 mb-2 line-clamp-2">{problem.question}</p>
+                          <p className="text-sm text-slate-800 mb-2 line-clamp-2"><MathRenderer text={problem.question} /></p>
                           <div className="flex items-center gap-2 text-xs">
                             <span className="text-slate-600 font-medium">Correct Answer:</span>
                             <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                              {problem.correct_answer}
+                              <MathRenderer text={problem.correct_answer.split('|')[0]} />
                             </span>
                           </div>
                         </div>
@@ -548,16 +546,16 @@ export default function ProblemsPointsStep({
                           {getTypeLabel(sp.problem.type)}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-800 mb-2 line-clamp-2">{sp.problem.question}</p>
-                      
+                      <p className="text-sm text-slate-800 mb-2 line-clamp-2"><MathRenderer text={sp.problem.question} /></p>
+
                       {/* Correct Answer Display */}
                       <div className="flex items-center gap-2 text-xs mb-2">
                         <span className="text-slate-600 font-medium">Correct Answer:</span>
                         <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                          {sp.problem.correct_answer}
+                          <MathRenderer text={sp.problem.correct_answer.split('|')[0]} />
                         </span>
                       </div>
-                      
+
                       {/* Points Input for Manual System */}
                       {formData.pointSystemType === "manual" && (
                         <div className="flex items-center gap-2">

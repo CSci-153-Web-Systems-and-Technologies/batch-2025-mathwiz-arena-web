@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { startCompetitionAttempt, submitAnswer, completeAttempt } from "../../actions";
-import { MathRenderer } from "@/components/ui/MathInput";
+import { MathRenderer, MathAnswerInput } from "@/components/ui/MathInput";
 
 interface Problem {
     id: string;
@@ -610,12 +610,10 @@ export default function CompetitionEnvironment({
                                     )}
 
                                     {currentProblem.problems.type === "identification" && (
-                                        <input
-                                            type="text"
+                                        <MathAnswerInput
                                             value={answers[currentProblem.id] || ""}
-                                            onChange={(e) => handleAnswerChange(currentProblem.id, e.target.value)}
+                                            onChange={(value) => handleAnswerChange(currentProblem.id, value)}
                                             placeholder="Type your answer here..."
-                                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-[#25346A] text-lg bg-white"
                                         />
                                     )}
                                 </div>
