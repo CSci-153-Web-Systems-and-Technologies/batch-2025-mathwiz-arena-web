@@ -40,8 +40,10 @@ export default async function Home() {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <nav className="hidden md:flex gap-8 text-sm font-medium text-slate-600 dark:text-slate-400">
-              <Link href="#info" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Start Here</Link>
+            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-400">
+              <Link href="/" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Home</Link>
+              <Link href="#info" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Features</Link>
+              <Link href="#about" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">About</Link>
               <LoginButton />
             </nav>
             <div className="md:hidden"><LoginButton /></div>
@@ -173,7 +175,7 @@ export default async function Home() {
       </section>
 
       {/* Unified Info Section */}
-      <section id="info" className="py-6 px-4">
+      <section id="info" className="py-8 px-4 scroll-mt-20">
         <div className="mx-auto max-w-7xl">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-none overflow-hidden flex flex-col lg:flex-row dark:border-slate-800">
 
@@ -255,6 +257,73 @@ export default async function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section id="about" className="py-24 px-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+
+          {/* Left Column */}
+          <div className="flex flex-col">
+            <h3 className="text-center font-bold tracking-widest text-[#1B2559] dark:text-white uppercase mb-8 text-sm">Meet The Developer</h3>
+
+            <div className="relative w-full self-center">
+              <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-100/50 rounded-full blur-3xl -z-10"></div>
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-orange-100/50 rounded-full blur-3xl -z-10"></div>
+
+              <div className="p-6 lg:p-8 rounded-3xl bg-white border border-slate-100 shadow-[0_20px_40px_rgba(27,37,89,0.08)] hover:shadow-[0_30px_60px_rgba(27,37,89,0.12)] transition-shadow duration-300 dark:bg-slate-800 dark:border-slate-700 flex flex-col items-center text-center relative overflow-hidden">
+
+                <div className="w-48 h-48 rounded-full overflow-hidden border-2 border-[#1B2559] shadow-sm mb-4 relative mt-2 hover:shadow-md transition-all duration-500">
+                  <Image src="/profile.jpeg" alt="Anthony L. Celeres" width={192} height={192} className="object-cover w-full h-full transform transition-transform duration-700 hover:scale-110" />
+                </div>
+
+                <h3 className="text-2xl lg:text-3xl font-bold text-[#1B2559] dark:text-white mb-2">Anthony L. Celeres</h3>
+                <div className="text-sm font-semibold text-[#F49700] mb-4 flex flex-col gap-1">
+                  <span>BS Computer Science 3rd Year</span>
+                  <span className="text-[#1B2559] dark:text-slate-400 text-[10px] uppercase tracking-wider">Visayas State University</span>
+                </div>
+
+                <div className="relative mb-4 px-4">
+                  <span className="absolute top-0 left-0 text-3xl text-blue-100 dark:text-slate-700 font-serif -translate-x-2 -translate-y-2">"</span>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed italic relative z-10">
+                    Building Mathwiz to empower the next generation of problem solvers—a platform built by a mathlete, for mathletes.
+                  </p>
+                  <span className="absolute bottom-0 right-0 text-3xl text-blue-100 dark:text-slate-700 font-serif translate-x-2 translate-y-2">"</span>
+                </div>
+
+                <div className="w-full pt-3 border-t border-slate-50 dark:border-slate-700/50">
+                  <div className="px-4 py-1 text-xs font-bold text-[#1B2559] dark:text-slate-300 inline-flex flex-col gap-0.5">
+                    <span>Philippine International Mathematical Olympiad</span>
+                    <span>Heat Round 2023 Bronze Medalist</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div className="flex flex-col">
+            <h3 className="text-center font-bold tracking-widest text-[#1B2559] dark:text-white uppercase mb-8 text-sm">Our Mission</h3>
+
+            <div className="flex flex-col items-center justify-center text-center h-full pt-0">
+              <h2 className="text-4xl lg:text-5xl font-extrabold text-[#1B2559] dark:text-white mb-8 leading-[1.15] max-w-lg">
+                Empowering the Next Generation of Problem Solvers
+              </h2>
+
+              <p className="text-[1.1rem] text-slate-600 dark:text-slate-400 leading-8 mb-10 max-w-lg text-balance">
+                Mathwiz was born from a passion for competitive mathematics. We believe that <span className="text-[#1B2559] font-medium dark:text-slate-200">critical thinking is a superpower</span>, and we're dedicated to providing the ultimate arena for students to hone their skills, connect with peers, and achieve global recognition.
+              </p>
+
+              <Link href="/signup" className="group inline-flex items-center gap-2 text-[#F49700] font-bold text-sm tracking-wide hover:text-orange-600 transition-colors">
+                <span>Join the Movement</span>
+                <svg className="w-4 h-4 transform transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+
         </div>
       </section>
 
