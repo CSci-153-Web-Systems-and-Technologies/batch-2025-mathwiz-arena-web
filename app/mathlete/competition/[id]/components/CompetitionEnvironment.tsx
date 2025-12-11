@@ -200,6 +200,12 @@ export default function CompetitionEnvironment({
             delete newAnswers[currentProblem.id];
             return newAnswers;
         });
+        // Also clear the saved status
+        setSavedAnswers(prev => {
+            const newSaved = { ...prev };
+            delete newSaved[currentProblem.id];
+            return newSaved;
+        });
     };
 
     const handleSaveAnswer = async () => {
@@ -433,14 +439,14 @@ export default function CompetitionEnvironment({
                                             setCurrentProblemIndex(index);
                                         }}
                                         className={`
-                                            w-10 h-10 rounded-lg font-semibold text-sm transition-all border-2
+                                            w-10 h-10 rounded-lg font-semibold text-sm transition-all
                                             ${isCurrent
-                                                ? 'bg-white text-[#25346A] border-[#25346A]'
+                                                ? 'bg-white text-[#25346A] border-2 border-[#25346A]'
                                                 : isSaved
-                                                    ? 'bg-white text-[#4CAF50] border-[#4CAF50] hover:bg-green-50'
+                                                    ? 'bg-blue-100 text-[#25346A] border-0 hover:bg-blue-200'
                                                     : hasAnswer
-                                                        ? 'bg-white text-[#FFA726] border-[#FFA726] hover:bg-orange-50'
-                                                        : 'bg-[#E0E0E0] text-slate-600 border-[#E0E0E0] hover:bg-[#BDBDBD]'
+                                                        ? 'bg-orange-100 text-[#FFA726] border-0 hover:bg-orange-200'
+                                                        : 'bg-[#E0E0E0] text-slate-600 border-0 hover:bg-[#BDBDBD]'
                                             }
                                         `}
                                     >
@@ -472,7 +478,7 @@ export default function CompetitionEnvironment({
                             <div className="flex justify-between">
                                 <span className="text-slate-500">Status</span>
                                 <span className={`font-medium ${savedAnswers[currentProblem?.id]
-                                    ? 'text-green-600'
+                                    ? 'text-[#25346A]'
                                     : answers[currentProblem?.id]
                                         ? 'text-yellow-600'
                                         : 'text-slate-500'
@@ -490,12 +496,12 @@ export default function CompetitionEnvironment({
                     {/* Legend with Counts */}
                     <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded border-2 border-[#4CAF50] bg-white"></div>
+                            <div className="w-4 h-4 rounded bg-blue-100"></div>
                             <span className="text-slate-600">Solved</span>
                             <span className="ml-auto font-semibold text-slate-800">{solvedCount}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded border-2 border-[#FFA726] bg-white"></div>
+                            <div className="w-4 h-4 rounded bg-orange-100"></div>
                             <span className="text-slate-600">Filled</span>
                             <span className="ml-auto font-semibold text-slate-800">{inProgressCount}</span>
                         </div>
@@ -646,14 +652,14 @@ export default function CompetitionEnvironment({
                                 </button>
                             </div>
 
-                            {/* Center: Save Status */}
+                            {/* Center: Solve Status */}
                             <div className="flex items-center gap-4">
                                 <button
                                     onClick={handleSaveAnswer}
                                     disabled={isSaving || !answers[currentProblem?.id]}
                                     className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50"
                                 >
-                                    {isSaving ? "Saving..." : savedAnswers[currentProblem?.id] ? "Saved ✓" : "Save"}
+                                    {isSaving ? "Marking..." : savedAnswers[currentProblem?.id] ? "Solved" : "Solve"}
                                 </button>
                                 <button
                                     onClick={handleResetAnswer}
@@ -662,6 +668,9 @@ export default function CompetitionEnvironment({
                                 >
                                     Reset
                                 </button>
+                                <span className="text-sm text-slate-500">
+                                    Mark as solved if you're<br />confident with your answer
+                                </span>
                             </div>
 
                             {/* Right: Review/Submit */}
@@ -702,11 +711,11 @@ export default function CompetitionEnvironment({
                         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex-shrink-0">
                             <div className="flex gap-6">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded border-2 border-[#4CAF50] bg-white"></div>
+                                    <div className="w-4 h-4 rounded bg-blue-100"></div>
                                     <span className="text-sm text-slate-600">Solved: <span className="font-semibold text-slate-800">{solvedCount}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded border-2 border-[#FFA726] bg-white"></div>
+                                    <div className="w-4 h-4 rounded bg-orange-100"></div>
                                     <span className="text-sm text-slate-600">Filled: <span className="font-semibold text-slate-800">{inProgressCount}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -731,12 +740,12 @@ export default function CompetitionEnvironment({
                                         >
                                             {/* Problem Number with Status */}
                                             <div className={`
-                                                w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0 border-2
+                                                w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0
                                                 ${isSaved
-                                                    ? 'bg-white text-[#4CAF50] border-[#4CAF50]'
+                                                    ? 'bg-blue-100 text-[#25346A]'
                                                     : hasAnswer
-                                                        ? 'bg-white text-[#FFA726] border-[#FFA726]'
-                                                        : 'bg-[#E0E0E0] text-slate-600 border-[#E0E0E0]'
+                                                        ? 'bg-orange-100 text-[#FFA726]'
+                                                        : 'bg-[#E0E0E0] text-slate-600'
                                                 }
                                             `}>
                                                 {index + 1}
@@ -744,30 +753,31 @@ export default function CompetitionEnvironment({
 
                                             {/* Problem Info */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-slate-800 font-medium truncate">
-                                                    {problem.problems.question.length > 80
-                                                        ? problem.problems.question.substring(0, 80) + '...'
-                                                        : problem.problems.question
-                                                    }
-                                                </p>
+                                                <div className="text-sm text-slate-800 font-medium line-clamp-1">
+                                                    <MathRenderer text={
+                                                        problem.problems.question.length > 80
+                                                            ? problem.problems.question.substring(0, 80) + '...'
+                                                            : problem.problems.question
+                                                    } />
+                                                </div>
                                                 <p className="text-xs text-slate-500 mt-1">
                                                     {problem.points} points • {problem.problems.difficulty}
                                                 </p>
                                             </div>
 
                                             {/* Answer Status */}
-                                            <div className="flex-shrink-0 text-right">
+                                            <div className="flex-shrink-0 text-right max-w-[200px]">
                                                 {isSaved ? (
-                                                    <span className="text-sm text-green-600 font-medium">
-                                                        ✓ {answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer}
+                                                    <span className="text-sm text-[#25346A] font-medium truncate max-w-[150px] block">
+                                                        <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
                                                     </span>
                                                 ) : hasAnswer ? (
                                                     <span className="text-sm text-yellow-600 font-medium">
-                                                        Not saved
+                                                        Filled
                                                     </span>
                                                 ) : (
                                                     <span className="text-sm text-slate-400">
-                                                        No answer
+                                                        Blank
                                                     </span>
                                                 )}
                                             </div>
