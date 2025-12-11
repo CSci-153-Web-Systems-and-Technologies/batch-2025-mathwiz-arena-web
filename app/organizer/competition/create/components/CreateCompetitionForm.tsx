@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import CompetitionDetailsStep from "./CompetitionDetailsStep";
 import ParticipationSettingsStep from "./ParticipationSettingsStep";
 import ProblemsPointsStep from "./ProblemsPointsStep";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 type Problem = {
   id: string;
@@ -55,13 +56,14 @@ type Props = {
 export default function CreateCompetitionForm({ competitionData, competitionProblems }: Props) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const allowSubmitRef = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedProblems, setSelectedProblems] = useState<SelectedProblem[]>([]);
   const [showReview, setShowReview] = useState(false);
   const [competitionId, setCompetitionId] = useState<string | null>(null);
   const [originalStatus, setOriginalStatus] = useState<string | null>(null);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -116,14 +118,26 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
   // Initialize selected problems with existing competition problems
   useEffect(() => {
     if (competitionProblems && competitionProblems.length > 0) {
-      const loadedProblems: SelectedProblem[] = competitionProblems.map((cp, index) => ({
-        problem: cp.problems,
-        points: cp.points,
-        orderIndex: index,
-      }));
+      const loadedProblems: SelectedProblem[] = competitionProblems
+        .filter(cp => cp.problems) // Filter out any problems that may have been deleted (null join)
+        .map((cp, index) => ({
+          problem: cp.problems,
+          points: cp.points,
+          orderIndex: index,
+        }));
       setSelectedProblems(loadedProblems);
     }
   }, [competitionProblems]);
+
+  // Debug: Log when showReview changes
+  useEffect(() => {
+    console.log('📺 showReview changed to:', showReview);
+  }, [showReview]);
+
+  // Debug: Log when currentStep changes
+  useEffect(() => {
+    console.log('📍 currentStep changed to:', currentStep);
+  }, [currentStep]);
 
   const validateStep1 = (): boolean => {
     if (!formData.name.trim()) {
@@ -188,16 +202,21 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
   };
 
   const handleNextStep = () => {
+    console.log('handleNextStep called, current step:', currentStep);
     setError(null);
-    
+
     if (currentStep === 1 && !validateStep1()) {
+      console.log('Step 1 validation failed');
       return;
     }
     if (currentStep === 2 && !validateStep2()) {
+      console.log('Step 2 validation failed');
       return;
     }
-    
-    setCurrentStep(prev => Math.min(prev + 1, 3));
+
+    const nextStep = Math.min(currentStep + 1, 3);
+    console.log('Advancing to step:', nextStep);
+    setCurrentStep(nextStep);
   };
 
   const handlePreviousStep = () => {
@@ -207,14 +226,28 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔴 handleSubmit called! Current step:', currentStep);
+
+    // IMPORTANT: Only proceed if submission was explicitly allowed via button click
+    // This prevents accidental submission when step changes or from other implicit events
+    if (!allowSubmitRef.current) {
+      console.log('🔴 Ignoring implicit submit - not triggered by Review button');
+      return;
+    }
+
+    // Reset the flag immediately
+    allowSubmitRef.current = false;
+
     setError(null);
 
     // Validate final step
     if (!validateStep3()) {
+      console.log('🔴 Step 3 validation failed');
       return;
     }
 
     // Show review screen
+    console.log('🔴 Setting showReview to true');
     setShowReview(true);
   };
 
@@ -252,14 +285,14 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         start_datetime: startDateTime.toISOString(),
         duration_minutes: totalMinutes,
         participation_type: formData.participationType,
-        max_participants: formData.participationType === "individual" && formData.hasMaxParticipants 
-          ? parseInt(formData.maxParticipants) 
+        max_participants: formData.participationType === "individual" && formData.hasMaxParticipants
+          ? parseInt(formData.maxParticipants)
           : null,
-        max_teams: formData.participationType === "team" && formData.hasMaxTeams 
-          ? parseInt(formData.maxTeams) 
+        max_teams: formData.participationType === "team" && formData.hasMaxTeams
+          ? parseInt(formData.maxTeams)
           : null,
         max_team_members: formData.participationType === "team" && formData.maxTeamMembers
-          ? parseInt(formData.maxTeamMembers) 
+          ? parseInt(formData.maxTeamMembers)
           : null,
         require_full_team: formData.participationType === "team" ? formData.requireFullTeam : false,
         point_system_type: effectivePointSystemType,
@@ -507,11 +540,11 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                       <span className="text-xs text-slate-500 font-medium">{getTypeLabel(sp.problem.type)}</span>
                       <span className="text-xs font-semibold text-[#f49700]">{sp.points} pts</span>
                     </div>
-                    <p className="text-sm text-slate-800 mb-2">{sp.problem.question}</p>
+                    <p className="text-sm text-slate-800 mb-2"><MathRenderer text={sp.problem.question} /></p>
                     <div className="flex items-center gap-2 text-xs">
                       <span className="text-slate-600 font-medium">Correct Answer:</span>
                       <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                        {sp.problem.correct_answer}
+                        <MathRenderer text={sp.problem.correct_answer.split('|')[0]} />
                       </span>
                     </div>
                   </div>
@@ -589,17 +622,15 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
             <div key={step} className="flex items-center flex-1">
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                    currentStep >= step
-                      ? "bg-[#f49700] text-white"
-                      : "bg-slate-200 text-slate-500"
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${currentStep >= step
+                    ? "bg-[#f49700] text-white"
+                    : "bg-slate-200 text-slate-500"
+                    }`}
                 >
                   {step}
                 </div>
-                <p className={`text-xs mt-2 font-medium transition-colors ${
-                  currentStep >= step ? "text-[#f49700]" : "text-slate-500"
-                }`}>
+                <p className={`text-xs mt-2 font-medium transition-colors ${currentStep >= step ? "text-[#f49700]" : "text-slate-500"
+                  }`}>
                   {step === 1 && "Competition Details"}
                   {step === 2 && "Participation Settings"}
                   {step === 3 && "Problems & Points"}
@@ -607,9 +638,8 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
               </div>
               {step < 3 && (
                 <div
-                  className={`h-1 flex-1 mx-2 rounded transition-colors ${
-                    currentStep > step ? "bg-[#f49700]" : "bg-slate-200"
-                  }`}
+                  className={`h-1 flex-1 mx-2 rounded transition-colors ${currentStep > step ? "bg-[#f49700]" : "bg-slate-200"
+                    }`}
                 />
               )}
             </div>
@@ -686,7 +716,10 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         {currentStep < 3 ? (
           <Button
             type="button"
-            onClick={handleNextStep}
+            onClick={() => {
+              console.log('🔵 Next button clicked!');
+              handleNextStep();
+            }}
             disabled={isLoading}
             className="bg-[#f49700] hover:bg-[#d68400] text-white font-medium px-6"
           >
@@ -698,6 +731,10 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         ) : (
           <Button
             type="submit"
+            onClick={() => {
+              console.log('🔵 Review button clicked - allowing submit');
+              allowSubmitRef.current = true;
+            }}
             disabled={isLoading}
             className="bg-[#f49700] hover:bg-[#d68400] text-white font-medium px-6"
           >

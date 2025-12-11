@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { startCompetitionAttempt, submitAnswer, completeAttempt } from "../../actions";
+import { MathRenderer, MathAnswerInput } from "@/components/ui/MathInput";
 
 interface Problem {
     id: string;
@@ -83,7 +84,9 @@ export default function CompetitionEnvironment({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+    const [showReview, setShowReview] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [startScreenTimeRemaining, setStartScreenTimeRemaining] = useState<number | null>(null);
 
     const isLiveCompetition = competition.competition_mode === 'live';
     const currentProblem = problems[currentProblemIndex];
@@ -133,6 +136,26 @@ export default function CompetitionEnvironment({
         return () => clearInterval(interval);
     }, [attempt, competition.duration_minutes, competition.start_datetime, isLiveCompetition]);
 
+    // Timer for start screen (Scheduled Competition)
+    useEffect(() => {
+        if (attempt || isLiveCompetition || !competition.start_datetime) return;
+
+        const calculateStartScreenTimer = () => {
+            const competitionStart = new Date(competition.start_datetime!);
+            const competitionEnd = new Date(competitionStart.getTime() + competition.duration_minutes * 60 * 1000);
+            const now = new Date();
+            return Math.max(0, Math.floor((competitionEnd.getTime() - now.getTime()) / 1000));
+        };
+
+        setStartScreenTimeRemaining(calculateStartScreenTimer());
+
+        const interval = setInterval(() => {
+            setStartScreenTimeRemaining(calculateStartScreenTimer());
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [attempt, isLiveCompetition, competition.start_datetime, competition.duration_minutes]);
+
     const formatTime = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);
@@ -170,6 +193,21 @@ export default function CompetitionEnvironment({
         }));
     };
 
+    const handleResetAnswer = () => {
+        if (!currentProblem) return;
+        setAnswers(prev => {
+            const newAnswers = { ...prev };
+            delete newAnswers[currentProblem.id];
+            return newAnswers;
+        });
+        // Also clear the saved status
+        setSavedAnswers(prev => {
+            const newSaved = { ...prev };
+            delete newSaved[currentProblem.id];
+            return newSaved;
+        });
+    };
+
     const handleSaveAnswer = async () => {
         if (!attempt || !currentProblem) return;
 
@@ -197,9 +235,24 @@ export default function CompetitionEnvironment({
 
         setIsSubmitting(true);
 
-        // Save current answer first
-        if (currentProblem && answers[currentProblem.id]) {
-            await submitAnswer(attempt.id, currentProblem.id, answers[currentProblem.id]);
+        // Identify answers that need saving (filled but not yet saved)
+        const unsavedProblemIds = Object.keys(answers).filter(problemId => !savedAnswers[problemId]);
+
+        // Auto-save all unsaved answers before completing
+        if (unsavedProblemIds.length > 0) {
+            try {
+                // Use Promise.all to save concurrently
+                await Promise.all(unsavedProblemIds.map(async (problemId) => {
+                    const answer = answers[problemId];
+                    if (answer) {
+                        await submitAnswer(attempt.id, problemId, answer);
+                    }
+                }));
+            } catch (err) {
+                console.error("Error auto-saving answers:", err);
+                // Continue with submission even if auto-save fails partially? 
+                // Better to try to complete.
+            }
         }
 
         const result = await completeAttempt(attempt.id);
@@ -231,13 +284,8 @@ export default function CompetitionEnvironment({
     // Show start screen if no attempt
     if (!attempt) {
         // Calculate time remaining in scheduled competition
-        let scheduledTimeRemaining: number | null = null;
-        if (!isLiveCompetition && competition.start_datetime) {
-            const competitionStart = new Date(competition.start_datetime);
-            const competitionEnd = new Date(competitionStart.getTime() + competition.duration_minutes * 60 * 1000);
-            const now = new Date();
-            scheduledTimeRemaining = Math.max(0, Math.floor((competitionEnd.getTime() - now.getTime()) / 1000));
-        }
+        // Moved to useEffect to prevent hydration mismatch
+
 
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
@@ -283,11 +331,11 @@ export default function CompetitionEnvironment({
                                 </span>
                             </div>
                         )}
-                        {!isLiveCompetition && scheduledTimeRemaining !== null && (
+                        {!isLiveCompetition && startScreenTimeRemaining !== null && (
                             <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
                                 <span className="text-orange-700">Competition Ends In</span>
                                 <span className="font-semibold text-orange-800">
-                                    {formatTime(scheduledTimeRemaining)}
+                                    {formatTime(startScreenTimeRemaining)}
                                 </span>
                             </div>
                         )}
@@ -318,7 +366,7 @@ export default function CompetitionEnvironment({
                             disabled={isLoading}
                             className="flex-1 py-3 px-6 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-semibold disabled:opacity-50"
                         >
-                            {isLoading ? "Starting..." : "Start Competition"}
+                            {isLoading ? "Entering..." : "Enter"}
                         </button>
                     </div>
                 </div>
@@ -351,252 +399,433 @@ export default function CompetitionEnvironment({
         );
     }
 
+    // Calculate problem status counts
+    const solvedCount = Object.keys(savedAnswers).length;
+    const inProgressCount = Object.keys(answers).filter(id => !savedAnswers[id]).length;
+    const blankCount = problems.length - solvedCount - inProgressCount;
+
     // Competition environment
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col">
+        <div className="h-screen bg-[#f5f7fa] flex flex-col overflow-hidden">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-lg font-bold text-[#25346A]">{competition.name}</h1>
-                        {isLiveCompetition ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                                Live
-                            </span>
-                        ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                                Scheduled
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        {/* Timer */}
-                        <div className={`flex items-center gap-2 font-mono text-xl font-bold ${getTimeColor()}`}>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {timeRemaining !== null ? formatTime(timeRemaining) : "--:--"}
+            <header className="bg-white border-b border-slate-200 flex-shrink-0">
+                <div className="px-6 py-4 flex items-center justify-between">
+                    {/* Logo */}
+                    <div className="flex items-center gap-2">
+                        <img src="/icon.svg" alt="MathWiz Arena" className="w-10 h-10" />
+                        <div>
+                            <span className="text-xl font-bold text-[#25346A]">{competition.name}</span>
                         </div>
-
-                        {/* Submit Button */}
-                        <button
-                            onClick={() => setShowConfirmSubmit(true)}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                        >
-                            Submit
-                        </button>
                     </div>
                 </div>
             </header>
 
-            <div className="flex-1 flex">
-                {/* Problem Navigation Sidebar */}
-                <aside className="w-64 bg-white border-r border-slate-200 p-4 overflow-y-auto">
-                    <h2 className="text-sm font-semibold text-slate-500 uppercase mb-3">Problems</h2>
-                    <div className="grid grid-cols-5 gap-2">
-                        {problems.map((problem, index) => {
-                            const hasAnswer = !!answers[problem.id];
-                            const isSaved = !!savedAnswers[problem.id];
-                            const isCurrent = index === currentProblemIndex;
+            <div className="flex-1 flex overflow-hidden">
+                {/* Left Sidebar */}
+                <aside className="w-72 bg-white border-r border-slate-200 p-6 flex flex-col">
+                    {/* Problem Set Grid */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+                        <h2 className="text-sm font-medium text-slate-600 mb-4">Problem Set</h2>
+                        <div className="grid grid-cols-5 gap-2">
+                            {problems.map((problem, index) => {
+                                const hasAnswer = !!answers[problem.id];
+                                const isSaved = !!savedAnswers[problem.id];
+                                const isCurrent = index === currentProblemIndex;
 
-                            return (
-                                <button
-                                    key={problem.id}
-                                    onClick={() => {
-                                        if (answers[currentProblem?.id]) {
-                                            handleSaveAnswer();
-                                        }
-                                        setCurrentProblemIndex(index);
-                                    }}
-                                    className={`
-                    w-10 h-10 rounded-lg font-semibold text-sm transition-all
-                    ${isCurrent
-                                            ? 'bg-[#25346A] text-white ring-2 ring-[#25346A] ring-offset-2'
-                                            : isSaved
-                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                : hasAnswer
-                                                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                        }
-                  `}
-                                >
-                                    {index + 1}
-                                </button>
-                            );
-                        })}
+                                return (
+                                    <button
+                                        key={problem.id}
+                                        onClick={() => {
+                                            setCurrentProblemIndex(index);
+                                        }}
+                                        className={`
+                                            w-10 h-10 rounded-lg font-semibold text-sm transition-all
+                                            ${isCurrent
+                                                ? 'bg-white text-[#25346A] border-2 border-[#25346A]'
+                                                : isSaved
+                                                    ? 'bg-blue-100 text-[#25346A] border-0 hover:bg-blue-200'
+                                                    : hasAnswer
+                                                        ? 'bg-orange-100 text-[#FFA726] border-0 hover:bg-orange-200'
+                                                        : 'bg-[#E0E0E0] text-slate-600 border-0 hover:bg-[#BDBDBD]'
+                                            }
+                                        `}
+                                    >
+                                        {index + 1}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    <div className="mt-6 space-y-2 text-xs">
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-green-100"></div>
-                            <span className="text-slate-600">Answered</span>
+                    {/* Problem Info */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+                        <h3 className="text-base font-semibold text-slate-800 mb-3">
+                            Problem {currentProblemIndex + 1}
+                        </h3>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">Level</span>
+                                <span className="font-medium text-slate-800 capitalize">
+                                    {currentProblem?.problems.difficulty || 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">Points</span>
+                                <span className="font-medium text-slate-800">
+                                    {currentProblem?.points || 0} points
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">Status</span>
+                                <span className={`font-medium ${savedAnswers[currentProblem?.id]
+                                    ? 'text-[#25346A]'
+                                    : answers[currentProblem?.id]
+                                        ? 'text-yellow-600'
+                                        : 'text-slate-500'
+                                    }`}>
+                                    {savedAnswers[currentProblem?.id]
+                                        ? 'Solved'
+                                        : answers[currentProblem?.id]
+                                            ? 'Filled'
+                                            : 'Blank'}
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-yellow-100"></div>
-                            <span className="text-slate-600">In Progress</span>
+                    </div>
+
+                    {/* Legend with Counts */}
+                    <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded bg-blue-100"></div>
+                            <span className="text-slate-600">Solved</span>
+                            <span className="ml-auto font-semibold text-slate-800">{solvedCount}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-slate-100"></div>
-                            <span className="text-slate-600">Not Answered</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded bg-orange-100"></div>
+                            <span className="text-slate-600">Filled</span>
+                            <span className="ml-auto font-semibold text-slate-800">{inProgressCount}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded bg-[#E0E0E0]"></div>
+                            <span className="text-slate-600">Blank</span>
+                            <span className="ml-auto font-semibold text-slate-800">{blankCount}</span>
                         </div>
                     </div>
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 p-8 overflow-y-auto">
-                    {problems.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-xl font-semibold text-slate-800 mb-2">No Problems Found</h3>
-                            <p className="text-slate-600 max-w-sm">
-                                There are no problems active for this competition yet. Please contact the administrator or try refreshing the page.
-                            </p>
+                <main className="flex-1 flex flex-col overflow-hidden">
+                    {/* Timer - Center of Content Area */}
+                    <div className="flex justify-center p-4 flex-shrink-0">
+                        <div className={`
+                            px-6 py-2 rounded-lg font-mono text-2xl font-bold
+                            ${timeRemaining !== null && timeRemaining <= 300
+                                ? 'bg-red-500 text-white'
+                                : 'bg-red-500 text-white'
+                            }
+                        `}>
+                            {timeRemaining !== null ? formatTime(timeRemaining) : "--:--"}
                         </div>
-                    ) : currentProblem && (
-                        <div className="max-w-3xl mx-auto">
-                            {/* Problem Header */}
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-lg font-bold text-slate-800">
-                                        Problem {currentProblemIndex + 1}
-                                    </span>
-                                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${getDifficultyColor(currentProblem.problems.difficulty)}`}>
-                                        {currentProblem.problems.difficulty}
-                                    </span>
-                                </div>
-                                <span className="text-sm font-semibold text-[#25346A]">
-                                    {currentProblem.points} points
-                                </span>
-                            </div>
+                    </div>
 
-                            {/* Question */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-                                <p className="text-lg text-slate-800 whitespace-pre-wrap leading-relaxed">
-                                    {currentProblem.problems.question}
+                    {/* Problem Content Card - Scrollable Area */}
+                    <div className="flex-1 px-8 pb-4 overflow-y-auto">
+                        {problems.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-center">
+                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-slate-800 mb-2">No Problems Found</h3>
+                                <p className="text-slate-600 max-w-sm">
+                                    There are no problems active for this competition yet. Please contact the administrator or try refreshing the page.
                                 </p>
                             </div>
+                        ) : currentProblem && (
+                            <div className="bg-[#e8f4fc] rounded-xl p-8 min-h-[400px]">
+                                {/* Problem Title */}
+                                <h2 className="text-2xl font-bold text-slate-800 mb-6">
+                                    Problem {currentProblemIndex + 1}
+                                </h2>
 
-                            {/* Answer Section */}
-                            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                                <h3 className="text-sm font-semibold text-slate-500 uppercase mb-4">Your Answer</h3>
+                                {/* Question */}
+                                <div className="text-lg text-slate-700 leading-relaxed mb-8 whitespace-pre-wrap">
+                                    <MathRenderer text={currentProblem.problems.question} />
+                                </div>
 
-                                {currentProblem.problems.type === "multiple_choice" && currentProblem.problems.options && (
-                                    <div className="space-y-3">
-                                        {currentProblem.problems.options.map((option, idx) => (
-                                            <label
-                                                key={idx}
-                                                className={`
-                          flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all
-                          ${answers[currentProblem.id] === option
-                                                        ? 'border-[#25346A] bg-[#25346A]/5'
-                                                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                                                    }
-                        `}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name={`problem-${currentProblem.id}`}
-                                                    value={option}
-                                                    checked={answers[currentProblem.id] === option}
-                                                    onChange={() => handleAnswerChange(currentProblem.id, option)}
-                                                    className="w-4 h-4 text-[#25346A]"
-                                                />
-                                                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-600">
-                                                    {String.fromCharCode(65 + idx)}
-                                                </span>
-                                                <span className="text-slate-800">{option}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* Answer Section */}
+                                <div>
+                                    <h3 className="text-sm font-medium text-slate-600 mb-3">Your Answer:</h3>
 
-                                {currentProblem.problems.type === "true_false" && (
-                                    <div className="flex gap-4">
-                                        {["true", "false"].map((option) => (
-                                            <label
-                                                key={option}
-                                                className={`
-                          flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all
-                          ${answers[currentProblem.id] === option
-                                                        ? 'border-[#25346A] bg-[#25346A]/5'
-                                                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                                                    }
-                        `}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name={`problem-${currentProblem.id}`}
-                                                    value={option}
-                                                    checked={answers[currentProblem.id] === option}
-                                                    onChange={() => handleAnswerChange(currentProblem.id, option)}
-                                                    className="w-4 h-4 text-[#25346A]"
-                                                />
-                                                <span className="text-lg font-semibold capitalize text-slate-800">{option}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
+                                    {currentProblem.problems.type === "multiple_choice" && currentProblem.problems.options && (
+                                        <div className="space-y-3">
+                                            {currentProblem.problems.options.map((option, idx) => (
+                                                <label
+                                                    key={idx}
+                                                    className={`
+                                                        flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all bg-white
+                                                        ${answers[currentProblem.id] === option
+                                                            ? 'border-[#25346A] bg-[#25346A]/5'
+                                                            : 'border-slate-200 hover:border-slate-300'
+                                                        }
+                                                    `}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name={`problem-${currentProblem.id}`}
+                                                        value={option}
+                                                        checked={answers[currentProblem.id] === option}
+                                                        onChange={() => handleAnswerChange(currentProblem.id, option)}
+                                                        className="w-4 h-4 text-[#25346A]"
+                                                    />
+                                                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-600">
+                                                        {String.fromCharCode(65 + idx)}
+                                                    </span>
+                                                    <span className="text-slate-800"><MathRenderer text={option} /></span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {currentProblem.problems.type === "identification" && (
-                                    <input
-                                        type="text"
-                                        value={answers[currentProblem.id] || ""}
-                                        onChange={(e) => handleAnswerChange(currentProblem.id, e.target.value)}
-                                        placeholder="Type your answer here..."
-                                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:outline-none focus:border-[#25346A] text-lg"
-                                    />
-                                )}
+                                    {currentProblem.problems.type === "true_false" && (
+                                        <div className="flex gap-4">
+                                            {["true", "false"].map((option) => (
+                                                <label
+                                                    key={option}
+                                                    className={`
+                                                        flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all bg-white
+                                                        ${answers[currentProblem.id] === option
+                                                            ? 'border-[#25346A] bg-[#25346A]/5'
+                                                            : 'border-slate-200 hover:border-slate-300'
+                                                        }
+                                                    `}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name={`problem-${currentProblem.id}`}
+                                                        value={option}
+                                                        checked={answers[currentProblem.id] === option}
+                                                        onChange={() => handleAnswerChange(currentProblem.id, option)}
+                                                        className="w-4 h-4 text-[#25346A]"
+                                                    />
+                                                    <span className="text-lg font-semibold capitalize text-slate-800">{option}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    )}
 
-                                {/* Save Button */}
-                                <div className="mt-6 flex justify-end">
-                                    <button
-                                        onClick={handleSaveAnswer}
-                                        disabled={isSaving || !answers[currentProblem.id]}
-                                        className="px-6 py-2.5 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-semibold disabled:opacity-50"
-                                    >
-                                        {isSaving ? "Saving..." : savedAnswers[currentProblem.id] ? "Update Answer" : "Save Answer"}
-                                    </button>
+                                    {currentProblem.problems.type === "identification" && (
+                                        <MathAnswerInput
+                                            value={answers[currentProblem.id] || ""}
+                                            onChange={(value) => handleAnswerChange(currentProblem.id, value)}
+                                            placeholder="Type your answer here..."
+                                        />
+                                    )}
                                 </div>
                             </div>
+                        )}
+                    </div>
 
-                            {/* Navigation */}
-                            <div className="flex items-center justify-between mt-6">
+                    {/* Bottom Action Bar - Fixed at bottom */}
+                    <div className="bg-white border-t border-slate-200 px-8 py-4 flex-shrink-0">
+                        <div className="flex items-center justify-between">
+                            {/* Left: Navigation */}
+                            <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => {
-                                        if (answers[currentProblem.id]) {
-                                            handleSaveAnswer();
-                                        }
                                         setCurrentProblemIndex(Math.max(0, currentProblemIndex - 1));
                                     }}
                                     disabled={currentProblemIndex === 0}
-                                    className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     ← Previous
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (answers[currentProblem.id]) {
-                                            handleSaveAnswer();
-                                        }
                                         setCurrentProblemIndex(Math.min(problems.length - 1, currentProblemIndex + 1));
                                     }}
                                     disabled={currentProblemIndex === problems.length - 1}
-                                    className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Next →
                                 </button>
                             </div>
+
+                            {/* Center: Solve Status */}
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={handleSaveAnswer}
+                                    disabled={isSaving || !answers[currentProblem?.id]}
+                                    className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50"
+                                >
+                                    {isSaving ? "Marking..." : savedAnswers[currentProblem?.id] ? "Solved" : "Solve"}
+                                </button>
+                                <button
+                                    onClick={handleResetAnswer}
+                                    disabled={!answers[currentProblem?.id] || (isLiveCompetition && !!savedAnswers[currentProblem?.id])}
+                                    className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                                >
+                                    Reset
+                                </button>
+                                <span className="text-sm text-slate-500">
+                                    Mark as solved if you're<br />confident with your answer
+                                </span>
+                            </div>
+
+                            {/* Right: Review/Submit */}
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm text-slate-500">
+                                    Review your answer<br />before submitting
+                                </span>
+                                <button
+                                    onClick={() => setShowReview(true)}
+                                    className="px-6 py-2.5 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-semibold"
+                                >
+                                    Review
+                                </button>
+                            </div>
                         </div>
-                    )}
+                    </div>
                 </main>
             </div>
+
+            {/* Review Panel */}
+            {showReview && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                        {/* Review Header */}
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+                            <h2 className="text-xl font-bold text-slate-800">Review Your Answers</h2>
+                            <button
+                                onClick={() => setShowReview(false)}
+                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Summary Stats */}
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+                            <div className="flex gap-6">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded bg-blue-100"></div>
+                                    <span className="text-sm text-slate-600">Solved: <span className="font-semibold text-slate-800">{solvedCount}</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded bg-orange-100"></div>
+                                    <span className="text-sm text-slate-600">Filled: <span className="font-semibold text-slate-800">{inProgressCount}</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded bg-[#E0E0E0]"></div>
+                                    <span className="text-sm text-slate-600">Blank: <span className="font-semibold text-slate-800">{blankCount}</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Problems List */}
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                            <div className="space-y-3">
+                                {problems.map((problem, index) => {
+                                    const hasAnswer = !!answers[problem.id];
+                                    const isSaved = !!savedAnswers[problem.id];
+                                    const answer = answers[problem.id];
+
+                                    return (
+                                        <div
+                                            key={problem.id}
+                                            className="flex items-center gap-4 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                                        >
+                                            {/* Problem Number with Status */}
+                                            <div className={`
+                                                w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0
+                                                ${isSaved
+                                                    ? 'bg-blue-100 text-[#25346A]'
+                                                    : hasAnswer
+                                                        ? 'bg-orange-100 text-[#FFA726]'
+                                                        : 'bg-[#E0E0E0] text-slate-600'
+                                                }
+                                            `}>
+                                                {index + 1}
+                                            </div>
+
+                                            {/* Problem Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-sm text-slate-800 font-medium line-clamp-1">
+                                                    <MathRenderer text={
+                                                        problem.problems.question.length > 80
+                                                            ? problem.problems.question.substring(0, 80) + '...'
+                                                            : problem.problems.question
+                                                    } />
+                                                </div>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    {problem.points} points • {problem.problems.difficulty}
+                                                </p>
+                                            </div>
+
+                                            {/* Answer Status */}
+                                            <div className="flex-shrink-0 text-right max-w-[200px]">
+                                                {isSaved ? (
+                                                    <span className="text-sm text-[#25346A] font-medium truncate max-w-[150px] block">
+                                                        <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
+                                                    </span>
+                                                ) : hasAnswer ? (
+                                                    <span className="text-sm text-yellow-600 font-medium truncate max-w-[150px] block">
+                                                        <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-slate-400">
+                                                        Blank
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Go to Problem Button */}
+                                            <button
+                                                onClick={() => {
+                                                    setCurrentProblemIndex(index);
+                                                    setShowReview(false);
+                                                }}
+                                                className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-[#25346A] border border-[#25346A] rounded-lg hover:bg-[#25346A]/5 transition-colors"
+                                            >
+                                                Go to
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Review Footer with Submit */}
+                        <div className="px-6 py-4 border-t border-slate-200 flex-shrink-0">
+                            {blankCount > 0 && (
+                                <p className="text-orange-600 text-sm mb-3">
+                                    ⚠️ You have {blankCount} unanswered problem{blankCount > 1 ? 's' : ''}. You can still submit, but those will be marked as incorrect.
+                                </p>
+                            )}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowReview(false)}
+                                    className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                                >
+                                    Go Back
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowReview(false);
+                                        setShowConfirmSubmit(true);
+                                    }}
+                                    className="flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                                >
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Confirm Submit Modal */}
             {showConfirmSubmit && (
@@ -604,9 +833,9 @@ export default function CompetitionEnvironment({
                     <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">Submit Competition?</h2>
                         <p className="text-slate-600 mb-2">
-                            You have answered <span className="font-semibold">{Object.keys(savedAnswers).length}</span> out of <span className="font-semibold">{problems.length}</span> problems.
+                            You have answered <span className="font-semibold">{Object.keys(answers).length}</span> out of <span className="font-semibold">{problems.length}</span> problems.
                         </p>
-                        {Object.keys(savedAnswers).length < problems.length && (
+                        {Object.keys(answers).length < problems.length && (
                             <p className="text-orange-600 text-sm mb-4">
                                 ⚠️ Some problems are not answered. Are you sure you want to submit?
                             </p>
@@ -616,7 +845,7 @@ export default function CompetitionEnvironment({
                                 onClick={() => setShowConfirmSubmit(false)}
                                 className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
                             >
-                                Keep Working
+                                Go Back
                             </button>
                             <button
                                 onClick={handleSubmitCompetition}

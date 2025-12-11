@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import MathInput, { MathInputInline } from "@/components/ui/MathInput";
 
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
@@ -19,17 +19,17 @@ type Problem = {
   correct_answer: string;
 };
 
-export default function EditProblemForm({ 
-  problem, 
-  problemBankId 
-}: { 
+export default function EditProblemForm({
+  problem,
+  problemBankId
+}: {
   problem: Problem;
   problemBankId: string;
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Initialize form data based on problem type
   const getCorrectAnswerIndex = () => {
     if (problem.type === "multiple_choice" && problem.options) {
@@ -38,13 +38,31 @@ export default function EditProblemForm({
     return 0;
   };
 
+  // Parse existing answers (for identification, may be pipe-delimited)
+  const parseExistingAnswers = () => {
+    if (problem.type === "identification" && problem.correct_answer.includes("|")) {
+      const parts = problem.correct_answer.split("|");
+      return {
+        primary: parts[0],
+        alternatives: parts.slice(1).length > 0 ? parts.slice(1) : [""]
+      };
+    }
+    return {
+      primary: problem.correct_answer,
+      alternatives: [""]
+    };
+  };
+
+  const existingAnswers = parseExistingAnswers();
+
   const [formData, setFormData] = useState({
     question: problem.question,
     type: problem.type,
     difficulty: problem.difficulty,
     options: problem.options || ["", "", "", ""],
-    correctAnswer: problem.correct_answer,
+    correctAnswer: existingAnswers.primary,
     correctAnswerIndex: getCorrectAnswerIndex(),
+    alternativeAnswers: existingAnswers.alternatives,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,7 +79,7 @@ export default function EditProblemForm({
         setIsLoading(false);
         return;
       }
-      
+
       if (formData.question.trim().length < 5) {
         setError("Question must be at least 5 characters long");
         setIsLoading(false);
@@ -76,7 +94,7 @@ export default function EditProblemForm({
           setIsLoading(false);
           return;
         }
-        
+
         // Check each option has minimum length
         for (let i = 0; i < formData.options.length; i++) {
           if (formData.options[i].trim().length < 1) {
@@ -85,7 +103,7 @@ export default function EditProblemForm({
             return;
           }
         }
-        
+
         if (!formData.options[formData.correctAnswerIndex].trim()) {
           setError("Please select a correct answer");
           setIsLoading(false);
@@ -103,7 +121,7 @@ export default function EditProblemForm({
           setIsLoading(false);
           return;
         }
-        
+
         if (formData.correctAnswer.trim().length < 1) {
           setError("Correct answer must be at least 1 character long");
           setIsLoading(false);
@@ -121,7 +139,9 @@ export default function EditProblemForm({
       } else if (formData.type === "true_false") {
         correctAnswer = formData.correctAnswer;
       } else {
-        correctAnswer = formData.correctAnswer.trim();
+        // For identification, combine primary + alternative answers with pipe delimiter
+        const allAnswers = [formData.correctAnswer.trim(), ...formData.alternativeAnswers.filter(a => a.trim())].join("|");
+        correctAnswer = allAnswers;
       }
 
       // Update problem
@@ -175,14 +195,13 @@ export default function EditProblemForm({
         <Label htmlFor="question" className="text-slate-700 font-medium">
           Question <span className="text-red-500">*</span>
         </Label>
-        <textarea
+        <MathInput
           id="question"
-          placeholder="Enter your question here..."
           value={formData.question}
-          onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none"
-          required
+          onChange={(value) => setFormData({ ...formData, question: value })}
+          placeholder="Enter your question here... Use $...$ for math (e.g., $x^2$)"
           disabled={isLoading}
+          required
         />
       </div>
 
@@ -194,64 +213,52 @@ export default function EditProblemForm({
         <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "multiple_choice", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "multiple_choice",
               correctAnswer: "",
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "multiple_choice"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">📝</div>
-              Multiple Choice
-            </div>
+            Multiple Choice
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "true_false", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "true_false",
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "true_false"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✓✗</div>
-              True/False
-            </div>
+            True/False
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "identification", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "identification",
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "identification"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✍️</div>
-              Identification
-            </div>
+            Identification
           </button>
         </div>
       </div>
@@ -265,11 +272,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "easy"
-                ? "border-green-500 bg-green-50 text-green-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
             Easy
@@ -277,11 +283,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "average"
-                ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
+              ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
             Average
@@ -289,11 +294,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "difficult"
-                ? "border-red-500 bg-red-50 text-red-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
+              ? "border-red-500 bg-red-50 text-red-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
             Difficult
@@ -317,18 +321,17 @@ export default function EditProblemForm({
                 className="w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
                 disabled={isLoading}
               />
-              <Input
-                type="text"
-                placeholder={`Option ${String.fromCharCode(65 + index)}`}
+              <span className="text-sm font-medium text-slate-600 w-6">{String.fromCharCode(65 + index)}.</span>
+              <MathInputInline
                 value={option}
-                onChange={(e) => handleOptionChange(index, e.target.value)}
-                className="flex-1"
-                required
+                onChange={(value) => handleOptionChange(index, value)}
+                placeholder={`Option ${String.fromCharCode(65 + index)} (use $...$ for math)`}
                 disabled={isLoading}
+                required
               />
             </div>
           ))}
-          <p className="text-sm text-slate-500">Select the radio button for the correct answer</p>
+          <p className="text-sm text-slate-500">Select the radio button for the correct answer. Use $...$ for math expressions.</p>
         </div>
       )}
 
@@ -341,11 +344,10 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-                formData.correctAnswer === "true"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
+                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                }`}
               disabled={isLoading}
             >
               True
@@ -353,11 +355,10 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-                formData.correctAnswer === "false"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
+                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                }`}
               disabled={isLoading}
             >
               False
@@ -367,22 +368,73 @@ export default function EditProblemForm({
       )}
 
       {formData.type === "identification" && (
-        <div className="space-y-2">
-          <Label htmlFor="correctAnswer" className="text-slate-700 font-medium">
-            Correct Answer <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="correctAnswer"
-            type="text"
-            placeholder="Enter the correct answer"
-            value={formData.correctAnswer}
-            onChange={(e) => setFormData({ ...formData, correctAnswer: e.target.value })}
-            className="w-full"
-            required
-            disabled={isLoading}
-          />
-          <p className="text-sm text-slate-500">
-            For numeric answers, equivalent formats will be accepted (e.g., 5, 5.0, 5.00)
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="correctAnswer" className="text-slate-700 font-medium">
+              Primary Answer <span className="text-red-500">*</span>
+            </Label>
+            <MathInputInline
+              value={formData.correctAnswer}
+              onChange={(value) => setFormData({ ...formData, correctAnswer: value })}
+              placeholder="Enter the primary correct answer (use $...$ for math)"
+              disabled={isLoading}
+              required
+            />
+          </div>
+
+          {/* Alternative Answers */}
+          <div className="space-y-2">
+            <Label className="text-slate-700 font-medium">
+              Alternative Acceptable Answers <span className="text-slate-400 font-normal">(optional)</span>
+            </Label>
+            <p className="text-xs text-slate-500 mb-2">
+              Add variations that should also be accepted (e.g., for "x=17": also accept "17", "x = 17", etc.)
+            </p>
+            {formData.alternativeAnswers.map((alt, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <MathInputInline
+                  value={alt}
+                  onChange={(value) => {
+                    const newAlts = [...formData.alternativeAnswers];
+                    newAlts[index] = value;
+                    setFormData({ ...formData, alternativeAnswers: newAlts });
+                  }}
+                  placeholder={`Alternative answer ${index + 1}`}
+                  disabled={isLoading}
+                />
+                {formData.alternativeAnswers.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newAlts = formData.alternativeAnswers.filter((_, i) => i !== index);
+                      setFormData({ ...formData, alternativeAnswers: newAlts });
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                    disabled={isLoading}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, alternativeAnswers: [...formData.alternativeAnswers, ""] })}
+              className="text-sm text-[#f49700] hover:text-[#d68400] font-medium flex items-center gap-1"
+              disabled={isLoading}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Another Alternative
+            </button>
+          </div>
+
+          <p className="text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
+            💡 <strong>Tip:</strong> For quadratic equations with multiple solutions (e.g., x = 2 or x = 3), add each value as an alternative.
+            Numeric equivalents (5 = 5.0 = 5.00) are automatically accepted.
           </p>
         </div>
       )}

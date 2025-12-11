@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 type Problem = {
     id: string;
@@ -202,6 +203,42 @@ export default function ProblemsPointsStep({
         );
     };
 
+    const handleSelectAllFromBank = () => {
+        // Get problems from current bank that are not already selected
+        const unselectedProblems = bankProblems.filter(
+            (problem) => !isProblemSelected(problem.id)
+        );
+
+        if (unselectedProblems.length === 0) return;
+
+        const newProblems: SelectedProblem[] = unselectedProblems.map((problem, index) => ({
+            problem,
+            points: formData.pointSystemType === "auto_level"
+                ? getAutoLevelPoints(problem.difficulty)
+                : null,
+            orderIndex: selectedProblems.length + index,
+        }));
+
+        setSelectedProblems([...selectedProblems, ...newProblems]);
+    };
+
+    const handleDeselectAllFromBank = () => {
+        // Remove all problems from the current bank
+        const bankProblemIds = new Set(bankProblems.map((p) => p.id));
+        const remainingProblems = selectedProblems
+            .filter((sp) => !bankProblemIds.has(sp.problem.id))
+            .map((sp, index) => ({ ...sp, orderIndex: index }));
+        setSelectedProblems(remainingProblems);
+    };
+
+    // Check if all problems from current bank are selected
+    const areAllBankProblemsSelected = bankProblems.length > 0 &&
+        bankProblems.every((problem) => isProblemSelected(problem.id));
+
+    // Check if some (but not all) problems from current bank are selected
+    const areSomeBankProblemsSelected = bankProblems.some((problem) => isProblemSelected(problem.id)) &&
+        !areAllBankProblemsSelected;
+
     return (
         <div className="space-y-6">
             <div>
@@ -219,14 +256,11 @@ export default function ProblemsPointsStep({
                         type="button"
                         onClick={() => setFormData({
                             ...formData,
-                            pointSystemType: "auto_level",
-                            easyPoints: formData.easyPoints || "1",
-                            averagePoints: formData.averagePoints || "3",
-                            difficultPoints: formData.difficultPoints || "5"
+                            pointSystemType: "auto_level"
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "auto_level"
-                                ? "border-purple-500 bg-purple-50 text-purple-700"
-                                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : "border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
                         disabled={isLoading}
                     >
@@ -245,14 +279,11 @@ export default function ProblemsPointsStep({
                         type="button"
                         onClick={() => setFormData({
                             ...formData,
-                            pointSystemType: "manual",
-                            easyPoints: "",
-                            averagePoints: "",
-                            difficultPoints: ""
+                            pointSystemType: "manual"
                         })}
                         className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.pointSystemType === "manual"
-                                ? "border-purple-500 bg-purple-50 text-purple-700"
-                                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                            ? "border-purple-500 bg-purple-50 text-purple-700"
+                            : "border-slate-200 text-slate-700 hover:border-slate-300"
                             }`}
                         disabled={isLoading}
                     >
@@ -428,8 +459,8 @@ export default function ProblemsPointsStep({
                                     type="button"
                                     onClick={() => setSelectedBankId(bank.id === selectedBankId ? null : bank.id)}
                                     className={`p-4 border-2 rounded-lg text-left transition-all ${selectedBankId === bank.id
-                                            ? "border-purple-500 bg-purple-50"
-                                            : "border-slate-200 hover:border-slate-300"
+                                        ? "border-purple-500 bg-purple-50"
+                                        : "border-slate-200 hover:border-slate-300"
                                         }`}
                                     disabled={isLoading}
                                 >
@@ -455,9 +486,35 @@ export default function ProblemsPointsStep({
                 {/* Problems List */}
                 {selectedBankId && (
                     <div className="space-y-2">
-                        <Label className="text-slate-700 font-medium">
-                            Available Problems
-                        </Label>
+                        <div className="flex items-center justify-between">
+                            <Label className="text-slate-700 font-medium">
+                                Available Problems ({bankProblems.length})
+                            </Label>
+                            {bankProblems.length > 0 && !isLoadingProblems && (
+                                <button
+                                    type="button"
+                                    onClick={areAllBankProblemsSelected ? handleDeselectAllFromBank : handleSelectAllFromBank}
+                                    className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1.5 transition-colors"
+                                    disabled={isLoading}
+                                >
+                                    {areAllBankProblemsSelected ? (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Deselect All
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Select All
+                                        </>
+                                    )}
+                                </button>
+                            )}
+                        </div>
                         {isLoadingProblems ? (
                             <div className="text-center py-8 text-slate-500">
                                 <svg className="animate-spin h-8 w-8 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -501,11 +558,11 @@ export default function ProblemsPointsStep({
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="text-sm text-slate-800 mb-2 line-clamp-2">{problem.question}</p>
+                                                    <p className="text-sm text-slate-800 mb-2 line-clamp-2"><MathRenderer text={problem.question} /></p>
                                                     <div className="flex items-center gap-2 text-xs">
                                                         <span className="text-slate-600 font-medium">Correct Answer:</span>
                                                         <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                                                            {problem.correct_answer}
+                                                            <MathRenderer text={problem.correct_answer.split('|')[0]} />
                                                         </span>
                                                     </div>
                                                 </div>
@@ -524,7 +581,7 @@ export default function ProblemsPointsStep({
                         <Label className="text-slate-700 font-medium">
                             Selected Problems ({selectedProblems.length})
                         </Label>
-                        <div className="border border-slate-200 rounded-lg divide-y divide-slate-200 max-h-96 overflow-y-auto">
+                        <div className="border border-slate-200 rounded-lg divide-y divide-slate-200">
                             {selectedProblems.map((sp, index) => (
                                 <div key={sp.problem.id} className="p-4 bg-white">
                                     <div className="flex items-start gap-3">
@@ -540,13 +597,13 @@ export default function ProblemsPointsStep({
                                                     {getTypeLabel(sp.problem.type)}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-slate-800 mb-2 line-clamp-2">{sp.problem.question}</p>
+                                            <p className="text-sm text-slate-800 mb-2 line-clamp-2"><MathRenderer text={sp.problem.question} /></p>
 
                                             {/* Correct Answer Display */}
                                             <div className="flex items-center gap-2 text-xs mb-2">
                                                 <span className="text-slate-600 font-medium">Correct Answer:</span>
                                                 <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                                                    {sp.problem.correct_answer}
+                                                    <MathRenderer text={sp.problem.correct_answer.split('|')[0]} />
                                                 </span>
                                             </div>
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function OrganizerHistoryPage() {
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
+    <div className="p-8">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
           <div className="w-20 h-20 bg-[#f49700]/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -14,7 +14,7 @@ export default function OrganizerHistoryPage() {
           <p className="text-slate-600 mb-8">
             This feature is coming soon. You'll be able to view your competition history here.
           </p>
-          <Link 
+          <Link
             href="/organizer"
             className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors"
           >

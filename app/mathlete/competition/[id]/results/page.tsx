@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 interface PageProps {
     params: { id: string };
@@ -67,8 +68,12 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
         )
       )
     `)
-        .eq("attempt_id", attempt.id)
-        .order("competition_problem_id");
+        .eq("attempt_id", attempt.id);
+
+    // Sort answers by order_index
+    const sortedAnswers = answers?.sort((a: any, b: any) =>
+        (a.competition_problems?.order_index ?? 0) - (b.competition_problems?.order_index ?? 0)
+    );
 
     // Get total possible points
     const { data: allProblems } = await supabase
@@ -77,7 +82,7 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
         .eq("competition_id", attempt.competition_id);
 
     const totalPossiblePoints = allProblems?.reduce((sum, p) => sum + p.points, 0) || 0;
-    const correctCount = answers?.filter(a => a.is_correct).length || 0;
+    const correctCount = sortedAnswers?.filter((a: any) => a.is_correct).length || 0;
     const totalQuestions = allProblems?.length || 0;
     const percentageScore = totalPossiblePoints > 0
         ? Math.round((attempt.total_score / totalPossiblePoints) * 100)
@@ -116,49 +121,65 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-[#25346A] mb-2">
+                <div className="text-center mb-6">
+                    <h1 className="text-2xl font-bold text-[#25346A] mb-1">
                         {competition?.name || "Competition"} Results
                     </h1>
-                    <p className="text-slate-600">Attempt #{attempt.attempt_number}</p>
+                    <p className="text-slate-600 text-sm">Attempt #{attempt.attempt_number}</p>
                 </div>
 
-                {/* Score Card */}
-                <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                {/* Score Card - Compact */}
+                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <div className="text-center">
-                        <div className={`text-6xl font-bold ${getScoreColor()} mb-2`}>
+                        <div className={`text-5xl font-bold ${getScoreColor()} mb-1`}>
                             {percentageScore}%
                         </div>
-                        <p className="text-2xl font-semibold text-slate-700 mb-1">
+                        <p className="text-xl font-semibold text-slate-700 mb-0.5">
                             {attempt.total_score} / {totalPossiblePoints} points
                         </p>
-                        <p className="text-lg text-slate-500 mb-4">
+                        <p className="text-sm text-slate-500 mb-2">
                             {correctCount} / {totalQuestions} questions correct
                         </p>
-                        <p className="text-xl font-medium text-slate-600">{getScoreMessage()}</p>
+                        <p className="text-lg font-medium text-slate-600">{getScoreMessage()}</p>
                     </div>
 
-                    <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-                        <div className="p-4 bg-green-50 rounded-lg">
-                            <div className="text-2xl font-bold text-green-600">{correctCount}</div>
-                            <div className="text-sm text-green-700">Correct</div>
+                    <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+                        <div className="p-3 bg-green-50 rounded-lg">
+                            <div className="text-xl font-bold text-green-600">{correctCount}</div>
+                            <div className="text-xs text-green-700">Correct</div>
                         </div>
-                        <div className="p-4 bg-red-50 rounded-lg">
-                            <div className="text-2xl font-bold text-red-600">{totalQuestions - correctCount}</div>
-                            <div className="text-sm text-red-700">Incorrect</div>
+                        <div className="p-3 bg-red-50 rounded-lg">
+                            <div className="text-xl font-bold text-red-600">{totalQuestions - correctCount}</div>
+                            <div className="text-xs text-red-700">Incorrect</div>
                         </div>
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                            <div className="text-2xl font-bold text-blue-600">{attempt.total_score}</div>
-                            <div className="text-sm text-blue-700">Points Earned</div>
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                            <div className="text-xl font-bold text-blue-600">{attempt.total_score}</div>
+                            <div className="text-xs text-blue-700">Points Earned</div>
                         </div>
                     </div>
+                </div>
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-center gap-4 mb-6">
+                    <Link
+                        href="/mathlete"
+                        className="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                    >
+                        Back to Dashboard
+                    </Link>
+                    <Link
+                        href={`/mathlete/competition/${params.id}/leaderboard?attemptId=${searchParams.attemptId}`}
+                        className="px-6 py-2.5 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-medium"
+                    >
+                        Leaderboard
+                    </Link>
                 </div>
 
                 {/* Answer Review */}
-                <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-                    <h2 className="text-xl font-bold text-slate-800 mb-6">Answer Review</h2>
+                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h2 className="text-lg font-bold text-slate-800 mb-4">Answer Review</h2>
                     <div className="space-y-4">
-                        {answers?.map((answer: any, index: number) => {
+                        {sortedAnswers?.map((answer: any, index: number) => {
                             const problem = answer.competition_problems?.problems;
                             const compProblem = answer.competition_problems;
 
@@ -166,8 +187,8 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                                 <div
                                     key={answer.id}
                                     className={`p-4 rounded-lg border-2 ${answer.is_correct
-                                            ? "border-green-200 bg-green-50"
-                                            : "border-red-200 bg-red-50"
+                                        ? "border-green-200 bg-green-50"
+                                        : "border-red-200 bg-red-50"
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-2">
@@ -189,19 +210,19 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-slate-800 mb-3">{problem?.question}</p>
+                                    <div className="text-slate-800 mb-3"><MathRenderer text={problem?.question || ''} /></div>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <span className="text-slate-500">Your answer:</span>
                                             <span className={`ml-2 font-medium ${answer.is_correct ? "text-green-700" : "text-red-700"}`}>
-                                                {answer.answer || "(No answer)"}
+                                                {answer.answer ? <MathRenderer text={answer.answer} /> : "(No answer)"}
                                             </span>
                                         </div>
                                         {!answer.is_correct && (
                                             <div>
                                                 <span className="text-slate-500">Correct answer:</span>
                                                 <span className="ml-2 font-medium text-green-700">
-                                                    {problem?.correct_answer}
+                                                    <MathRenderer text={problem?.correct_answer?.split('|')[0] || ''} />
                                                 </span>
                                             </div>
                                         )}
@@ -213,22 +234,16 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-center gap-4">
-                    <Link
-                        href="/mathlete"
-                        className="px-8 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
-                    >
-                        Back to Dashboard
-                    </Link>
-                    {hasMoreAttempts && (
+                {hasMoreAttempts && (
+                    <div className="flex justify-center">
                         <Link
                             href={`/mathlete/competition/${params.id}`}
                             className="px-8 py-3 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-semibold"
                         >
                             Try Again
                         </Link>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </div>
     );

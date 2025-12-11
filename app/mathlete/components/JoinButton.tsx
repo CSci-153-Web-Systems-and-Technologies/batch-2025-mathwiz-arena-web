@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import CompetitionDetailsModal from "./CompetitionDetailsModal";
 
 interface Competition {
@@ -44,24 +45,78 @@ export default function JoinButton({
     );
   }
 
-  // Determine button text based on competition state
+  // For Live competitions with registered users - show Start button next to View Details
+  if (isLiveCompetition && isRegistered) {
+    return (
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/mathlete/competition/${competition.id}`}
+          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 flex items-center gap-1.5"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          Enter
+        </Link>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+        >
+          View Details
+        </button>
+
+        <CompetitionDetailsModal
+          competition={competition}
+          isRegistered={isRegistered}
+          isLiveCompetition={isLiveCompetition}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  // For scheduled competitions in progress with registered users - show Enter button
+  if (isScheduledLive && !isLiveCompetition && isRegistered) {
+    return (
+      <div className="flex items-center gap-2">
+        <Link
+          href={`/mathlete/competition/${competition.id}`}
+          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 flex items-center gap-1.5"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          Enter
+        </Link>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+        >
+          View Details
+        </button>
+
+        <CompetitionDetailsModal
+          competition={competition}
+          isRegistered={isRegistered}
+          isLiveCompetition={isLiveCompetition}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
+      </div>
+    );
+  }
+
+  // Default: Show single button (Join for unregistered, View Details for registered)
   const getButtonText = () => {
     if (isRegistered) {
-      if (isScheduledLive && !isLiveCompetition) {
-        return "Enter Competition";
-      }
       return "View Details";
     }
     return "Join";
   };
 
-  // Determine button style
   const getButtonStyle = () => {
     if (isRegistered) {
-      if (isScheduledLive && !isLiveCompetition) {
-        // Highlight for registered users during scheduled competition
-        return "bg-green-600 text-white hover:bg-green-700";
-      }
       return "bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100";
     }
     return "bg-[#25346A] text-white hover:bg-[#2A64d1]";
