@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { startCompetitionAttempt, submitAnswer, completeAttempt } from "../../actions";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 interface Problem {
     id: string;
@@ -543,9 +544,9 @@ export default function CompetitionEnvironment({
                                 </h2>
 
                                 {/* Question */}
-                                <p className="text-lg text-slate-700 leading-relaxed mb-8 whitespace-pre-wrap">
-                                    {currentProblem.problems.question}
-                                </p>
+                                <div className="text-lg text-slate-700 leading-relaxed mb-8 whitespace-pre-wrap">
+                                    <MathRenderer text={currentProblem.problems.question} />
+                                </div>
 
                                 {/* Answer Section */}
                                 <div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import MathInput from "@/components/ui/MathInput";
 
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
@@ -175,14 +176,13 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
         <Label htmlFor="question" className="text-slate-700 font-medium">
           Question <span className="text-red-500">*</span>
         </Label>
-        <textarea
+        <MathInput
           id="question"
-          placeholder="Enter your question here..."
           value={formData.question}
-          onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-          required
+          onChange={(value) => setFormData({ ...formData, question: value })}
+          placeholder="Enter your question here... Use $...$ for math (e.g., $x^2$)"
           disabled={isLoading}
+          required
         />
       </div>
 
@@ -201,16 +201,13 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
               ? "border-purple-500 bg-purple-50 text-purple-700"
               : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">📝</div>
-              Multiple Choice
-            </div>
+            Multiple Choice
           </button>
           <button
             type="button"
@@ -220,16 +217,13 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
               ? "border-purple-500 bg-purple-50 text-purple-700"
               : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✓✗</div>
-              True/False
-            </div>
+            True/False
           </button>
           <button
             type="button"
@@ -239,16 +233,13 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
               ? "border-purple-500 bg-purple-50 text-purple-700"
               : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✍️</div>
-              Identification
-            </div>
+            Identification
           </button>
         </div>
       </div>

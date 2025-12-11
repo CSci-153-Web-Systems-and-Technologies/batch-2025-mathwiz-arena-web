@@ -5,12 +5,12 @@ import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import EditProblemForm from "./components/EditProblemForm";
 
-export default async function EditProblemPage({ 
-  params 
-}: { 
-  params: { id: string; problemId: string } 
+export default async function EditProblemPage({
+  params
+}: {
+  params: { id: string; problemId: string }
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

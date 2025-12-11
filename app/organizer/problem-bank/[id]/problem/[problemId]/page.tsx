@@ -5,12 +5,12 @@ import { redirect, notFound } from "next/navigation";
 import LoginButton from "@/components/LoginLogoutButton";
 import ProblemActions from "./components/ProblemActions";
 
-export default async function ProblemDetailPage({ 
-  params 
-}: { 
-  params: { id: string; problemId: string } 
+export default async function ProblemDetailPage({
+  params
+}: {
+  params: { id: string; problemId: string }
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -155,7 +155,7 @@ export default async function ProblemDetailPage({
               </svg>
               Back to {problemBank.title}
             </Link>
-            
+
             <div className="flex justify-between items-start">
               <div>
                 <h1 className="text-3xl font-bold text-slate-800 mb-3">Problem Details</h1>
@@ -186,13 +186,12 @@ export default async function ProblemDetailPage({
                 <h2 className="text-sm font-semibold text-slate-500 uppercase mb-3">Options</h2>
                 <div className="space-y-2">
                   {problem.options.map((option: string, index: number) => (
-                    <div 
+                    <div
                       key={index}
-                      className={`p-3 rounded-lg border-2 ${
-                        option === problem.correct_answer
+                      className={`p-3 rounded-lg border-2 ${option === problem.correct_answer
                           ? "border-green-500 bg-green-50"
                           : "border-slate-200 bg-slate-50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border-2 border-slate-300 flex items-center justify-center text-xs font-medium">

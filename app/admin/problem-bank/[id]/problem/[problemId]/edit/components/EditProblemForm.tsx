@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import MathInput from "@/components/ui/MathInput";
 
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
@@ -175,14 +176,13 @@ export default function EditProblemForm({
         <Label htmlFor="question" className="text-slate-700 font-medium">
           Question <span className="text-red-500">*</span>
         </Label>
-        <textarea
+        <MathInput
           id="question"
-          placeholder="Enter your question here..."
           value={formData.question}
-          onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-          required
+          onChange={(value) => setFormData({ ...formData, question: value })}
+          placeholder="Enter your question here... Use $...$ for math (e.g., $x^2$)"
           disabled={isLoading}
+          required
         />
       </div>
 
@@ -201,16 +201,13 @@ export default function EditProblemForm({
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
-                ? "border-purple-500 bg-purple-50 text-purple-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">📝</div>
-              Multiple Choice
-            </div>
+            Multiple Choice
           </button>
           <button
             type="button"
@@ -220,16 +217,13 @@ export default function EditProblemForm({
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
-                ? "border-purple-500 bg-purple-50 text-purple-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✓✗</div>
-              True/False
-            </div>
+            True/False
           </button>
           <button
             type="button"
@@ -239,16 +233,13 @@ export default function EditProblemForm({
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
-                ? "border-purple-500 bg-purple-50 text-purple-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+              ? "border-purple-500 bg-purple-50 text-purple-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✍️</div>
-              Identification
-            </div>
+            Identification
           </button>
         </div>
       </div>
@@ -263,8 +254,8 @@ export default function EditProblemForm({
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
-                ? "border-green-500 bg-green-50 text-green-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -274,8 +265,8 @@ export default function EditProblemForm({
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
-                ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -285,8 +276,8 @@ export default function EditProblemForm({
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
-                ? "border-red-500 bg-red-50 text-red-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-red-500 bg-red-50 text-red-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
               }`}
             disabled={isLoading}
           >
@@ -336,8 +327,8 @@ export default function EditProblemForm({
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
-                  ? "border-purple-500 bg-purple-50 text-purple-700"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               disabled={isLoading}
             >
@@ -347,8 +338,8 @@ export default function EditProblemForm({
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
-                  ? "border-purple-500 bg-purple-50 text-purple-700"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
+                ? "border-purple-500 bg-purple-50 text-purple-700"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
                 }`}
               disabled={isLoading}
             >

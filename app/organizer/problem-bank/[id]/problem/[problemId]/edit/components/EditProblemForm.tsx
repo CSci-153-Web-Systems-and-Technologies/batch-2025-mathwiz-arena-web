@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
+import MathInput from "@/components/ui/MathInput";
 
 type ProblemType = "multiple_choice" | "true_false" | "identification";
 type Difficulty = "easy" | "average" | "difficult";
@@ -19,17 +20,17 @@ type Problem = {
   correct_answer: string;
 };
 
-export default function EditProblemForm({ 
-  problem, 
-  problemBankId 
-}: { 
+export default function EditProblemForm({
+  problem,
+  problemBankId
+}: {
   problem: Problem;
   problemBankId: string;
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Initialize form data based on problem type
   const getCorrectAnswerIndex = () => {
     if (problem.type === "multiple_choice" && problem.options) {
@@ -61,7 +62,7 @@ export default function EditProblemForm({
         setIsLoading(false);
         return;
       }
-      
+
       if (formData.question.trim().length < 5) {
         setError("Question must be at least 5 characters long");
         setIsLoading(false);
@@ -76,7 +77,7 @@ export default function EditProblemForm({
           setIsLoading(false);
           return;
         }
-        
+
         // Check each option has minimum length
         for (let i = 0; i < formData.options.length; i++) {
           if (formData.options[i].trim().length < 1) {
@@ -85,7 +86,7 @@ export default function EditProblemForm({
             return;
           }
         }
-        
+
         if (!formData.options[formData.correctAnswerIndex].trim()) {
           setError("Please select a correct answer");
           setIsLoading(false);
@@ -103,7 +104,7 @@ export default function EditProblemForm({
           setIsLoading(false);
           return;
         }
-        
+
         if (formData.correctAnswer.trim().length < 1) {
           setError("Correct answer must be at least 1 character long");
           setIsLoading(false);
@@ -175,14 +176,13 @@ export default function EditProblemForm({
         <Label htmlFor="question" className="text-slate-700 font-medium">
           Question <span className="text-red-500">*</span>
         </Label>
-        <textarea
+        <MathInput
           id="question"
-          placeholder="Enter your question here..."
           value={formData.question}
-          onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-          className="w-full min-h-[100px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none"
-          required
+          onChange={(value) => setFormData({ ...formData, question: value })}
+          placeholder="Enter your question here... Use $...$ for math (e.g., $x^2$)"
           disabled={isLoading}
+          required
         />
       </div>
 
@@ -194,64 +194,52 @@ export default function EditProblemForm({
         <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "multiple_choice", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "multiple_choice",
               correctAnswer: "",
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "multiple_choice"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">📝</div>
-              Multiple Choice
-            </div>
+            Multiple Choice
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "true_false", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "true_false",
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "true_false"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✓✗</div>
-              True/False
-            </div>
+            True/False
           </button>
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
-              type: "identification", 
+            onClick={() => setFormData({
+              ...formData,
+              type: "identification",
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.type === "identification"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
-            <div className="text-center">
-              <div className="text-2xl mb-1">✍️</div>
-              Identification
-            </div>
+            Identification
           </button>
         </div>
       </div>
@@ -265,11 +253,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "easy"
-                ? "border-green-500 bg-green-50 text-green-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
+              ? "border-green-500 bg-green-50 text-green-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
             Easy
@@ -277,11 +264,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "average"
-                ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
+              ? "border-yellow-500 bg-yellow-50 text-yellow-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
             Average
@@ -289,11 +275,10 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.difficulty === "difficult"
-                ? "border-red-500 bg-red-50 text-red-700"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
+              ? "border-red-500 bg-red-50 text-red-700"
+              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              }`}
             disabled={isLoading}
           >
             Difficult
@@ -341,11 +326,10 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-                formData.correctAnswer === "true"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
+                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                }`}
               disabled={isLoading}
             >
               True
@@ -353,11 +337,10 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-                formData.correctAnswer === "false"
-                  ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                  : "border-slate-200 text-slate-700 hover:border-slate-300"
-              }`}
+              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
+                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                }`}
               disabled={isLoading}
             >
               False
