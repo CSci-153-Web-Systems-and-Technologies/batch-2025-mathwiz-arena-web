@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 interface PageProps {
     params: { id: string };
@@ -67,8 +68,12 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
         )
       )
     `)
-        .eq("attempt_id", attempt.id)
-        .order("competition_problem_id");
+        .eq("attempt_id", attempt.id);
+
+    // Sort answers by order_index
+    const sortedAnswers = answers?.sort((a: any, b: any) =>
+        (a.competition_problems?.order_index ?? 0) - (b.competition_problems?.order_index ?? 0)
+    );
 
     // Get total possible points
     const { data: allProblems } = await supabase
@@ -77,7 +82,7 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
         .eq("competition_id", attempt.competition_id);
 
     const totalPossiblePoints = allProblems?.reduce((sum, p) => sum + p.points, 0) || 0;
-    const correctCount = answers?.filter(a => a.is_correct).length || 0;
+    const correctCount = sortedAnswers?.filter((a: any) => a.is_correct).length || 0;
     const totalQuestions = allProblems?.length || 0;
     const percentageScore = totalPossiblePoints > 0
         ? Math.round((attempt.total_score / totalPossiblePoints) * 100)
@@ -158,7 +163,7 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                 <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
                     <h2 className="text-xl font-bold text-slate-800 mb-6">Answer Review</h2>
                     <div className="space-y-4">
-                        {answers?.map((answer: any, index: number) => {
+                        {sortedAnswers?.map((answer: any, index: number) => {
                             const problem = answer.competition_problems?.problems;
                             const compProblem = answer.competition_problems;
 
@@ -166,8 +171,8 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                                 <div
                                     key={answer.id}
                                     className={`p-4 rounded-lg border-2 ${answer.is_correct
-                                            ? "border-green-200 bg-green-50"
-                                            : "border-red-200 bg-red-50"
+                                        ? "border-green-200 bg-green-50"
+                                        : "border-red-200 bg-red-50"
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-2">
@@ -189,19 +194,19 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-slate-800 mb-3">{problem?.question}</p>
+                                    <div className="text-slate-800 mb-3"><MathRenderer text={problem?.question || ''} /></div>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <span className="text-slate-500">Your answer:</span>
                                             <span className={`ml-2 font-medium ${answer.is_correct ? "text-green-700" : "text-red-700"}`}>
-                                                {answer.answer || "(No answer)"}
+                                                {answer.answer ? <MathRenderer text={answer.answer} /> : "(No answer)"}
                                             </span>
                                         </div>
                                         {!answer.is_correct && (
                                             <div>
                                                 <span className="text-slate-500">Correct answer:</span>
                                                 <span className="ml-2 font-medium text-green-700">
-                                                    {problem?.correct_answer}
+                                                    <MathRenderer text={problem?.correct_answer?.split('|')[0] || ''} />
                                                 </span>
                                             </div>
                                         )}

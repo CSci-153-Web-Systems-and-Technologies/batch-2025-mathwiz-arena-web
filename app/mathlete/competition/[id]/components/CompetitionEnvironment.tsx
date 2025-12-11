@@ -772,8 +772,8 @@ export default function CompetitionEnvironment({
                                                         <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
                                                     </span>
                                                 ) : hasAnswer ? (
-                                                    <span className="text-sm text-yellow-600 font-medium">
-                                                        Filled
+                                                    <span className="text-sm text-yellow-600 font-medium truncate max-w-[150px] block">
+                                                        <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
                                                     </span>
                                                 ) : (
                                                     <span className="text-sm text-slate-400">
