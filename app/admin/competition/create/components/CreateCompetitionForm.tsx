@@ -158,6 +158,20 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         console.log('📍 ADMIN currentStep changed to:', currentStep);
     }, [currentStep]);
 
+    // Force individual participation for live competitions
+    // IMPORTANT: This hook must be before any early returns to avoid "Rendered fewer hooks than expected" error
+    useEffect(() => {
+        if (competitionMode === "live" && formData.participationType === "team") {
+            setFormData(prev => ({
+                ...prev,
+                participationType: "individual",
+                hasMaxTeams: false,
+                maxTeams: "",
+                maxTeamMembers: ""
+            }));
+        }
+    }, [competitionMode]);
+
     const validateStep0 = (): boolean => {
         // Mode is always valid (defaults to "scheduled")
         return true;
@@ -714,18 +728,6 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     const totalSteps = isEditing ? 3 : 4;
     const displayStep = isEditing ? currentStep : currentStep;
 
-    // Force individual participation for live competitions
-    useEffect(() => {
-        if (competitionMode === "live" && formData.participationType === "team") {
-            setFormData(prev => ({
-                ...prev,
-                participationType: "individual",
-                hasMaxTeams: false,
-                maxTeams: "",
-                maxTeamMembers: ""
-            }));
-        }
-    }, [competitionMode]);
 
     // Regular multi-step form view
     return (

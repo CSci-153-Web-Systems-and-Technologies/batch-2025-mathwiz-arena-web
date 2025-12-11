@@ -266,12 +266,10 @@ export default function MathInput({
 }
 
 // Utility function to render LaTeX in display (read-only) contexts
+// Note: Renders synchronously to avoid hooks issues when many instances are created/destroyed
 export function MathRenderer({ text, className = "" }: { text: string; className?: string }) {
-    const [html, setHtml] = useState("");
-
-    useEffect(() => {
-        setHtml(renderLatex(text));
-    }, [text]);
+    // Render synchronously to avoid "Rendered fewer hooks than expected" error
+    const html = renderLatex(text || "");
 
     return (
         <span

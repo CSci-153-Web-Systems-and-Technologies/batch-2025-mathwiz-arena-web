@@ -208,6 +208,42 @@ export default function ProblemsPointsStep({
     );
   };
 
+  const handleSelectAllFromBank = () => {
+    // Get problems from current bank that are not already selected
+    const unselectedProblems = bankProblems.filter(
+      (problem) => !isProblemSelected(problem.id)
+    );
+
+    if (unselectedProblems.length === 0) return;
+
+    const newProblems: SelectedProblem[] = unselectedProblems.map((problem, index) => ({
+      problem,
+      points: formData.pointSystemType === "auto_level"
+        ? getAutoLevelPoints(problem.difficulty)
+        : null,
+      orderIndex: selectedProblems.length + index,
+    }));
+
+    setSelectedProblems([...selectedProblems, ...newProblems]);
+  };
+
+  const handleDeselectAllFromBank = () => {
+    // Remove all problems from the current bank
+    const bankProblemIds = new Set(bankProblems.map((p) => p.id));
+    const remainingProblems = selectedProblems
+      .filter((sp) => !bankProblemIds.has(sp.problem.id))
+      .map((sp, index) => ({ ...sp, orderIndex: index }));
+    setSelectedProblems(remainingProblems);
+  };
+
+  // Check if all problems from current bank are selected
+  const areAllBankProblemsSelected = bankProblems.length > 0 &&
+    bankProblems.every((problem) => isProblemSelected(problem.id));
+
+  // Check if some (but not all) problems from current bank are selected
+  const areSomeBankProblemsSelected = bankProblems.some((problem) => isProblemSelected(problem.id)) &&
+    !areAllBankProblemsSelected;
+
   return (
     <div className="space-y-6">
       <div>
@@ -455,9 +491,35 @@ export default function ProblemsPointsStep({
         {/* Problems List */}
         {selectedBankId && (
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">
-              Available Problems
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-slate-700 font-medium">
+                Available Problems ({bankProblems.length})
+              </Label>
+              {bankProblems.length > 0 && !isLoadingProblems && (
+                <button
+                  type="button"
+                  onClick={areAllBankProblemsSelected ? handleDeselectAllFromBank : handleSelectAllFromBank}
+                  className="text-sm font-medium text-[#f49700] hover:text-[#d98600] flex items-center gap-1.5 transition-colors"
+                  disabled={isLoading}
+                >
+                  {areAllBankProblemsSelected ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Deselect All
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Select All
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
             {isLoadingProblems ? (
               <div className="text-center py-8 text-slate-500">
                 <svg className="animate-spin h-8 w-8 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
