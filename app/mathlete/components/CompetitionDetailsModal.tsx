@@ -328,32 +328,43 @@ export default function CompetitionDetailsModal({
                 Competition In Progress
               </button>
             ) : isRegistered ? (
-              !showWithdrawConfirm ? (
-                <button
-                  onClick={() => setShowWithdrawConfirm(true)}
-                  disabled={isLoading}
-                  className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  Withdraw Registration
-                </button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleWithdraw}
-                    disabled={isLoading}
-                    className="px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+              <div className="flex items-center gap-2">
+                {/* Start Competition Button - Always show for Live, show for Scheduled during competition time */}
+                {(isLiveCompetition || isScheduledLive) && (
+                  <a
+                    href={`/mathlete/competition/${competition.id}`}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
                   >
-                    {isLoading ? "Withdrawing..." : "Confirm Withdraw"}
-                  </button>
+                    Start Competition
+                  </a>
+                )}
+                {!showWithdrawConfirm ? (
                   <button
-                    onClick={() => setShowWithdrawConfirm(false)}
+                    onClick={() => setShowWithdrawConfirm(true)}
                     disabled={isLoading}
-                    className="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors"
+                    className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    Cancel
+                    Withdraw
                   </button>
-                </div>
-              )
+                ) : (
+                  <>
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={isLoading}
+                      className="px-6 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {isLoading ? "Withdrawing..." : "Confirm"}
+                    </button>
+                    <button
+                      onClick={() => setShowWithdrawConfirm(false)}
+                      disabled={isLoading}
+                      className="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+              </div>
             ) : (
               <button
                 onClick={handleRegister}
