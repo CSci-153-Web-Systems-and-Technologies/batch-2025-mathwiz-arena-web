@@ -586,7 +586,7 @@ export default function ProblemsPointsStep({
             <Label className="text-slate-700 font-medium">
               Selected Problems ({selectedProblems.length})
             </Label>
-            <div className="border border-slate-200 rounded-lg divide-y divide-slate-200 max-h-96 overflow-y-auto">
+            <div className="border border-slate-200 rounded-lg divide-y divide-slate-200">
               {selectedProblems.map((sp, index) => (
                 <div key={sp.problem.id} className="p-4 bg-white">
                   <div className="flex items-start gap-3">

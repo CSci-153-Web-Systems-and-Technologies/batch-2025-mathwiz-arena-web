@@ -139,11 +139,13 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
     // Initialize selected problems with existing competition problems
     useEffect(() => {
         if (competitionProblems && competitionProblems.length > 0) {
-            const loadedProblems: SelectedProblem[] = competitionProblems.map((cp, index) => ({
-                problem: cp.problems,
-                points: cp.points,
-                orderIndex: index,
-            }));
+            const loadedProblems: SelectedProblem[] = competitionProblems
+                .filter(cp => cp.problems) // Filter out any problems that may have been deleted (null join)
+                .map((cp, index) => ({
+                    problem: cp.problems,
+                    points: cp.points,
+                    orderIndex: index,
+                }));
             setSelectedProblems(loadedProblems);
         }
     }, [competitionProblems]);
@@ -639,7 +641,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                     <h3 className="text-lg font-semibold text-slate-800 mb-4">
                         Problems ({selectedProblems.length})
                     </h3>
-                    <div className="space-y-3 max-h-80 overflow-y-auto">
+                    <div className="space-y-3">
                         {selectedProblems.map((sp, index) => (
                             <div key={sp.problem.id} className="p-4 bg-slate-50 border border-slate-200 rounded-lg">
                                 <div className="flex items-start gap-3">
