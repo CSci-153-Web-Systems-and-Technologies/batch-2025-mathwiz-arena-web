@@ -83,6 +83,7 @@ export default function CompetitionEnvironment({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
     const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
+    const [showReview, setShowReview] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const isLiveCompetition = competition.competition_mode === 'live';
@@ -388,20 +389,17 @@ export default function CompetitionEnvironment({
                                     <button
                                         key={problem.id}
                                         onClick={() => {
-                                            if (answers[currentProblem?.id]) {
-                                                handleSaveAnswer();
-                                            }
                                             setCurrentProblemIndex(index);
                                         }}
                                         className={`
-                                            w-10 h-10 rounded-lg font-semibold text-sm transition-all
+                                            w-10 h-10 rounded-lg font-semibold text-sm transition-all border-2
                                             ${isCurrent
-                                                ? 'bg-white text-[#25346A] border-2 border-[#25346A]'
+                                                ? 'bg-white text-[#25346A] border-[#25346A]'
                                                 : isSaved
-                                                    ? 'bg-[#4CAF50] text-white hover:bg-[#43A047]'
+                                                    ? 'bg-white text-[#4CAF50] border-[#4CAF50] hover:bg-green-50'
                                                     : hasAnswer
-                                                        ? 'bg-[#FFA726] text-white hover:bg-[#FB8C00]'
-                                                        : 'bg-[#E0E0E0] text-slate-600 hover:bg-[#BDBDBD]'
+                                                        ? 'bg-white text-[#FFA726] border-[#FFA726] hover:bg-orange-50'
+                                                        : 'bg-[#E0E0E0] text-slate-600 border-[#E0E0E0] hover:bg-[#BDBDBD]'
                                             }
                                         `}
                                     >
@@ -451,12 +449,12 @@ export default function CompetitionEnvironment({
                     {/* Legend with Counts */}
                     <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-[#4CAF50]"></div>
+                            <div className="w-4 h-4 rounded border-2 border-[#4CAF50] bg-white"></div>
                             <span className="text-slate-600">Solved</span>
                             <span className="ml-auto font-semibold text-slate-800">{solvedCount}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-[#FFA726]"></div>
+                            <div className="w-4 h-4 rounded border-2 border-[#FFA726] bg-white"></div>
                             <span className="text-slate-600">In Progress</span>
                             <span className="ml-auto font-semibold text-slate-800">{inProgressCount}</span>
                         </div>
@@ -591,9 +589,6 @@ export default function CompetitionEnvironment({
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => {
-                                        if (answers[currentProblem?.id]) {
-                                            handleSaveAnswer();
-                                        }
                                         setCurrentProblemIndex(Math.max(0, currentProblemIndex - 1));
                                     }}
                                     disabled={currentProblemIndex === 0}
@@ -603,9 +598,6 @@ export default function CompetitionEnvironment({
                                 </button>
                                 <button
                                     onClick={() => {
-                                        if (answers[currentProblem?.id]) {
-                                            handleSaveAnswer();
-                                        }
                                         setCurrentProblemIndex(Math.min(problems.length - 1, currentProblemIndex + 1));
                                     }}
                                     disabled={currentProblemIndex === problems.length - 1}
@@ -632,7 +624,7 @@ export default function CompetitionEnvironment({
                                     Review your answer<br />before submitting
                                 </span>
                                 <button
-                                    onClick={() => setShowConfirmSubmit(true)}
+                                    onClick={() => setShowReview(true)}
                                     className="px-6 py-2.5 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-semibold"
                                 >
                                     Review
@@ -642,6 +634,142 @@ export default function CompetitionEnvironment({
                     </div>
                 </main>
             </div>
+
+            {/* Review Panel */}
+            {showReview && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                        {/* Review Header */}
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
+                            <h2 className="text-xl font-bold text-slate-800">Review Your Answers</h2>
+                            <button
+                                onClick={() => setShowReview(false)}
+                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Summary Stats */}
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+                            <div className="flex gap-6">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded border-2 border-[#4CAF50] bg-white"></div>
+                                    <span className="text-sm text-slate-600">Solved: <span className="font-semibold text-slate-800">{solvedCount}</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded border-2 border-[#FFA726] bg-white"></div>
+                                    <span className="text-sm text-slate-600">In Progress: <span className="font-semibold text-slate-800">{inProgressCount}</span></span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded bg-[#E0E0E0]"></div>
+                                    <span className="text-sm text-slate-600">Blank: <span className="font-semibold text-slate-800">{blankCount}</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Problems List */}
+                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                            <div className="space-y-3">
+                                {problems.map((problem, index) => {
+                                    const hasAnswer = !!answers[problem.id];
+                                    const isSaved = !!savedAnswers[problem.id];
+                                    const answer = answers[problem.id];
+
+                                    return (
+                                        <div
+                                            key={problem.id}
+                                            className="flex items-center gap-4 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                                        >
+                                            {/* Problem Number with Status */}
+                                            <div className={`
+                                                w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0 border-2
+                                                ${isSaved
+                                                    ? 'bg-white text-[#4CAF50] border-[#4CAF50]'
+                                                    : hasAnswer
+                                                        ? 'bg-white text-[#FFA726] border-[#FFA726]'
+                                                        : 'bg-[#E0E0E0] text-slate-600 border-[#E0E0E0]'
+                                                }
+                                            `}>
+                                                {index + 1}
+                                            </div>
+
+                                            {/* Problem Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-slate-800 font-medium truncate">
+                                                    {problem.problems.question.length > 80
+                                                        ? problem.problems.question.substring(0, 80) + '...'
+                                                        : problem.problems.question
+                                                    }
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    {problem.points} points • {problem.problems.difficulty}
+                                                </p>
+                                            </div>
+
+                                            {/* Answer Status */}
+                                            <div className="flex-shrink-0 text-right">
+                                                {isSaved ? (
+                                                    <span className="text-sm text-green-600 font-medium">
+                                                        ✓ {answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer}
+                                                    </span>
+                                                ) : hasAnswer ? (
+                                                    <span className="text-sm text-yellow-600 font-medium">
+                                                        Not saved
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-sm text-slate-400">
+                                                        No answer
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Go to Problem Button */}
+                                            <button
+                                                onClick={() => {
+                                                    setCurrentProblemIndex(index);
+                                                    setShowReview(false);
+                                                }}
+                                                className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-[#25346A] border border-[#25346A] rounded-lg hover:bg-[#25346A]/5 transition-colors"
+                                            >
+                                                Go to
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Review Footer with Submit */}
+                        <div className="px-6 py-4 border-t border-slate-200 flex-shrink-0">
+                            {blankCount > 0 && (
+                                <p className="text-orange-600 text-sm mb-3">
+                                    ⚠️ You have {blankCount} unanswered problem{blankCount > 1 ? 's' : ''}. You can still submit, but those will be marked as incorrect.
+                                </p>
+                            )}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowReview(false)}
+                                    className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                                >
+                                    Continue Working
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowReview(false);
+                                        setShowConfirmSubmit(true);
+                                    }}
+                                    className="flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                                >
+                                    Submit Competition
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Confirm Submit Modal */}
             {showConfirmSubmit && (
