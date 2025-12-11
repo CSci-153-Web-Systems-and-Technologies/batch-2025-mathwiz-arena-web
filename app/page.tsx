@@ -261,7 +261,7 @@ export default async function Home() {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 px-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+      <section id="about" className="py-24 px-6 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 scroll-mt-8">
         <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
 
           {/* Left Column */}
