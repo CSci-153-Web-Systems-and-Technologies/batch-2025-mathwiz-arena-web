@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
+import { MathRenderer } from "@/components/ui/MathInput";
 
 export default async function AdminCompetitionDetailPage({ params }: { params: { id: string } }) {
     const supabase = await createClient();
@@ -102,7 +103,7 @@ export default async function AdminCompetitionDetailPage({ params }: { params: {
     const statusColor = statusColors[competition.status as keyof typeof statusColors] || statusColors.draft;
 
     return (
-        <div className="p-8">
+        <div className="min-h-screen p-8 bg-slate-50">
             <div className="max-w-4xl mx-auto">
                 <div className="space-y-6">
                     {/* Header */}
@@ -265,7 +266,7 @@ export default async function AdminCompetitionDetailPage({ params }: { params: {
                         <h3 className="text-lg font-semibold text-slate-800 mb-4">
                             Problems ({problems.length})
                         </h3>
-                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                        <div className="space-y-2">
                             {problems.map((cp: any, index: number) => (
                                 <div key={cp.problems.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
                                     <div className="flex-shrink-0 w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-medium text-slate-700">
@@ -278,11 +279,13 @@ export default async function AdminCompetitionDetailPage({ params }: { params: {
                                             </span>
                                             <span className="text-xs text-slate-500">{getTypeLabel(cp.problems.type)}</span>
                                         </div>
-                                        <p className="text-sm text-slate-800 mb-1">{cp.problems.question}</p>
+                                        <div className="text-sm text-slate-800 mb-1">
+                                            <MathRenderer text={cp.problems.question} />
+                                        </div>
                                         <div className="flex items-center gap-2 text-xs">
                                             <span className="text-slate-600 font-medium">Answer:</span>
                                             <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
-                                                {cp.problems.correct_answer}
+                                                <MathRenderer text={cp.problems.correct_answer} />
                                             </span>
                                         </div>
                                     </div>
