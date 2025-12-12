@@ -58,17 +58,17 @@ export default async function CreateCompetitionPage({
         <div className="mb-6">
           <Link
             href="/organizer/competition"
-            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-[#f49700] transition-colors mb-4"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Competitions
           </Link>
-          <h1 className="text-3xl font-bold text-slate-800">
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
             {searchParams.edit ? "Edit Competition" : "Create Competition"}
           </h1>
-          <p className="text-slate-600 mt-1">
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             {searchParams.edit
               ? "Update your competition details"
               : "Set up basic information for your competition"}
@@ -76,7 +76,7 @@ export default async function CreateCompetitionPage({
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
           <CreateCompetitionForm
             competitionData={competitionData}
             competitionProblems={competitionProblems}

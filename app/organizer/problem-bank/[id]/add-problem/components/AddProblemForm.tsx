@@ -168,14 +168,14 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
 
       {/* Question */}
       <div className="space-y-2">
-        <Label htmlFor="question" className="text-slate-700 font-medium">
+        <Label htmlFor="question" className="text-slate-700 dark:text-slate-300 font-medium">
           Question <span className="text-red-500">*</span>
         </Label>
         <MathInput
@@ -190,7 +190,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
 
       {/* Type Selection */}
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">
+        <Label className="text-slate-700 dark:text-slate-300 font-medium">
           Problem Type <span className="text-red-500">*</span>
         </Label>
         <div className="grid grid-cols-3 gap-3">
@@ -204,8 +204,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
-              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-[#f49700] bg-[#f49700]/5 dark:bg-[#f49700]/20 text-[#f49700]"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -220,8 +220,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0
             })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
-              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-[#f49700] bg-[#f49700]/5 dark:bg-[#f49700]/20 text-[#f49700]"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -236,8 +236,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               correctAnswerIndex: 0
             })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
-              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-[#f49700] bg-[#f49700]/5 dark:bg-[#f49700]/20 text-[#f49700]"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -248,7 +248,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
 
       {/* Difficulty Selection */}
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">
+        <Label className="text-slate-700 dark:text-slate-300 font-medium">
           Difficulty <span className="text-red-500">*</span>
         </Label>
         <div className="grid grid-cols-3 gap-3">
@@ -256,8 +256,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
-              ? "border-green-500 bg-green-50 text-green-700"
-              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -267,8 +267,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
-              ? "border-yellow-500 bg-yellow-50 text-yellow-700"
-              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -278,8 +278,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
             className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
-              ? "border-red-500 bg-red-50 text-red-700"
-              : "border-slate-200 text-slate-700 hover:border-slate-300"
+              ? "border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -291,7 +291,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       {/* Options/Answer based on type */}
       {formData.type === "multiple_choice" && (
         <div className="space-y-3">
-          <Label className="text-slate-700 font-medium">
+          <Label className="text-slate-700 dark:text-slate-300 font-medium">
             Options <span className="text-red-500">*</span>
           </Label>
           {formData.options.map((option, index) => (
@@ -304,7 +304,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                 className="w-4 h-4 text-[#f49700] focus:ring-[#f49700]"
                 disabled={isLoading}
               />
-              <span className="text-sm font-medium text-slate-600 w-6">{String.fromCharCode(65 + index)}.</span>
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400 w-6">{String.fromCharCode(65 + index)}.</span>
               <MathInputInline
                 value={option}
                 onChange={(value) => handleOptionChange(index, value)}
@@ -314,13 +314,13 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               />
             </div>
           ))}
-          <p className="text-sm text-slate-500">Select the radio button for the correct answer. Use $...$ for math expressions.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Select the radio button for the correct answer. Use $...$ for math expressions.</p>
         </div>
       )}
 
       {formData.type === "true_false" && (
         <div className="space-y-2">
-          <Label className="text-slate-700 font-medium">
+          <Label className="text-slate-700 dark:text-slate-300 font-medium">
             Correct Answer <span className="text-red-500">*</span>
           </Label>
           <div className="flex gap-4">
@@ -328,8 +328,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                ? "border-[#f49700] bg-[#f49700]/5 dark:bg-[#f49700]/20 text-[#f49700]"
+                : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
                 }`}
               disabled={isLoading}
             >
@@ -339,8 +339,8 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
               className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
+                ? "border-[#f49700] bg-[#f49700]/5 dark:bg-[#f49700]/20 text-[#f49700]"
+                : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
                 }`}
               disabled={isLoading}
             >
@@ -353,7 +353,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
       {formData.type === "identification" && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="correctAnswer" className="text-slate-700 font-medium">
+            <Label htmlFor="correctAnswer" className="text-slate-700 dark:text-slate-300 font-medium">
               Primary Answer <span className="text-red-500">*</span>
             </Label>
             <MathInputInline
@@ -367,10 +367,10 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
 
           {/* Alternative Answers */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-medium">
-              Alternative Acceptable Answers <span className="text-slate-400 font-normal">(optional)</span>
+            <Label className="text-slate-700 dark:text-slate-300 font-medium">
+              Alternative Acceptable Answers <span className="text-slate-400 dark:text-slate-500 font-normal">(optional)</span>
             </Label>
-            <p className="text-xs text-slate-500 mb-2">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
               Add variations that should also be accepted (e.g., for "x=17": also accept "17", "x = 17", etc.)
             </p>
             {formData.alternativeAnswers.map((alt, index) => (
@@ -392,7 +392,7 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
                       const newAlts = formData.alternativeAnswers.filter((_, i) => i !== index);
                       setFormData({ ...formData, alternativeAnswers: newAlts });
                     }}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                    className="p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                     disabled={isLoading}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -415,15 +415,15 @@ export default function AddProblemForm({ problemBankId }: { problemBankId: strin
             </button>
           </div>
 
-          <p className="text-sm text-slate-500 bg-slate-50 p-3 rounded-lg">
-            💡 <strong>Tip:</strong> For quadratic equations with multiple solutions (e.g., x = 2 or x = 3), add each value as an alternative.
+          <p className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg">
+            💡 <strong className="dark:text-white">Tip:</strong> For quadratic equations with multiple solutions (e.g., x = 2 or x = 3), add each value as an alternative.
             Numeric equivalents (5 = 5.0 = 5.00) are automatically accepted.
           </p>
         </div>
       )}
 
       {/* Submit Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-slate-200">
+      <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
         <Button
           type="submit"
           disabled={isLoading}

@@ -21,8 +21,8 @@ export default async function ProblemBankPage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Problem Banks</h1>
-            <p className="text-slate-600">Manage your collection of problem banks</p>
+            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Problem Banks</h1>
+            <p className="text-slate-600 dark:text-slate-400">Manage your collection of problem banks</p>
           </div>
           <Link
             href="/organizer/problem-bank/create"
@@ -37,7 +37,7 @@ export default async function ProblemBankPage() {
 
         {/* Problem Banks Grid */}
         {error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-400">
             Error loading problem banks. Please try again.
           </div>
         ) : problemBanks && problemBanks.length > 0 ? (
@@ -46,7 +46,7 @@ export default async function ProblemBankPage() {
               <Link
                 key={bank.id}
                 href={`/organizer/problem-bank/${bank.id}`}
-                className="bg-white border border-slate-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer group"
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 hover:shadow-lg dark:hover:shadow-slate-900/50 transition-shadow cursor-pointer group"
               >
                 <div className="flex items-start gap-4 mb-4">
                   <div className="w-12 h-12 bg-[#f49700]/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#f49700]/20 transition-colors">
@@ -55,15 +55,15 @@ export default async function ProblemBankPage() {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-slate-800 mb-1 truncate group-hover:text-[#f49700] transition-colors">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-1 truncate group-hover:text-[#f49700] transition-colors">
                       {bank.title}
                     </h3>
-                    <p className="text-sm text-slate-500 line-clamp-2">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
                       {bank.description || "No description"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-700">
                   <span>Created {new Date(bank.created_at).toLocaleDateString()}</span>
                   <span className="text-[#f49700] font-medium">View →</span>
                 </div>
@@ -71,14 +71,14 @@ export default async function ProblemBankPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
             <div className="w-20 h-20 bg-[#f49700]/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-slate-800 mb-2">No Problem Banks Yet</h2>
-            <p className="text-slate-600 mb-6">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-2">No Problem Banks Yet</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
               Get started by creating your first problem bank
             </p>
             <Link

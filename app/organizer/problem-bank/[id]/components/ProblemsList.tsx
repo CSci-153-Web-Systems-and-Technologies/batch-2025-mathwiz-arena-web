@@ -23,13 +23,13 @@ export default function ProblemsList({
   if (problems.length === 0) {
     return (
       <div className="p-12 text-center">
-        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">No Problems Yet</h3>
-        <p className="text-slate-600 mb-6">Add your first problem to this bank</p>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-2">No Problems Yet</h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-6">Add your first problem to this bank</p>
         <Link
           href={`/organizer/problem-bank/${problemBankId}/add-problem`}
           className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-4 py-2 text-white font-medium hover:bg-[#d68400] transition-colors text-sm"
@@ -54,23 +54,23 @@ export default function ProblemsList({
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-700 border-green-200";
-      case "average": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "difficult": return "bg-red-100 text-red-700 border-red-200";
-      default: return "bg-slate-100 text-slate-700 border-slate-200";
+      case "easy": return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800";
+      case "average": return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800";
+      case "difficult": return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800";
+      default: return "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600";
     }
   };
 
   return (
-    <div className="divide-y divide-slate-200">
+    <div className="divide-y divide-slate-200 dark:divide-slate-700">
       {problems.map((problem, index) => (
         <Link
           key={problem.id}
           href={`/organizer/problem-bank/${problemBankId}/problem/${problem.id}`}
-          className="block p-6 hover:bg-slate-50 transition-colors group"
+          className="block p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group"
         >
           <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-sm font-medium text-slate-600 group-hover:bg-[#f49700]/10 group-hover:text-[#f49700] transition-colors">
+            <div className="flex-shrink-0 w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:bg-[#f49700]/10 group-hover:text-[#f49700] transition-colors">
               {index + 1}
             </div>
             <div className="flex-1 min-w-0">
@@ -78,15 +78,15 @@ export default function ProblemsList({
                 <span className={`text-xs font-medium px-2 py-1 rounded border capitalize ${getDifficultyColor(problem.difficulty)}`}>
                   {problem.difficulty}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                   {getTypeLabel(problem.type)}
                 </span>
               </div>
-              <p className="text-slate-800 font-medium mb-1 group-hover:text-[#f49700] transition-colors line-clamp-2">
+              <p className="text-slate-800 dark:text-white font-medium mb-1 group-hover:text-[#f49700] transition-colors line-clamp-2">
                 <MathRenderer text={problem.question} />
               </p>
               {problem.type === "multiple_choice" && problem.options && (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   {problem.options.length} options
                 </p>
               )}

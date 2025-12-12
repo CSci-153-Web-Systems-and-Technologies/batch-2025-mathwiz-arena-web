@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import OrganizerSidebar from "./components/OrganizerSidebar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default async function OrganizerLayout({
     children,
@@ -26,11 +27,13 @@ export default async function OrganizerLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
-            <OrganizerSidebar />
-            <main className="flex-1 ml-64">
-                {children}
-            </main>
-        </div>
+        <ThemeProvider>
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors">
+                <OrganizerSidebar />
+                <main className="flex-1 ml-64">
+                    {children}
+                </main>
+            </div>
+        </ThemeProvider>
     );
 }
