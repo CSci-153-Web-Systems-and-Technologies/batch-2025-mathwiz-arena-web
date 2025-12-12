@@ -79,13 +79,13 @@ export default function MathleteSidebar({ notificationCount = 0 }: MathleteSideb
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 fixed h-full overflow-y-auto">
+    <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 fixed h-full overflow-y-auto transition-colors">
       <div className="p-6">
         <Link href="/" className="flex items-center gap-3 mb-8">
           <Image src="/icon.svg" alt="Mathwiz Logo" width={40} height={40} className="rounded-md" />
           <div>
-            <h1 className="text-lg font-semibold text-[#25346A]">Mathwiz</h1>
-            <p className="text-xs text-[#2A64d1]">Mathlete</p>
+            <h1 className="text-lg font-semibold text-[#25346A] dark:text-white">Mathwiz</h1>
+            <p className="text-xs text-[#2A64d1] dark:text-blue-400">Mathlete</p>
           </div>
         </Link>
 
@@ -94,11 +94,10 @@ export default function MathleteSidebar({ notificationCount = 0 }: MathleteSideb
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                isActive(item.href)
-                  ? "text-white bg-[#25346A]"
-                  : "text-slate-700 hover:bg-slate-50"
-              }`}
+              className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
+                  ? "text-white bg-[#25346A] dark:bg-blue-600"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                }`}
             >
               {item.icon}
               <span className="flex-1">{item.label}</span>
@@ -110,7 +109,7 @@ export default function MathleteSidebar({ notificationCount = 0 }: MathleteSideb
             </Link>
           ))}
 
-          <div className="pt-4 mt-4 border-t border-slate-200">
+          <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
             <LoginButton />
           </div>
         </nav>
