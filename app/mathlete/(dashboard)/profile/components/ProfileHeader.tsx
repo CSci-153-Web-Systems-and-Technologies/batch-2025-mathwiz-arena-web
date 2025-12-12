@@ -118,7 +118,7 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
     ];
 
     return (
-        <div className="bg-white shadow-sm">
+        <div className="bg-white dark:bg-slate-800 shadow-sm transition-colors">
             {/* Cover Photo Section */}
             <div className="relative max-w-5xl mx-auto">
                 {/* Cover Photo */}
@@ -239,15 +239,15 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
 
                         {/* Name & Info - Next to avatar (Facebook style) */}
                         <div className="flex-1 pt-2 md:pt-0 md:pb-4">
-                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
                                 {profile.full_name || "Mathlete"}
                             </h1>
-                            <p className="text-slate-500 text-base mt-0.5">
+                            <p className="text-slate-500 dark:text-slate-400 text-base mt-0.5">
                                 {stats.competitionsJoined} competition{stats.competitionsJoined !== 1 ? 's' : ''} • {stats.totalScore} points
                             </p>
 
                             {/* School & Location */}
-                            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600">
+                            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600 dark:text-slate-400">
                                 {profile.school && (
                                     <span className="flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -274,7 +274,7 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
                             {isOwnProfile && onEditProfile && (
                                 <button
                                     onClick={onEditProfile}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-800 rounded-lg hover:bg-slate-200 transition-colors font-semibold text-sm"
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors font-semibold text-sm"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -359,14 +359,14 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
                 </div>
 
                 {/* Navigation Tabs - Facebook style */}
-                <div className="border-t border-slate-200 px-4 md:px-8">
+                <div className="border-t border-slate-200 dark:border-slate-700 px-4 md:px-8">
                     <nav className="flex gap-1 -mb-px">
                         {tabs.map((tab) =>
                             tab.href ? (
                                 <Link
                                     key={tab.id}
                                     href={tab.href}
-                                    className="px-4 py-4 text-sm font-semibold border-b-[3px] transition-colors text-slate-500 border-transparent hover:bg-slate-100 rounded-t-lg"
+                                    className="px-4 py-4 text-sm font-semibold border-b-[3px] transition-colors text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700 rounded-t-lg"
                                 >
                                     {tab.label}
                                 </Link>
@@ -375,8 +375,8 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`px-4 py-4 text-sm font-semibold border-b-[3px] transition-colors ${activeTab === tab.id
-                                        ? "text-[#25346A] border-[#25346A]"
-                                        : "text-slate-500 border-transparent hover:bg-slate-100 rounded-t-lg"
+                                            ? "text-[#25346A] dark:text-blue-400 border-[#25346A] dark:border-blue-400"
+                                            : "text-slate-500 dark:text-slate-400 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700 rounded-t-lg"
                                         }`}
                                 >
                                     {tab.label}
@@ -389,3 +389,4 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
         </div>
     );
 }
+

@@ -33,15 +33,15 @@ export default function AchievementsDetailView({
 
     const getBadgeColorClasses = (color: string, earned: boolean) => {
         if (!earned) {
-            return "from-slate-300 to-slate-400 shadow-slate-200";
+            return "from-slate-300 to-slate-400 shadow-slate-200/50 dark:shadow-slate-900/30";
         }
         const colors: Record<string, string> = {
-            blue: "from-blue-400 to-blue-600 shadow-blue-200",
-            green: "from-green-400 to-green-600 shadow-green-200",
-            purple: "from-purple-400 to-purple-600 shadow-purple-200",
-            gold: "from-yellow-400 to-amber-500 shadow-amber-200",
-            orange: "from-orange-400 to-orange-600 shadow-orange-200",
-            teal: "from-teal-400 to-teal-600 shadow-teal-200",
+            blue: "from-blue-400 to-blue-600 shadow-blue-200/50 dark:shadow-blue-900/30",
+            green: "from-green-400 to-green-600 shadow-green-200/50 dark:shadow-green-900/30",
+            purple: "from-purple-400 to-purple-600 shadow-purple-200/50 dark:shadow-purple-900/30",
+            gold: "from-yellow-400 to-amber-500 shadow-amber-200/50 dark:shadow-amber-900/30",
+            orange: "from-orange-400 to-orange-600 shadow-orange-200/50 dark:shadow-orange-900/30",
+            teal: "from-teal-400 to-teal-600 shadow-teal-200/50 dark:shadow-teal-900/30",
         };
         return colors[color] || colors.blue;
     };
@@ -80,24 +80,24 @@ export default function AchievementsDetailView({
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900">All Achievements</h2>
-                        <p className="text-slate-500 mt-1">
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">All Achievements</h2>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">
                             Complete milestones to earn badges and show off your accomplishments
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="text-3xl font-bold text-[#25346A]">{earnedAchievements.length}</p>
-                        <p className="text-sm text-slate-500">of {allAchievements.length} earned</p>
+                        <p className="text-3xl font-bold text-[#25346A] dark:text-blue-400">{earnedAchievements.length}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">of {allAchievements.length} earned</p>
                     </div>
                 </div>
 
                 {/* Progress Bar */}
                 {allAchievements.length > 0 && (
                     <div className="mt-4">
-                        <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-[#4F46E5] to-[#A855F7] rounded-full transition-all duration-500"
                                 style={{ width: `${(earnedAchievements.length / allAchievements.length) * 100}%` }}
@@ -109,8 +109,8 @@ export default function AchievementsDetailView({
 
             {/* Earned Achievements */}
             {earnedAchievements.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                         <span className="text-xl">🏆</span>
                         Earned Badges ({earnedAchievements.length})
                     </h3>
@@ -118,21 +118,21 @@ export default function AchievementsDetailView({
                         {allAchievements.filter(a => earnedIds.has(a.id)).map((achievement) => (
                             <div
                                 key={achievement.id}
-                                className="p-4 rounded-xl border-2 border-green-200 bg-green-50 hover:shadow-md transition-all"
+                                className="p-4 rounded-xl border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30 hover:shadow-md transition-all"
                             >
                                 <div className="flex items-start gap-4">
                                     <div
-                                        className={`w-14 h-14 flex-shrink-0 rounded-full bg-gradient-to-br ${getBadgeColorClasses(achievement.badge_color, true)} flex items-center justify-center shadow-lg`}
+                                        className={`w-14 h-14 flex-shrink-0 rounded-full bg-gradient-to-br ${getBadgeColorClasses(achievement.badge_color, true)} flex items-center justify-center shadow-md`}
                                     >
                                         <span className="text-2xl">{achievement.icon}</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between">
-                                            <h4 className="font-semibold text-slate-900">{achievement.name}</h4>
-                                            <span className="text-green-600 text-lg">✓</span>
+                                            <h4 className="font-semibold text-slate-900 dark:text-white">{achievement.name}</h4>
+                                            <span className="text-green-600 dark:text-green-400 text-lg">✓</span>
                                         </div>
-                                        <p className="text-sm text-slate-600 mt-1">{achievement.description}</p>
-                                        <p className="text-xs text-green-600 mt-2 font-medium">
+                                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{achievement.description}</p>
+                                        <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-medium">
                                             Earned {formatDate(getEarnedDate(achievement.id)!)}
                                         </p>
                                     </div>
@@ -145,8 +145,8 @@ export default function AchievementsDetailView({
 
             {/* Locked Achievements */}
             {allAchievements.filter(a => !earnedIds.has(a.id)).length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                         <span className="text-xl">🔒</span>
                         Locked Badges ({allAchievements.filter(a => !earnedIds.has(a.id)).length})
                     </h3>
@@ -154,19 +154,19 @@ export default function AchievementsDetailView({
                         {allAchievements.filter(a => !earnedIds.has(a.id)).map((achievement) => (
                             <div
                                 key={achievement.id}
-                                className="p-4 rounded-xl border border-slate-200 bg-slate-50 hover:border-slate-300 hover:shadow-md transition-all"
+                                className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all"
                             >
                                 <div className="flex items-start gap-4">
                                     <div
-                                        className={`w-14 h-14 flex-shrink-0 rounded-full bg-gradient-to-br ${getBadgeColorClasses(achievement.badge_color, false)} flex items-center justify-center shadow-lg opacity-50`}
+                                        className={`w-14 h-14 flex-shrink-0 rounded-full bg-gradient-to-br ${getBadgeColorClasses(achievement.badge_color, false)} flex items-center justify-center shadow-md opacity-50`}
                                     >
                                         <span className="text-2xl grayscale">{achievement.icon}</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-semibold text-slate-700">{achievement.name}</h4>
-                                        <p className="text-sm text-slate-500 mt-1">{achievement.description}</p>
+                                        <h4 className="font-semibold text-slate-700 dark:text-slate-300">{achievement.name}</h4>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{achievement.description}</p>
                                         <div className="mt-2 flex items-center gap-2">
-                                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-200 text-xs text-slate-600">
+                                            <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-200 dark:bg-slate-600 text-xs text-slate-600 dark:text-slate-300">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                                 </svg>
@@ -183,12 +183,12 @@ export default function AchievementsDetailView({
 
             {/* Empty State - No achievements defined */}
             {allAchievements.length === 0 && (
-                <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-12 text-center">
+                    <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span className="text-4xl">🏅</span>
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-800">No achievements available yet</h3>
-                    <p className="text-slate-500 mt-2 max-w-md mx-auto">
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-white">No achievements available yet</h3>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
                         Achievements will be added soon. Keep competing and check back later!
                     </p>
                 </div>

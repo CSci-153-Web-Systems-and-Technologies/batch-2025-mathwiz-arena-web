@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import MathleteSidebar from "../components/MathleteSidebar";
+import { ThemeScript } from "./settings/components/ThemeProvider";
 
 export default async function MathleteLayout({
   children,
@@ -22,11 +23,15 @@ export default async function MathleteLayout({
     .eq("status", "unread");
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      <MathleteSidebar notificationCount={notificationCount || 0} />
-      <main className="flex-1 ml-64">
-        {children}
-      </main>
-    </div>
+    <>
+      <ThemeScript />
+      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
+        <MathleteSidebar notificationCount={notificationCount || 0} />
+        <main className="flex-1 ml-64">
+          {children}
+        </main>
+      </div>
+    </>
   );
 }
+
