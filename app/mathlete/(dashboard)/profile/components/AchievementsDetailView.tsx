@@ -99,7 +99,7 @@ export default function AchievementsDetailView({
                     <div className="mt-4">
                         <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-[#25346A] to-[#F49700] rounded-full transition-all duration-500"
+                                className="h-full bg-gradient-to-r from-[#4F46E5] to-[#A855F7] rounded-full transition-all duration-500"
                                 style={{ width: `${(earnedAchievements.length / allAchievements.length) * 100}%` }}
                             />
                         </div>

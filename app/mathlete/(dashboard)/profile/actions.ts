@@ -132,8 +132,8 @@ export async function updateCoverPhoto(formData: FormData) {
         });
 
     if (uploadError) {
-        console.error("Upload error:", uploadError);
-        return { error: "Failed to upload image" };
+        console.error("Cover upload error:", uploadError);
+        return { error: `Failed to upload image: ${uploadError.message}` };
     }
 
     // Get public URL
@@ -148,11 +148,14 @@ export async function updateCoverPhoto(formData: FormData) {
         .eq("id", user.id);
 
     if (updateError) {
-        console.error("Update error:", updateError);
-        return { error: "Failed to update profile" };
+        console.error("Cover update error:", updateError);
+        return { error: `Failed to update profile: ${updateError.message}` };
     }
 
+    // Revalidate multiple paths to ensure cache is cleared
     revalidatePath("/mathlete/profile");
+    revalidatePath("/mathlete");
+
     return { success: true, url: urlData.publicUrl };
 }
 

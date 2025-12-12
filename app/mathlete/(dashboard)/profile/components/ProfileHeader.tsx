@@ -170,6 +170,21 @@ export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProf
                         onChange={handleCoverUpload}
                         className="hidden"
                     />
+
+                    {/* Error Toast */}
+                    {error && (
+                        <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-auto md:w-80 p-3 bg-red-500 text-white rounded-lg shadow-lg flex items-center gap-2 animate-fade-in">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm">{error}</span>
+                            <button onClick={() => setError("")} className="ml-auto hover:bg-red-600 p-1 rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Profile Info Bar - Facebook style layout */}
