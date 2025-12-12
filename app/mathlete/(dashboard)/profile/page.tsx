@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ProfileHeader from "./components/ProfileHeader";
 
 export default async function MathleteProfilePage() {
   const supabase = await createClient();
@@ -10,95 +11,191 @@ export default async function MathleteProfilePage() {
     redirect("/login");
   }
 
-  // Fetch user profile
+  // Fetch user profile with new fields
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
+  // Fetch competition stats
+  const { data: attempts } = await supabase
+    .from("competition_attempts")
+    .select("id, total_score, is_completed")
+    .eq("mathlete_id", user.id)
+    .eq("is_completed", true);
+
+  // Calculate stats
+  const competitionsJoined = attempts?.length || 0;
+  const totalScore = attempts?.reduce((sum, a) => sum + (a.total_score || 0), 0) || 0;
+
+  // Calculate global rank (simplified - based on total score)
+  // Get count of users with higher total scores
+  const { count: higherScoreCount } = await supabase
+    .from("competition_attempts")
+    .select("mathlete_id", { count: "exact", head: true })
+    .gt("total_score", totalScore)
+    .eq("is_completed", true);
+
+  // Get total participants who have completed at least one competition
+  const { data: allParticipants } = await supabase
+    .from("competition_attempts")
+    .select("mathlete_id")
+    .eq("is_completed", true);
+
+  const uniqueParticipants = new Set(allParticipants?.map(p => p.mathlete_id) || []);
+  const totalParticipants = uniqueParticipants.size;
+
+  // Rank is 1 + number of people with higher score
+  const rank = competitionsJoined > 0 ? (higherScoreCount || 0) + 1 : null;
+
+  const stats = {
+    competitionsJoined,
+    totalScore,
+    rank,
+    totalParticipants
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50">
+      {/* Back Navigation */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/mathlete"
-            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-2"
+            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-[#25346A]">Profile</h1>
-          <p className="text-slate-600 mt-1">View and manage your profile information</p>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Header Section */}
-          <div className="bg-gradient-to-r from-[#25346A] to-[#2A64d1] px-6 py-8">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-[#25346A] text-3xl font-bold shadow-lg">
-                {profile?.full_name?.charAt(0).toUpperCase() || profile?.username?.charAt(0).toUpperCase() || 'U'}
+      {/* Profile Header */}
+      <ProfileHeader
+        profile={{
+          id: profile?.id || user.id,
+          full_name: profile?.full_name || null,
+          username: profile?.username || null,
+          avatar_url: profile?.avatar_url || null,
+          cover_photo_url: profile?.cover_photo_url || null,
+          school: profile?.school || null,
+          country: profile?.country || null,
+        }}
+        stats={stats}
+        isOwnProfile={true}
+      />
+
+      {/* Profile Content */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Profile Info */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* About Card */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100">
+                <h2 className="text-lg font-semibold text-slate-800">About</h2>
               </div>
-              <div className="text-white">
-                <h2 className="text-2xl font-bold">{profile?.full_name || 'Mathlete'}</h2>
-                <p className="text-blue-100 mt-1">@{profile?.username}</p>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Full Name</label>
+                  <p className="mt-1 text-slate-900">{profile?.full_name || "Not set"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Username</label>
+                  <p className="mt-1 text-slate-900">@{profile?.username}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Email</label>
+                  <p className="mt-1 text-slate-900">{user.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">School</label>
+                  <p className="mt-1 text-slate-900">{profile?.school || "Not set"}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Location</label>
+                  <p className="mt-1 text-slate-900">
+                    {profile?.province_city && profile?.country
+                      ? `${profile.province_city}, ${profile.country}`
+                      : profile?.country || "Not set"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Role</label>
+                  <p className="mt-1">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                      Mathlete
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Information Section */}
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-sm font-medium text-slate-600">Full Name</label>
-                <p className="mt-1 text-lg text-slate-900">{profile?.full_name || 'Not set'}</p>
+          {/* Right Column - More content coming soon */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Statistics Section - Placeholder */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100">
+                <h2 className="text-lg font-semibold text-slate-800">Statistics</h2>
               </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">Username</label>
-                <p className="mt-1 text-lg text-slate-900">@{profile?.username}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">Email</label>
-                <p className="mt-1 text-lg text-slate-900">{user.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">Role</label>
-                <p className="mt-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    Mathlete
-                  </span>
-                </p>
+              <div className="p-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-slate-50 rounded-lg">
+                    <p className="text-2xl font-bold text-[#25346A]">{competitionsJoined}</p>
+                    <p className="text-sm text-slate-500">Completed</p>
+                  </div>
+                  <div className="text-center p-4 bg-slate-50 rounded-lg">
+                    <p className="text-2xl font-bold text-[#F49700]">{totalScore}</p>
+                    <p className="text-sm text-slate-500">Total Points</p>
+                  </div>
+                  <div className="text-center p-4 bg-slate-50 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">
+                      {competitionsJoined > 0 ? Math.round(totalScore / competitionsJoined) : 0}
+                    </p>
+                    <p className="text-sm text-slate-500">Avg Score</p>
+                  </div>
+                  <div className="text-center p-4 bg-slate-50 rounded-lg">
+                    <p className="text-2xl font-bold text-purple-600">
+                      {rank ? `#${rank}` : "—"}
+                    </p>
+                    <p className="text-sm text-slate-500">Global Rank</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Edit Profile Button (Coming Soon) */}
-            <div className="pt-4 border-t border-slate-200">
-              <button
-                disabled
-                className="px-6 py-2 bg-slate-100 text-slate-400 font-semibold rounded-lg cursor-not-allowed"
-              >
-                Edit Profile (Coming Soon)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h3 className="font-semibold text-blue-900">Profile Editing Coming Soon</h3>
-              <p className="text-sm text-blue-800 mt-1">
-                The ability to edit your profile information will be available in a future update.
-              </p>
+            {/* Coming Soon Sections */}
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800">More Features Coming Soon!</h3>
+              </div>
+              <ul className="space-y-2 text-slate-600">
+                <li className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                  Competition History & Detailed Results
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                  Achievement Badges
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
+                  Teams & Activity Feed
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                  Profile Editing
+                </li>
+              </ul>
             </div>
           </div>
         </div>
