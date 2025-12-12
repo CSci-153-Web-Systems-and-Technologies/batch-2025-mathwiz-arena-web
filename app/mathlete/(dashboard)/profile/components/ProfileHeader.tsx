@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { updateProfilePicture, updateCoverPhoto } from "../actions";
 
 interface ProfileHeaderProps {
@@ -21,14 +22,16 @@ interface ProfileHeaderProps {
         totalParticipants: number;
     };
     isOwnProfile: boolean;
+    onEditProfile?: () => void;
 }
 
-export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileHeaderProps) {
+export default function ProfileHeader({ profile, stats, isOwnProfile, onEditProfile }: ProfileHeaderProps) {
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [isUploadingCover, setIsUploadingCover] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
     const [coverUrl, setCoverUrl] = useState(profile.cover_photo_url);
     const [error, setError] = useState("");
+    const [activeTab, setActiveTab] = useState("overview");
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
@@ -85,66 +88,74 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
         return "U";
     };
 
+    const tabs = [
+        { id: "overview", label: "Overview" },
+        { id: "achievements", label: "Achievements" },
+        { id: "history", label: "History" },
+        { id: "teams", label: "Teams" },
+    ];
+
     return (
-        <div className="relative">
-            {/* Cover Photo */}
-            <div className="relative h-48 md:h-64 bg-gradient-to-r from-[#25346A] via-[#3a5199] to-[#2A64d1] overflow-hidden">
-                {coverUrl && (
-                    <Image
-                        src={coverUrl}
-                        alt="Cover photo"
-                        fill
-                        className="object-cover"
-                        priority
+        <div className="bg-white shadow-sm">
+            {/* Cover Photo Section */}
+            <div className="relative max-w-5xl mx-auto">
+                {/* Cover Photo */}
+                <div className="relative h-[200px] md:h-[300px] bg-gradient-to-r from-[#25346A] via-[#3a5199] to-[#2A64d1] rounded-b-lg overflow-hidden">
+                    {coverUrl && (
+                        <Image
+                            src={coverUrl}
+                            alt="Cover photo"
+                            fill
+                            className="object-cover"
+                            priority
+                        />
+                    )}
+
+                    {/* Cover Photo Overlay Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+
+                    {/* Edit Cover Button - Facebook style */}
+                    {isOwnProfile && (
+                        <button
+                            onClick={() => coverInputRef.current?.click()}
+                            disabled={isUploadingCover}
+                            className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white text-slate-800 rounded-lg hover:bg-slate-100 transition-colors text-sm font-semibold shadow-md"
+                        >
+                            {isUploadingCover ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Uploading...
+                                </>
+                            ) : (
+                                <>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Edit cover photo
+                                </>
+                            )}
+                        </button>
+                    )}
+
+                    <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverUpload}
+                        className="hidden"
                     />
-                )}
+                </div>
 
-                {/* Cover Photo Overlay Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-
-                {/* Edit Cover Button */}
-                {isOwnProfile && (
-                    <button
-                        onClick={() => coverInputRef.current?.click()}
-                        disabled={isUploadingCover}
-                        className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium"
-                    >
-                        {isUploadingCover ? (
-                            <>
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Uploading...
-                            </>
-                        ) : (
-                            <>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                Edit Cover
-                            </>
-                        )}
-                    </button>
-                )}
-
-                <input
-                    ref={coverInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverUpload}
-                    className="hidden"
-                />
-            </div>
-
-            {/* Profile Info Section */}
-            <div className="relative px-4 sm:px-6 lg:px-8 pb-6">
-                <div className="max-w-5xl mx-auto">
-                    <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-16 md:-mt-20">
-                        {/* Avatar */}
-                        <div className="relative flex-shrink-0">
-                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 border-white shadow-xl overflow-hidden bg-white">
+                {/* Profile Info Bar - Facebook style layout */}
+                <div className="relative px-4 md:px-8 pb-4">
+                    <div className="flex flex-col md:flex-row md:items-end gap-4">
+                        {/* Avatar - Circular, overlapping cover photo, positioned at left */}
+                        <div className="relative -mt-20 md:-mt-24 flex-shrink-0">
+                            <div className="w-36 h-36 md:w-44 md:h-44 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
                                 {avatarUrl ? (
                                     <Image
                                         src={avatarUrl}
@@ -153,18 +164,18 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-[#25346A] to-[#3a5199] flex items-center justify-center text-white text-4xl md:text-5xl font-bold">
+                                    <div className="w-full h-full bg-gradient-to-br from-[#25346A] to-[#3a5199] flex items-center justify-center text-white text-5xl md:text-6xl font-bold">
                                         {getInitials()}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Edit Avatar Button */}
+                            {/* Edit Avatar Button - Camera icon at bottom right */}
                             {isOwnProfile && (
                                 <button
                                     onClick={() => avatarInputRef.current?.click()}
                                     disabled={isUploadingAvatar}
-                                    className="absolute bottom-2 right-2 w-8 h-8 bg-[#F49700] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-colors"
+                                    className="absolute bottom-2 right-2 w-9 h-9 bg-slate-200 text-slate-700 rounded-full flex items-center justify-center shadow-md hover:bg-slate-300 transition-colors border-2 border-white"
                                 >
                                     {isUploadingAvatar ? (
                                         <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -172,7 +183,7 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
                                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
                                     ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
@@ -189,17 +200,20 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
                             />
                         </div>
 
-                        {/* Name and Info */}
-                        <div className="flex-1 pt-4 md:pt-0 md:pb-2">
+                        {/* Name & Info - Next to avatar (Facebook style) */}
+                        <div className="flex-1 pt-2 md:pt-0 md:pb-4">
                             <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
                                 {profile.full_name || "Mathlete"}
                             </h1>
-                            <p className="text-slate-600 text-lg">@{profile.username}</p>
+                            <p className="text-slate-500 text-base mt-0.5">
+                                {stats.competitionsJoined} competition{stats.competitionsJoined !== 1 ? 's' : ''} • {stats.totalScore} points
+                            </p>
 
-                            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-500">
+                            {/* School & Location */}
+                            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600">
                                 {profile.school && (
-                                    <span className="flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <span className="flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                                         </svg>
@@ -207,8 +221,8 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
                                     </span>
                                 )}
                                 {profile.country && (
-                                    <span className="flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <span className="flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
@@ -218,29 +232,25 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
                             </div>
                         </div>
 
-                        {/* Quick Stats */}
-                        <div className="flex gap-4 md:gap-6 pt-4 md:pt-0 md:pb-2">
-                            {/* Competitions Joined */}
-                            <div className="text-center px-4 py-3 bg-white rounded-xl shadow-sm border border-slate-200">
-                                <p className="text-2xl md:text-3xl font-bold text-[#25346A]">{stats.competitionsJoined}</p>
-                                <p className="text-xs md:text-sm text-slate-500">Competitions</p>
-                            </div>
-
-                            {/* Total Score */}
-                            <div className="text-center px-4 py-3 bg-white rounded-xl shadow-sm border border-slate-200">
-                                <p className="text-2xl md:text-3xl font-bold text-[#F49700]">{stats.totalScore}</p>
-                                <p className="text-xs md:text-sm text-slate-500">Total Points</p>
-                            </div>
-
-                            {/* Rank */}
-                            <div className="text-center px-4 py-3 bg-white rounded-xl shadow-sm border border-slate-200">
-                                <p className="text-2xl md:text-3xl font-bold text-purple-600">
-                                    {stats.rank ? `#${stats.rank}` : "—"}
-                                </p>
-                                <p className="text-xs md:text-sm text-slate-500">
-                                    {stats.rank ? `of ${stats.totalParticipants}` : "No Rank"}
-                                </p>
-                            </div>
+                        {/* Action Buttons - Aligned right (Facebook style) */}
+                        <div className="flex items-center gap-2 pt-2 md:pt-0 md:pb-4">
+                            {isOwnProfile && onEditProfile && (
+                                <button
+                                    onClick={onEditProfile}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-800 rounded-lg hover:bg-slate-200 transition-colors font-semibold text-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                    Edit profile
+                                </button>
+                            )}
+                            {/* More options button */}
+                            <button className="w-10 h-10 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
@@ -250,6 +260,24 @@ export default function ProfileHeader({ profile, stats, isOwnProfile }: ProfileH
                             {error}
                         </div>
                     )}
+                </div>
+
+                {/* Navigation Tabs - Facebook style */}
+                <div className="border-t border-slate-200 px-4 md:px-8">
+                    <nav className="flex gap-1 -mb-px">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-4 text-sm font-semibold border-b-[3px] transition-colors ${activeTab === tab.id
+                                        ? "text-[#25346A] border-[#25346A]"
+                                        : "text-slate-500 border-transparent hover:bg-slate-100 rounded-t-lg"
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </nav>
                 </div>
             </div>
         </div>
