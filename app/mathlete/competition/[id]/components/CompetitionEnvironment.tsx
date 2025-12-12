@@ -288,8 +288,8 @@ export default function CompetitionEnvironment({
 
 
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full p-8">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-xl w-full p-8 transition-colors">
                     <div className="text-center mb-8">
                         {isLiveCompetition ? (
                             <span className="inline-flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded-full bg-emerald-100 text-emerald-800 mb-4">
@@ -302,46 +302,47 @@ export default function CompetitionEnvironment({
                                 Scheduled Competition
                             </span>
                         )}
-                        <h1 className="text-3xl font-bold text-[#25346A] mb-2">{competition.name}</h1>
+
+                        <h1 className="text-3xl font-bold text-[#25346A] dark:text-white mb-2">{competition.name}</h1>
                         {competition.description && (
-                            <p className="text-slate-600">{competition.description}</p>
+                            <p className="text-slate-600 dark:text-slate-400">{competition.description}</p>
                         )}
                     </div>
 
                     <div className="space-y-4 mb-8">
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                            <span className="text-slate-600">Duration</span>
-                            <span className="font-semibold text-slate-800">{competition.duration_minutes} minutes</span>
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                            <span className="text-slate-600 dark:text-slate-400">Duration</span>
+                            <span className="font-semibold text-slate-800 dark:text-white">{competition.duration_minutes} minutes</span>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                            <span className="text-slate-600">Problems</span>
-                            <span className="font-semibold text-slate-800">{problems.length} questions</span>
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                            <span className="text-slate-600 dark:text-slate-400">Problems</span>
+                            <span className="font-semibold text-slate-800 dark:text-white">{problems.length} questions</span>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                            <span className="text-slate-600">Total Points</span>
-                            <span className="font-semibold text-slate-800">
+                        <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                            <span className="text-slate-600 dark:text-slate-400">Total Points</span>
+                            <span className="font-semibold text-slate-800 dark:text-white">
                                 {problems.reduce((sum, p) => sum + p.points, 0)} points
                             </span>
                         </div>
                         {isLiveCompetition && (
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-                                <span className="text-slate-600">Attempts</span>
-                                <span className="font-semibold text-slate-800">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                                <span className="text-slate-600 dark:text-slate-400">Attempts</span>
+                                <span className="font-semibold text-slate-800 dark:text-white">
                                     {attemptCount} / {competition.max_attempts || '∞'}
                                 </span>
                             </div>
                         )}
                         {!isLiveCompetition && startScreenTimeRemaining !== null && (
-                            <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200">
-                                <span className="text-orange-700">Competition Ends In</span>
-                                <span className="font-semibold text-orange-800">
+                            <div className="flex items-center justify-between p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg border border-orange-200 dark:border-orange-800">
+                                <span className="text-orange-700 dark:text-orange-400">Competition Ends In</span>
+                                <span className="font-semibold text-orange-800 dark:text-orange-200">
                                     {formatTime(startScreenTimeRemaining)}
                                 </span>
                             </div>
                         )}
                         {!isLiveCompetition && (
-                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
-                                <p className="text-sm text-blue-800">
+                            <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800 text-center">
+                                <p className="text-sm text-blue-800 dark:text-blue-200">
                                     <strong>Note:</strong> Scheduled competitions allow only one attempt. Make sure you're ready before starting!
                                 </p>
                             </div>
@@ -349,7 +350,7 @@ export default function CompetitionEnvironment({
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
                             {error}
                         </div>
                     )}
@@ -357,7 +358,7 @@ export default function CompetitionEnvironment({
                     <div className="flex gap-4">
                         <Link
                             href="/mathlete"
-                            className="flex-1 py-3 px-6 text-center border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                            className="flex-1 py-3 px-6 text-center border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
                         >
                             Go Back
                         </Link>
@@ -377,16 +378,16 @@ export default function CompetitionEnvironment({
     // Show completed screen
     if (attempt.is_completed) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl max-w-xl w-full p-8 text-center">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-xl w-full p-8 text-center transition-colors">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800 mb-2">Attempt Completed!</h1>
-                    <p className="text-slate-600 mb-6">
-                        You scored <span className="font-bold text-[#25346A]">{attempt.total_score}</span> points
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Attempt Completed!</h1>
+                    <p className="text-slate-600 dark:text-slate-400 mb-6">
+                        You scored <span className="font-bold text-[#25346A] dark:text-blue-400">{attempt.total_score}</span> points
                     </p>
                     <Link
                         href="/mathlete"

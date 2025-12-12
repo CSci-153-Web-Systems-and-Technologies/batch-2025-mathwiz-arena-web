@@ -164,12 +164,12 @@ export default function CompetitionDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-start justify-between">
+        <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-6 flex items-start justify-between z-10">
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-[#25346A] mb-2">{competition.name}</h2>
+            <h2 className="text-2xl font-bold text-[#25346A] dark:text-white mb-2">{competition.name}</h2>
             <div className="flex items-center gap-2">
               {isLiveCompetition && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
@@ -183,7 +183,7 @@ export default function CompetitionDetailsModal({
                 </span>
               )}
               {isRegistered && !isScheduledLive && (
-                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200">
                   Registered
                 </span>
               )}
@@ -191,7 +191,7 @@ export default function CompetitionDetailsModal({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -205,18 +205,18 @@ export default function CompetitionDetailsModal({
           {/* Competition Details */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-semibold text-slate-700 mb-2">Description</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Description</h3>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                 {competition.description || "No description provided."}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-1">
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {isLiveCompetition ? 'Availability' : 'Start Time'}
                 </h3>
-                <p className="text-slate-600">
+                <p className="text-slate-600 dark:text-slate-400">
                   {isLiveCompetition ? (
                     'Available anytime'
                   ) : startTime ? (
@@ -234,19 +234,19 @@ export default function CompetitionDetailsModal({
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-1">Duration</h3>
-                <p className="text-slate-600">{competition.duration_minutes} minutes</p>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Duration</h3>
+                <p className="text-slate-600 dark:text-slate-400">{competition.duration_minutes} minutes</p>
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-1">Participation Type</h3>
-                <p className="text-slate-600 capitalize">{competition.participation_type}</p>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Participation Type</h3>
+                <p className="text-slate-600 dark:text-slate-400 capitalize">{competition.participation_type}</p>
               </div>
 
               {competition.max_participants && (
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-1">Max Participants</h3>
-                  <p className="text-slate-600">{competition.max_participants}</p>
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Max Participants</h3>
+                  <p className="text-slate-600 dark:text-slate-400">{competition.max_participants}</p>
                 </div>
               )}
             </div>
@@ -256,9 +256,9 @@ export default function CompetitionDetailsModal({
           {competition.participation_type === "team" && !isRegistered && !(isScheduledLive && !isLiveCompetition) && (
             <div className="space-y-3">
               <div className="flex items-start justify-between">
-                <h3 className="text-sm font-semibold text-slate-700">Select Your Team</h3>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Select Your Team</h3>
                 {competition.max_team_members && (
-                  <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full font-medium">
+                  <span className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full font-medium">
                     {competition.require_full_team
                       ? `Requires exactly ${competition.max_team_members} members`
                       : `Min 2, Max ${competition.max_team_members} members`
@@ -281,7 +281,7 @@ export default function CompetitionDetailsModal({
                   <select
                     value={selectedTeamId}
                     onChange={(e) => setSelectedTeamId(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25346A] focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25346A] focus:border-transparent bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                   >
                     {userTeams.map((team) => {
                       const meetsRequirement = competition.require_full_team && competition.max_team_members
@@ -319,14 +319,14 @@ export default function CompetitionDetailsModal({
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
             {isRegistered ? (
               <div className="flex items-center gap-2">
                 {!showWithdrawConfirm ? (
                   <button
                     onClick={() => setShowWithdrawConfirm(true)}
                     disabled={isLoading || isScheduledLive}
-                    className="px-6 py-2.5 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title={isScheduledLive ? "Cannot withdraw during competition" : "Withdraw from competition"}
                   >
                     Withdraw
@@ -343,7 +343,7 @@ export default function CompetitionDetailsModal({
                     <button
                       onClick={() => setShowWithdrawConfirm(false)}
                       disabled={isLoading}
-                      className="px-6 py-2.5 text-sm font-semibold text-slate-700 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors"
+                      className="px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
                     >
                       Cancel
                     </button>
