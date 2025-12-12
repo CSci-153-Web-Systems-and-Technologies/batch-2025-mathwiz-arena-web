@@ -70,20 +70,40 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
     `)
         .eq("attempt_id", attempt.id);
 
-    // Sort answers by order_index
-    const sortedAnswers = answers?.sort((a: any, b: any) =>
-        (a.competition_problems?.order_index ?? 0) - (b.competition_problems?.order_index ?? 0)
-    );
-
-    // Get total possible points
-    const { data: allProblems } = await supabase
+    // Get all problems details
+    const { data: allProblemsData } = await supabase
         .from("competition_problems")
-        .select("points")
-        .eq("competition_id", attempt.competition_id);
+        .select(`
+            id,
+            points,
+            order_index,
+            problems (
+                id,
+                question,
+                type,
+                correct_answer
+            )
+        `)
+        .eq("competition_id", attempt.competition_id)
+        .order("order_index", { ascending: true });
 
-    const totalPossiblePoints = allProblems?.reduce((sum, p) => sum + p.points, 0) || 0;
-    const correctCount = sortedAnswers?.filter((a: any) => a.is_correct).length || 0;
-    const totalQuestions = allProblems?.length || 0;
+    // Create a map of answers for easy lookup
+    const answersMap = new Map(answers?.map((a: any) => [a.competition_problem_id, a]));
+
+    // Combine problems with answers
+    const displayItems = allProblemsData?.map((compProblem: any) => {
+        const answer = answersMap.get(compProblem.id);
+        return {
+            ...compProblem,
+            answer: answer || null,
+            is_correct: answer?.is_correct || false,
+            points_earned: answer?.points_earned || 0
+        };
+    });
+
+    const totalPossiblePoints = allProblemsData?.reduce((sum, p) => sum + p.points, 0) || 0;
+    const correctCount = answers?.filter((a: any) => a.is_correct).length || 0;
+    const totalQuestions = allProblemsData?.length || 0;
     const percentageScore = totalPossiblePoints > 0
         ? Math.round((attempt.total_score / totalPossiblePoints) * 100)
         : 0;
@@ -179,34 +199,41 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-6">
                     <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Answer Review</h2>
                     <div className="space-y-4">
-                        {sortedAnswers?.map((answer: any, index: number) => {
-                            const problem = answer.competition_problems?.problems;
-                            const compProblem = answer.competition_problems;
+                        {displayItems?.map((item: any, index: number) => {
+                            const problem = item.problems;
+                            const hasAnswer = !!item.answer;
+                            const isCorrect = item.is_correct;
 
                             return (
                                 <div
-                                    key={answer.id}
-                                    className={`p-4 rounded-lg border-2 ${answer.is_correct
-                                        ? "border-green-200 bg-green-50 dark:border-green-800/50 dark:bg-green-900/10"
-                                        : "border-red-200 bg-red-50 dark:border-red-800/50 dark:bg-red-900/10"
+                                    key={item.id}
+                                    className={`p-4 rounded-lg border-2 ${hasAnswer
+                                        ? isCorrect
+                                            ? "border-green-200 bg-green-50 dark:border-green-800/50 dark:bg-green-900/10"
+                                            : "border-red-200 bg-red-50 dark:border-red-800/50 dark:bg-red-900/10"
+                                        : "border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50"
                                         }`}
                                 >
                                     <div className="flex items-start justify-between mb-2">
                                         <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                                            Question {compProblem?.order_index + 1 || index + 1}
+                                            Question {item.order_index + 1 || index + 1}
                                         </span>
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                                {answer.points_earned} / {compProblem?.points} pts
+                                                {item.points_earned} / {item.points} pts
                                             </span>
-                                            {answer.is_correct ? (
-                                                <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                </svg>
+                                            {hasAnswer ? (
+                                                isCorrect ? (
+                                                    <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                )
                                             ) : (
-                                                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
+                                                <span className="text-xs text-slate-500 font-medium px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded">Skipped</span>
                                             )}
                                         </div>
                                     </div>
@@ -214,11 +241,14 @@ export default async function CompetitionResultsPage({ params, searchParams }: P
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                             <span className="text-slate-500 dark:text-slate-400">Your answer:</span>
-                                            <span className={`ml-2 font-medium ${answer.is_correct ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"}`}>
-                                                {answer.answer ? <MathRenderer text={answer.answer} /> : "(No answer)"}
+                                            <span className={`ml-2 font-medium ${hasAnswer
+                                                    ? isCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400"
+                                                    : "text-slate-400 italic"
+                                                }`}>
+                                                {hasAnswer ? <MathRenderer text={item.answer.answer} /> : "(No answer)"}
                                             </span>
                                         </div>
-                                        {!answer.is_correct && (
+                                        {!isCorrect && (
                                             <div>
                                                 <span className="text-slate-500 dark:text-slate-400">Correct answer:</span>
                                                 <span className="ml-2 font-medium text-green-700 dark:text-green-400">
