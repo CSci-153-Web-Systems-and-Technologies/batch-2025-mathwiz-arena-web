@@ -119,17 +119,40 @@ const MATH_SYMBOLS = {
 };
 
 function renderLatex(text: string): string {
-    // Replace $...$ with rendered latex
-    return text.replace(/\$([^$]+)\$/g, (match, latex) => {
+    if (!text) return "";
+
+    // 1. Handle Display Math: $$...$$
+    // Using [\s\S] to match across newlines
+    let html = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, latex) => {
+        try {
+            return katex.renderToString(latex, {
+                throwOnError: false,
+                displayMode: true,
+            });
+        } catch (e) {
+            console.error("Katex rendering error (display):", e);
+            return match;
+        }
+    });
+
+    // 2. Handle Inline Math: $...$
+    // Use [^$]+ to avoid matching across dollar signs generally
+    html = html.replace(/\$([^$]+?)\$/g, (match, latex) => {
+        // Avoid matching HTML from previous step
+        if (latex.includes("<span class=\"katex")) return match;
+
         try {
             return katex.renderToString(latex, {
                 throwOnError: false,
                 displayMode: false,
             });
-        } catch {
-            return match; // Return original if rendering fails
+        } catch (e) {
+            console.error("Katex rendering error (inline):", e);
+            return match;
         }
     });
+
+    return html;
 }
 
 export default function MathInput({

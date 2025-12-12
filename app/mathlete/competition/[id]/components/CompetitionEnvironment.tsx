@@ -422,38 +422,40 @@ export default function CompetitionEnvironment({
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Left Sidebar */}
-                <aside className="w-72 bg-white border-r border-slate-200 p-6 flex flex-col">
+                <aside className="w-[350px] bg-white border-r border-slate-200 p-6 flex flex-col">
                     {/* Problem Set Grid */}
                     <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
                         <h2 className="text-sm font-medium text-slate-600 mb-4">Problem Set</h2>
-                        <div className="grid grid-cols-5 gap-2">
-                            {problems.map((problem, index) => {
-                                const hasAnswer = !!answers[problem.id];
-                                const isSaved = !!savedAnswers[problem.id];
-                                const isCurrent = index === currentProblemIndex;
+                        <div className="max-h-[200px] overflow-y-auto">
+                            <div className="grid grid-cols-5 gap-2">
+                                {problems.map((problem, index) => {
+                                    const hasAnswer = !!answers[problem.id];
+                                    const isSaved = !!savedAnswers[problem.id];
+                                    const isCurrent = index === currentProblemIndex;
 
-                                return (
-                                    <button
-                                        key={problem.id}
-                                        onClick={() => {
-                                            setCurrentProblemIndex(index);
-                                        }}
-                                        className={`
-                                            w-10 h-10 rounded-lg font-semibold text-sm transition-all
-                                            ${isCurrent
-                                                ? 'bg-white text-[#25346A] border-2 border-[#25346A]'
-                                                : isSaved
-                                                    ? 'bg-blue-100 text-[#25346A] border-0 hover:bg-blue-200'
-                                                    : hasAnswer
-                                                        ? 'bg-orange-100 text-[#FFA726] border-0 hover:bg-orange-200'
-                                                        : 'bg-[#E0E0E0] text-slate-600 border-0 hover:bg-[#BDBDBD]'
-                                            }
-                                        `}
-                                    >
-                                        {index + 1}
-                                    </button>
-                                );
-                            })}
+                                    return (
+                                        <button
+                                            key={problem.id}
+                                            onClick={() => {
+                                                setCurrentProblemIndex(index);
+                                            }}
+                                            className={`
+                                                w-10 h-10 rounded-lg font-semibold text-sm transition-all
+                                                ${isCurrent
+                                                    ? 'bg-white text-[#25346A] border-2 border-[#25346A]'
+                                                    : isSaved
+                                                        ? 'bg-blue-100 text-[#25346A] border-0 hover:bg-blue-200'
+                                                        : hasAnswer
+                                                            ? 'bg-orange-100 text-[#FFA726] border-0 hover:bg-orange-200'
+                                                            : 'bg-[#E0E0E0] text-slate-600 border-0 hover:bg-[#BDBDBD]'
+                                                }
+                                            `}
+                                        >
+                                            {index + 1}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
 
