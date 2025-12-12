@@ -407,15 +407,15 @@ export default function CompetitionEnvironment({
 
     // Competition environment
     return (
-        <div className="h-screen bg-[#f5f7fa] flex flex-col overflow-hidden">
+        <div className="h-screen bg-[#f5f7fa] dark:bg-slate-900 flex flex-col overflow-hidden transition-colors">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 flex-shrink-0">
+            <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
                 <div className="px-6 py-4 flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center gap-2">
                         <img src="/icon.svg" alt="MathWiz Arena" className="w-10 h-10" />
                         <div>
-                            <span className="text-xl font-bold text-[#25346A]">{competition.name}</span>
+                            <span className="text-xl font-bold text-[#25346A] dark:text-white">{competition.name}</span>
                         </div>
                     </div>
                 </div>
@@ -631,7 +631,7 @@ export default function CompetitionEnvironment({
                     </div>
 
                     {/* Bottom Action Bar - Fixed at bottom */}
-                    <div className="bg-white border-t border-slate-200 px-8 py-4 flex-shrink-0">
+                    <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-8 py-4 flex-shrink-0 transition-colors">
                         <div className="flex items-center justify-between">
                             {/* Left: Navigation */}
                             <div className="flex items-center gap-3">
@@ -640,7 +640,7 @@ export default function CompetitionEnvironment({
                                         setCurrentProblemIndex(Math.max(0, currentProblemIndex - 1));
                                     }}
                                     disabled={currentProblemIndex === 0}
-                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     ← Previous
                                 </button>
@@ -649,7 +649,7 @@ export default function CompetitionEnvironment({
                                         setCurrentProblemIndex(Math.min(problems.length - 1, currentProblemIndex + 1));
                                     }}
                                     disabled={currentProblemIndex === problems.length - 1}
-                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Next →
                                 </button>
@@ -660,25 +660,25 @@ export default function CompetitionEnvironment({
                                 <button
                                     onClick={handleSaveAnswer}
                                     disabled={isSaving || !answers[currentProblem?.id]}
-                                    className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium disabled:opacity-50"
+                                    className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium disabled:opacity-50"
                                 >
                                     {isSaving ? "Marking..." : savedAnswers[currentProblem?.id] ? "Solved" : "Solve"}
                                 </button>
                                 <button
                                     onClick={handleResetAnswer}
                                     disabled={!answers[currentProblem?.id] || (isLiveCompetition && !!savedAnswers[currentProblem?.id])}
-                                    className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                                    className="px-4 py-2 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:disabled:border-slate-700 dark:disabled:text-slate-600"
                                 >
                                     Reset
                                 </button>
-                                <span className="text-sm text-slate-500">
+                                <span className="text-sm text-slate-500 dark:text-slate-400">
                                     Mark as solved if you're<br />confident with your answer
                                 </span>
                             </div>
 
                             {/* Right: Review/Submit */}
                             <div className="flex items-center gap-4">
-                                <span className="text-sm text-slate-500">
+                                <span className="text-sm text-slate-500 dark:text-slate-400">
                                     Review your answer<br />before submitting
                                 </span>
                                 <button
