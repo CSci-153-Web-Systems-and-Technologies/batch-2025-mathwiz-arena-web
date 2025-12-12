@@ -535,8 +535,8 @@ export default function CompetitionEnvironment({
                     <div className="flex-1 px-8 pb-4 overflow-y-auto">
                         {problems.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center">
-                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
@@ -546,20 +546,20 @@ export default function CompetitionEnvironment({
                                 </p>
                             </div>
                         ) : currentProblem && (
-                            <div className="bg-[#e8f4fc] rounded-xl p-8 min-h-[400px]">
+                            <div className="bg-[#e8f4fc] dark:bg-slate-800 rounded-xl p-8 min-h-[400px] border border-transparent dark:border-slate-700">
                                 {/* Problem Title */}
-                                <h2 className="text-2xl font-bold text-slate-800 mb-6">
+                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">
                                     Problem {currentProblemIndex + 1}
                                 </h2>
 
                                 {/* Question */}
-                                <div className="text-lg text-slate-700 leading-relaxed mb-8 whitespace-pre-wrap">
+                                <div className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed mb-8 whitespace-pre-wrap">
                                     <MathRenderer text={currentProblem.problems.question} />
                                 </div>
 
                                 {/* Answer Section */}
                                 <div>
-                                    <h3 className="text-sm font-medium text-slate-600 mb-3">Your Answer:</h3>
+                                    <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">Your Answer:</h3>
 
                                     {currentProblem.problems.type === "multiple_choice" && currentProblem.problems.options && (
                                         <div className="space-y-3">
@@ -567,10 +567,10 @@ export default function CompetitionEnvironment({
                                                 <label
                                                     key={idx}
                                                     className={`
-                                                        flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all bg-white
+                                                        flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all bg-white dark:bg-slate-700
                                                         ${answers[currentProblem.id] === option
-                                                            ? 'border-[#25346A] bg-[#25346A]/5'
-                                                            : 'border-slate-200 hover:border-slate-300'
+                                                            ? 'border-[#25346A] dark:border-blue-400 bg-[#25346A]/5 dark:bg-blue-900/20'
+                                                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                                                         }
                                                     `}
                                                 >
@@ -580,12 +580,12 @@ export default function CompetitionEnvironment({
                                                         value={option}
                                                         checked={answers[currentProblem.id] === option}
                                                         onChange={() => handleAnswerChange(currentProblem.id, option)}
-                                                        className="w-4 h-4 text-[#25346A]"
+                                                        className="w-4 h-4 text-[#25346A] dark:text-blue-400"
                                                     />
-                                                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-600">
+                                                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-600 flex items-center justify-center text-sm font-semibold text-slate-600 dark:text-slate-200">
                                                         {String.fromCharCode(65 + idx)}
                                                     </span>
-                                                    <span className="text-slate-800"><MathRenderer text={option} /></span>
+                                                    <span className="text-slate-800 dark:text-slate-200"><MathRenderer text={option} /></span>
                                                 </label>
                                             ))}
                                         </div>
@@ -597,10 +597,10 @@ export default function CompetitionEnvironment({
                                                 <label
                                                     key={option}
                                                     className={`
-                                                        flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all bg-white
+                                                        flex-1 flex items-center justify-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all bg-white dark:bg-slate-700
                                                         ${answers[currentProblem.id] === option
-                                                            ? 'border-[#25346A] bg-[#25346A]/5'
-                                                            : 'border-slate-200 hover:border-slate-300'
+                                                            ? 'border-[#25346A] dark:border-blue-400 bg-[#25346A]/5 dark:bg-blue-900/20'
+                                                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500'
                                                         }
                                                     `}
                                                 >
@@ -610,9 +610,9 @@ export default function CompetitionEnvironment({
                                                         value={option}
                                                         checked={answers[currentProblem.id] === option}
                                                         onChange={() => handleAnswerChange(currentProblem.id, option)}
-                                                        className="w-4 h-4 text-[#25346A]"
+                                                        className="w-4 h-4 text-[#25346A] dark:text-blue-400"
                                                     />
-                                                    <span className="text-lg font-semibold capitalize text-slate-800">{option}</span>
+                                                    <span className="text-lg font-semibold capitalize text-slate-800 dark:text-slate-200">{option}</span>
                                                 </label>
                                             ))}
                                         </div>
