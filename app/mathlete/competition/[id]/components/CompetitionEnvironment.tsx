@@ -423,11 +423,11 @@ export default function CompetitionEnvironment({
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Left Sidebar */}
-                <aside className="w-[350px] bg-white border-r border-slate-200 p-6 flex flex-col">
+                <aside className="w-[350px] bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 p-6 flex flex-col transition-colors">
                     {/* Problem Set Grid */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-                        <h2 className="text-sm font-medium text-slate-600 mb-4">Problem Set</h2>
-                        <div className="max-h-[200px] overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6">
+                        <h2 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-4">Problem Set</h2>
+                        <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-5 gap-2">
                                 {problems.map((problem, index) => {
                                     const hasAnswer = !!answers[problem.id];
@@ -443,12 +443,12 @@ export default function CompetitionEnvironment({
                                             className={`
                                                 w-10 h-10 rounded-lg font-semibold text-sm transition-all
                                                 ${isCurrent
-                                                    ? 'bg-white text-[#25346A] border-2 border-[#25346A]'
+                                                    ? 'bg-white dark:bg-slate-700 text-[#25346A] dark:text-white border-2 border-[#25346A] dark:border-blue-400'
                                                     : isSaved
-                                                        ? 'bg-blue-100 text-[#25346A] border-0 hover:bg-blue-200'
+                                                        ? 'bg-blue-100 dark:bg-blue-900/50 text-[#25346A] dark:text-blue-200 border-0 hover:bg-blue-200 dark:hover:bg-blue-900/70'
                                                         : hasAnswer
-                                                            ? 'bg-orange-100 text-[#FFA726] border-0 hover:bg-orange-200'
-                                                            : 'bg-[#E0E0E0] text-slate-600 border-0 hover:bg-[#BDBDBD]'
+                                                            ? 'bg-orange-100 dark:bg-orange-900/50 text-[#FFA726] dark:text-orange-300 border-0 hover:bg-orange-200 dark:hover:bg-orange-900/70'
+                                                            : 'bg-[#E0E0E0] dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-0 hover:bg-[#BDBDBD] dark:hover:bg-slate-600'
                                                 }
                                             `}
                                         >
@@ -461,30 +461,30 @@ export default function CompetitionEnvironment({
                     </div>
 
                     {/* Problem Info */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-                        <h3 className="text-base font-semibold text-slate-800 mb-3">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6">
+                        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200 mb-3">
                             Problem {currentProblemIndex + 1}
                         </h3>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-slate-500">Level</span>
-                                <span className="font-medium text-slate-800 capitalize">
+                                <span className="text-slate-500 dark:text-slate-400">Level</span>
+                                <span className="font-medium text-slate-800 dark:text-slate-200 capitalize">
                                     {currentProblem?.problems.difficulty || 'N/A'}
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">Points</span>
-                                <span className="font-medium text-slate-800">
+                                <span className="text-slate-500 dark:text-slate-400">Points</span>
+                                <span className="font-medium text-slate-800 dark:text-slate-200">
                                     {currentProblem?.points || 0} points
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">Status</span>
+                                <span className="text-slate-500 dark:text-slate-400">Status</span>
                                 <span className={`font-medium ${savedAnswers[currentProblem?.id]
-                                    ? 'text-[#25346A]'
+                                    ? 'text-[#25346A] dark:text-blue-400'
                                     : answers[currentProblem?.id]
-                                        ? 'text-yellow-600'
-                                        : 'text-slate-500'
+                                        ? 'text-yellow-600 dark:text-yellow-400'
+                                        : 'text-slate-500 dark:text-slate-400'
                                     }`}>
                                     {savedAnswers[currentProblem?.id]
                                         ? 'Solved'
@@ -499,19 +499,19 @@ export default function CompetitionEnvironment({
                     {/* Legend with Counts */}
                     <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-blue-100"></div>
-                            <span className="text-slate-600">Solved</span>
-                            <span className="ml-auto font-semibold text-slate-800">{solvedCount}</span>
+                            <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/50"></div>
+                            <span className="text-slate-600 dark:text-slate-400">Solved</span>
+                            <span className="ml-auto font-semibold text-slate-800 dark:text-slate-200">{solvedCount}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-orange-100"></div>
-                            <span className="text-slate-600">Filled</span>
-                            <span className="ml-auto font-semibold text-slate-800">{inProgressCount}</span>
+                            <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/50"></div>
+                            <span className="text-slate-600 dark:text-slate-400">Filled</span>
+                            <span className="ml-auto font-semibold text-slate-800 dark:text-slate-200">{inProgressCount}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-[#E0E0E0]"></div>
-                            <span className="text-slate-600">Blank</span>
-                            <span className="ml-auto font-semibold text-slate-800">{blankCount}</span>
+                            <div className="w-4 h-4 rounded bg-[#E0E0E0] dark:bg-slate-700"></div>
+                            <span className="text-slate-600 dark:text-slate-400">Blank</span>
+                            <span className="ml-auto font-semibold text-slate-800 dark:text-slate-200">{blankCount}</span>
                         </div>
                     </div>
                 </aside>
