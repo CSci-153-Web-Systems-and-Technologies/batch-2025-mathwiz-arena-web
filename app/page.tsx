@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import LoginButton from "@/components/LoginLogoutButton";
+import LandingNavigation from "@/components/LandingNavigation";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -40,12 +41,9 @@ export default async function Home() {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-400">
-              <Link href="/" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Home</Link>
-              <Link href="#info" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Features</Link>
-              <Link href="#about" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">About</Link>
+            <LandingNavigation>
               <LoginButton />
-            </nav>
+            </LandingNavigation>
             <div className="md:hidden"><LoginButton /></div>
           </div>
         </div>
