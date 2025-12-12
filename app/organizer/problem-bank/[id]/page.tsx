@@ -37,7 +37,7 @@ export default async function ProblemBankDetailPage({ params }: { params: { id: 
         <div className="mb-8">
           <Link
             href="/organizer/problem-bank"
-            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-[#f49700] mb-4 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -47,9 +47,9 @@ export default async function ProblemBankDetailPage({ params }: { params: { id: 
 
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-slate-800 mb-2">{problemBank.title}</h1>
-              <p className="text-slate-600">{problemBank.description || "No description"}</p>
-              <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{problemBank.title}</h1>
+              <p className="text-slate-600 dark:text-slate-400">{problemBank.description || "No description"}</p>
+              <div className="flex items-center gap-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
                 <span>Created {new Date(problemBank.created_at).toLocaleDateString()}</span>
                 <span>•</span>
                 <span>{problems?.length || 0} problem{problems?.length !== 1 ? 's' : ''}</span>
@@ -60,9 +60,9 @@ export default async function ProblemBankDetailPage({ params }: { params: { id: 
         </div>
 
         {/* Problems Section */}
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-slate-800">Problems</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-white">Problems</h2>
             <Link
               href={`/organizer/problem-bank/${params.id}/add-problem`}
               className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-4 py-2 text-white font-medium hover:bg-[#d68400] transition-colors text-sm"
