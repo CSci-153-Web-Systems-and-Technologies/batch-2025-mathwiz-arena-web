@@ -41,6 +41,49 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
 
   const problems = competitionProblems || [];
 
+  // Fetch registered participants
+  const { data: registrations, error: registrationsError } = await supabase
+    .from("competition_registrations")
+    .select(`
+      id,
+      registered_at,
+      status,
+      mathlete_id
+    `)
+    .eq("competition_id", params.id)
+    .eq("status", "registered")
+    .order("registered_at", { ascending: false });
+
+  if (registrationsError) {
+    console.error("Error fetching registrations:", registrationsError);
+  }
+
+  // Fetch profile data for all registered participants
+  let participantsWithProfiles: any[] = [];
+
+  if (registrations && registrations.length > 0) {
+    const mathleteIds = registrations.map(r => r.mathlete_id);
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, full_name, username, school, avatar_url")
+      .in("id", mathleteIds);
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+    }
+
+    // Map profiles to registrations
+    const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+    participantsWithProfiles = registrations.map(reg => ({
+      ...reg,
+      profile: profileMap.get(reg.mathlete_id) || null
+    }));
+  }
+
+  const participants = participantsWithProfiles;
+
   // Calculate dates and duration
   const startDateTime = new Date(competition.start_datetime);
   const totalMinutes = competition.duration_minutes;
@@ -219,6 +262,96 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Registered Participants */}
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-800">
+                Registered Participants ({participants.length})
+              </h3>
+              {participants.length > 0 && (
+                <span className="text-sm text-slate-500">
+                  {competition.max_participants
+                    ? `${participants.length} / ${competition.max_participants} slots filled`
+                    : `${participants.length} registered`
+                  }
+                </span>
+              )}
+            </div>
+
+            {participants.length > 0 ? (
+              <div className="space-y-2">
+                {participants.map((registration: any, index: number) => {
+                  const profile = registration.profile;
+                  const registeredDate = new Date(registration.registered_at);
+
+                  return (
+                    <div key={registration.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-xs font-medium text-slate-600">
+                        {index + 1}
+                      </div>
+
+                      {/* Avatar */}
+                      <div className="flex-shrink-0">
+                        {profile?.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt={profile.full_name || "Participant"}
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f49700] to-[#d68400] flex items-center justify-center text-white font-semibold text-sm">
+                            {(profile?.full_name?.charAt(0) || profile?.username?.charAt(0) || "?").toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-slate-800 truncate">
+                          {profile?.full_name || profile?.username || "Unknown Participant"}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          {profile?.school && (
+                            <span className="flex items-center gap-1 truncate">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                              </svg>
+                              {profile.school}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Registration Date */}
+                      <div className="flex-shrink-0 text-right">
+                        <p className="text-xs text-slate-500">Registered</p>
+                        <p className="text-xs font-medium text-slate-600">
+                          {registeredDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <p className="text-slate-500 font-medium">No participants yet</p>
+                <p className="text-sm text-slate-400 mt-1">
+                  {competition.status === "published"
+                    ? "Participants will appear here once they register."
+                    : "Publish this competition to allow participants to register."
+                  }
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Problems */}
