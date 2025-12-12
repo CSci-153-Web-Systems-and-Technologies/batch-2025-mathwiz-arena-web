@@ -52,16 +52,16 @@ export default function AchievementsDetailView({
                 return `Complete ${value} competition${value > 1 ? 's' : ''}`;
             case "total_score":
                 return `Earn ${value} total points`;
-            case "wins":
+            case "competitions_won":
                 return `Win ${value} competition${value > 1 ? 's' : ''} (1st place)`;
             case "top_three":
                 return `Finish in top 3 in ${value} competition${value > 1 ? 's' : ''}`;
             case "perfect_scores":
                 return `Get ${value} perfect score${value > 1 ? 's' : ''}`;
+            case "teams_joined":
+                return `Join ${value} team${value > 1 ? 's' : ''}`;
             case "streak":
                 return `Complete ${value} competitions in a row`;
-            case "first_competition":
-                return "Complete your first competition";
             default:
                 return `Reach ${value} ${type.replace(/_/g, ' ')}`;
         }
@@ -95,14 +95,16 @@ export default function AchievementsDetailView({
                 </div>
 
                 {/* Progress Bar */}
-                <div className="mt-4">
-                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-gradient-to-r from-[#25346A] to-[#F49700] rounded-full transition-all duration-500"
-                            style={{ width: `${(earnedAchievements.length / allAchievements.length) * 100}%` }}
-                        />
+                {allAchievements.length > 0 && (
+                    <div className="mt-4">
+                        <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-gradient-to-r from-[#25346A] to-[#F49700] rounded-full transition-all duration-500"
+                                style={{ width: `${(earnedAchievements.length / allAchievements.length) * 100}%` }}
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Earned Achievements */}

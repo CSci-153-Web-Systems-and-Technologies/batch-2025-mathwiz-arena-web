@@ -291,9 +291,92 @@ export async function acceptTeamInvitation(invitationId: string) {
     return { success: false, error: acceptError.message || "Failed to accept invitation" };
   }
 
+  // Check and award team-related achievements
+  const { newAchievements } = await checkTeamAchievements(user.id);
+
   revalidatePath("/mathlete/teams");
   revalidatePath("/mathlete/notifications");
-  return { success: true, teamId: invitation.team_id };
+  revalidatePath("/mathlete/profile");
+
+  return {
+    success: true,
+    teamId: invitation.team_id,
+    newAchievements,
+    message: newAchievements.length > 0
+      ? `Welcome to the team! You earned: ${newAchievements.join(", ")}`
+      : "You've joined the team!"
+  };
+}
+
+/**
+ * Check and award team-related achievements
+ */
+async function checkTeamAchievements(userId: string): Promise<{
+  newAchievements: string[];
+}> {
+  const supabase = await createClient();
+
+  try {
+    // Count teams the user has joined
+    const { count: teamsJoined } = await supabase
+      .from("team_members")
+      .select("*", { count: "exact", head: true })
+      .eq("mathlete_id", userId);
+
+    // Get team-related achievements
+    const { data: teamAchievements } = await supabase
+      .from("achievements")
+      .select("*")
+      .eq("requirement_type", "teams_joined")
+      .eq("is_active", true);
+
+    // Get user's already earned achievements
+    const { data: earnedAchievements } = await supabase
+      .from("user_achievements")
+      .select("achievement_id")
+      .eq("user_id", userId);
+
+    const earnedIds = new Set(earnedAchievements?.map(a => a.achievement_id) || []);
+    const newAchievements: string[] = [];
+
+    for (const achievement of teamAchievements || []) {
+      if (earnedIds.has(achievement.id)) continue;
+
+      if ((teamsJoined || 0) >= achievement.requirement_value) {
+        const { error: insertError } = await supabase
+          .from("user_achievements")
+          .insert({
+            user_id: userId,
+            achievement_id: achievement.id,
+            metadata: { teams_joined: teamsJoined },
+          });
+
+        if (!insertError) {
+          newAchievements.push(achievement.name);
+
+          // Create notification
+          await supabase
+            .from("notifications")
+            .insert({
+              user_id: userId,
+              type: "achievement",
+              title: "🏆 New Achievement Unlocked!",
+              message: `You earned the "${achievement.name}" badge: ${achievement.description}`,
+              metadata: {
+                achievement_id: achievement.id,
+                achievement_name: achievement.name,
+                achievement_icon: achievement.icon,
+              },
+            });
+        }
+      }
+    }
+
+    return { newAchievements };
+  } catch (error) {
+    console.error("Error checking team achievements:", error);
+    return { newAchievements: [] };
+  }
 }
 
 export async function rejectTeamInvitation(invitationId: string) {

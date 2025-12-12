@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import ProfileContent from "./components/ProfileContent";
+import { syncAchievements } from "./actions";
 
 export default async function MathleteProfilePage() {
   const supabase = await createClient();
@@ -9,6 +10,10 @@ export default async function MathleteProfilePage() {
   if (!user) {
     redirect("/login");
   }
+
+  // Sync achievements - retroactively awards any achievements the user qualifies for
+  // This runs on each page load but only inserts if not already earned
+  await syncAchievements();
 
   // Fetch user profile with new fields
   const { data: profile } = await supabase

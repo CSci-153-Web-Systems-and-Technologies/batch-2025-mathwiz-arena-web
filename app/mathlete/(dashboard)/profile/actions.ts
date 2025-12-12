@@ -155,3 +155,170 @@ export async function updateProfileInfo(formData: FormData) {
     revalidatePath("/mathlete/profile");
     return { success: true };
 }
+
+/**
+ * Sync achievements - retroactively awards achievements based on current user stats
+ * This is needed for users who completed competitions before the achievement system was implemented
+ */
+export async function syncAchievements(): Promise<{
+    success: boolean;
+    newAchievements: string[];
+    error?: string;
+}> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { success: false, newAchievements: [], error: "Not authenticated" };
+    }
+
+    try {
+        // Calculate user stats
+        const stats = await calculateUserStats(user.id, supabase);
+
+        // Get all active achievements
+        const { data: allAchievements, error: achievementsError } = await supabase
+            .from("achievements")
+            .select("*")
+            .eq("is_active", true);
+
+        if (achievementsError) {
+            console.error("Error fetching achievements:", achievementsError);
+            return { success: false, newAchievements: [], error: "Failed to fetch achievements" };
+        }
+
+        // Get user's already earned achievements
+        const { data: earnedAchievements, error: earnedError } = await supabase
+            .from("user_achievements")
+            .select("achievement_id")
+            .eq("user_id", user.id);
+
+        if (earnedError) {
+            console.error("Error fetching earned achievements:", earnedError);
+            return { success: false, newAchievements: [], error: "Failed to fetch earned achievements" };
+        }
+
+        const earnedIds = new Set(earnedAchievements?.map(a => a.achievement_id) || []);
+        const newAchievements: string[] = [];
+
+        // Check each achievement
+        for (const achievement of allAchievements || []) {
+            if (earnedIds.has(achievement.id)) continue;
+
+            let qualifies = false;
+
+            switch (achievement.requirement_type) {
+                case "competitions_completed":
+                    qualifies = stats.competitionsCompleted >= achievement.requirement_value;
+                    break;
+                case "competitions_won":
+                    qualifies = stats.competitionsWon >= achievement.requirement_value;
+                    break;
+                case "perfect_scores":
+                    qualifies = stats.perfectScores >= achievement.requirement_value;
+                    break;
+                case "total_score":
+                    qualifies = stats.totalScore >= achievement.requirement_value;
+                    break;
+                case "teams_joined":
+                    qualifies = stats.teamsJoined >= achievement.requirement_value;
+                    break;
+            }
+
+            if (qualifies) {
+                const { error: insertError } = await supabase
+                    .from("user_achievements")
+                    .insert({
+                        user_id: user.id,
+                        achievement_id: achievement.id,
+                        metadata: { synced: true, stats_at_time: stats },
+                    });
+
+                if (!insertError) {
+                    newAchievements.push(achievement.name);
+                } else {
+                    console.error("Error inserting achievement:", insertError);
+                }
+            }
+        }
+
+        revalidatePath("/mathlete/profile");
+        return { success: true, newAchievements };
+    } catch (error) {
+        console.error("Error syncing achievements:", error);
+        return { success: false, newAchievements: [], error: "Failed to sync achievements" };
+    }
+}
+
+/**
+ * Calculate user stats helper function
+ */
+async function calculateUserStats(userId: string, supabase: any) {
+    // Fetch all completed competition attempts
+    const { data: attempts } = await supabase
+        .from("competition_attempts")
+        .select(`
+            id, 
+            total_score, 
+            is_completed,
+            competition_id,
+            competitions (
+                id,
+                name,
+                competition_problems (
+                    points
+                )
+            )
+        `)
+        .eq("mathlete_id", userId)
+        .eq("is_completed", true);
+
+    const competitionsCompleted = attempts?.length || 0;
+    const totalScore = attempts?.reduce((sum: number, a: any) => sum + (a.total_score || 0), 0) || 0;
+
+    let competitionsWon = 0;
+    let perfectScores = 0;
+
+    if (attempts && attempts.length > 0) {
+        for (const attempt of attempts) {
+            // Get all attempts for this competition to determine rank
+            const { data: allCompetitionAttempts } = await supabase
+                .from("competition_attempts")
+                .select("mathlete_id, total_score")
+                .eq("competition_id", attempt.competition_id)
+                .eq("is_completed", true)
+                .order("total_score", { ascending: false });
+
+            if (allCompetitionAttempts) {
+                const userRank = allCompetitionAttempts.findIndex((a: any) => a.mathlete_id === userId) + 1;
+                if (userRank === 1) competitionsWon++;
+            }
+
+            // Check for perfect score
+            const competition = attempt.competitions as any;
+            if (competition?.competition_problems) {
+                const maxPoints = competition.competition_problems.reduce(
+                    (sum: number, p: any) => sum + (p.points || 0), 0
+                );
+                if (maxPoints > 0 && attempt.total_score === maxPoints) {
+                    perfectScores++;
+                }
+            }
+        }
+    }
+
+    // Count teams joined
+    const { count: teamsJoined } = await supabase
+        .from("team_members")
+        .select("*", { count: "exact", head: true })
+        .eq("mathlete_id", userId);
+
+    return {
+        competitionsCompleted,
+        competitionsWon,
+        perfectScores,
+        totalScore,
+        teamsJoined: teamsJoined || 0,
+    };
+}
+
