@@ -186,33 +186,33 @@ export default async function Home() {
               </div>
 
               <div className="space-y-2.5">
-                <div className="flex gap-4 items-center p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 group cursor-default">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-50 text-[#1B2559] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                <div className="flex gap-4 items-center p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-300 group cursor-default dark:bg-slate-900 dark:border-slate-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-50 text-[#1B2559] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 dark:bg-blue-900/20 dark:text-blue-300">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-[#1B2559] dark:text-white mb-0.5 group-hover:text-blue-600 transition-colors">Real-time Competitions</h3>
-                    <p className="text-sm text-slate-500 font-medium">Live contests, synchronized starts.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Live contests, synchronized starts.</p>
                   </div>
                 </div>
 
-                <div className="flex gap-4 items-center p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all duration-300 group cursor-default">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-orange-50 text-[#F49700] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                <div className="flex gap-4 items-center p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-orange-200 transition-all duration-300 group cursor-default dark:bg-slate-900 dark:border-slate-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-orange-50 text-[#F49700] flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 dark:bg-orange-900/20 dark:text-orange-300">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-[#1B2559] dark:text-white mb-0.5 group-hover:text-[#F49700] transition-colors">Detailed Analytics</h3>
-                    <p className="text-sm text-slate-500 font-medium">Visualize your growing strengths.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Visualize your growing strengths.</p>
                   </div>
                 </div>
 
-                <div className="flex gap-4 items-center p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-purple-200 transition-all duration-300 group cursor-default">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                <div className="flex gap-4 items-center p-4 rounded-xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-purple-200 transition-all duration-300 group cursor-default dark:bg-slate-900 dark:border-slate-800">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 dark:bg-purple-900/20 dark:text-purple-300">
                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-[#1B2559] dark:text-white mb-0.5 group-hover:text-purple-600 transition-colors">Problem Archives</h3>
-                    <p className="text-sm text-slate-500 font-medium">Thousands of curated problems.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Thousands of curated problems.</p>
                   </div>
                 </div>
               </div>
