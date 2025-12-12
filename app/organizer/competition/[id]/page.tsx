@@ -156,13 +156,13 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "easy":
-        return "bg-green-50 text-green-700 border-green-200";
+        return "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800";
       case "average":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
+        return "bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800";
       case "difficult":
-        return "bg-red-50 text-red-700 border-red-200";
+        return "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800";
       default:
-        return "bg-slate-50 text-slate-700 border-slate-200";
+        return "bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600";
     }
   };
 
@@ -180,16 +180,16 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
   };
 
   const statusColors = {
-    draft: "bg-slate-100 text-slate-700",
-    published: "bg-blue-100 text-blue-700",
-    ongoing: "bg-green-100 text-green-700",
-    completed: "bg-gray-100 text-gray-700",
+    draft: "bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300",
+    published: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+    ongoing: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    completed: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400",
   };
 
   const statusColor = statusColors[competition.status as keyof typeof statusColors] || statusColors.draft;
 
   return (
-    <div className="min-h-screen p-8 bg-slate-50">
+    <div className="min-h-screen p-8 bg-slate-50 dark:bg-slate-900">
       <div className="max-w-4xl mx-auto">
         <div className="space-y-6">
           {/* Header */}
@@ -197,15 +197,15 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
             <div className="flex items-center gap-3">
               <Link
                 href="/organizer/competition"
-                className="text-slate-600 hover:text-[#f49700] transition-colors"
+                className="text-slate-600 dark:text-slate-400 hover:text-[#f49700] transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </Link>
               <div>
-                <h2 className="text-2xl font-bold text-slate-800">Competition Details</h2>
-                <p className="text-sm text-slate-600 mt-1">
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Competition Details</h2>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColor}`}>
                     {competition.status.charAt(0).toUpperCase() + competition.status.slice(1)}
                   </span>
@@ -215,7 +215,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
             {competition.status === "draft" && (
               <Link
                 href={`/organizer/competition/create?edit=${competition.id}`}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -226,36 +226,36 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
           </div>
 
           {/* Basic Info */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Basic Information</h3>
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Basic Information</h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-slate-600">Competition Name</p>
-                <p className="font-medium text-slate-800">{competition.name}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Competition Name</p>
+                <p className="font-medium text-slate-800 dark:text-white">{competition.name}</p>
               </div>
               {competition.description && (
                 <div>
-                  <p className="text-sm text-slate-600">Description</p>
-                  <p className="text-slate-800">{competition.description}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Description</p>
+                  <p className="text-slate-800 dark:text-slate-200">{competition.description}</p>
                 </div>
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-slate-600">Start Date & Time</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Start Date & Time</p>
+                  <p className="font-medium text-slate-800 dark:text-white">
                     {startDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-600">End Date & Time</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">End Date & Time</p>
+                  <p className="font-medium text-slate-800 dark:text-white">
                     {endDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-slate-600">Duration</p>
-                <p className="font-medium text-slate-800">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Duration</p>
+                <p className="font-medium text-slate-800 dark:text-white">
                   {hours > 0 && `${hours} hour${hours !== 1 ? 's' : ''}`}
                   {hours > 0 && minutes > 0 && ' '}
                   {minutes > 0 && `${minutes} minute${minutes !== 1 ? 's' : ''}`}
@@ -265,29 +265,29 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
           </div>
 
           {/* Participation Settings */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Participation Settings</h3>
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Participation Settings</h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-slate-600">Participation Type</p>
-                <p className="font-medium text-slate-800 capitalize">{competition.participation_type}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Participation Type</p>
+                <p className="font-medium text-slate-800 dark:text-white capitalize">{competition.participation_type}</p>
               </div>
               {competition.participation_type === "individual" ? (
                 <div>
-                  <p className="text-sm text-slate-600">Maximum Participants</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Maximum Participants</p>
+                  <p className="font-medium text-slate-800 dark:text-white">
                     {competition.max_participants ? competition.max_participants : "Unlimited"}
                   </p>
                 </div>
               ) : (
                 <>
                   <div>
-                    <p className="text-sm text-slate-600">Maximum Team Members</p>
-                    <p className="font-medium text-slate-800">{competition.max_team_members}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Maximum Team Members</p>
+                    <p className="font-medium text-slate-800 dark:text-white">{competition.max_team_members}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600">Maximum Teams</p>
-                    <p className="font-medium text-slate-800">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Maximum Teams</p>
+                    <p className="font-medium text-slate-800 dark:text-white">
                       {competition.max_teams ? competition.max_teams : "Unlimited"}
                     </p>
                   </div>
@@ -297,28 +297,28 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
           </div>
 
           {/* Point System */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Point System</h3>
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Point System</h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-slate-600">Point Assignment Method</p>
-                <p className="font-medium text-slate-800">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Point Assignment Method</p>
+                <p className="font-medium text-slate-800 dark:text-white">
                   {competition.point_system_type === "auto_level" ? "Auto-Level Points" : "Manual Points"}
                 </p>
               </div>
               {competition.point_system_type === "auto_level" && (
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-slate-600">Easy</p>
-                    <p className="font-medium text-green-700">{competition.easy_points} points</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Easy</p>
+                    <p className="font-medium text-green-700 dark:text-green-400">{competition.easy_points} points</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600">Average</p>
-                    <p className="font-medium text-yellow-700">{competition.average_points} points</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Average</p>
+                    <p className="font-medium text-yellow-700 dark:text-yellow-400">{competition.average_points} points</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-600">Difficult</p>
-                    <p className="font-medium text-red-700">{competition.difficult_points} points</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Difficult</p>
+                    <p className="font-medium text-red-700 dark:text-red-400">{competition.difficult_points} points</p>
                   </div>
                 </div>
               )}
@@ -326,13 +326,13 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
           </div>
 
           {/* Registered Participants */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-800">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
                 Registered Participants ({participants.length})
               </h3>
               {participants.length > 0 && (
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   {competition.max_participants
                     ? `${participants.length} / ${competition.max_participants} slots filled`
                     : `${participants.length} registered`
@@ -348,8 +348,8 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                   const registeredDate = new Date(registration.registered_at);
 
                   return (
-                    <div key={registration.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                      <div className="flex-shrink-0 w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center text-xs font-medium text-slate-600">
+                    <div key={registration.id} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                      <div className="flex-shrink-0 w-8 h-8 bg-slate-200 dark:bg-slate-600 rounded-full flex items-center justify-center text-xs font-medium text-slate-600 dark:text-slate-300">
                         {index + 1}
                       </div>
 
@@ -359,7 +359,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                           <img
                             src={profile.avatar_url}
                             alt={profile.full_name || "Participant"}
-                            className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-600"
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f49700] to-[#d68400] flex items-center justify-center text-white font-semibold text-sm">
@@ -370,10 +370,10 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-slate-800 truncate">
+                        <p className="font-medium text-slate-800 dark:text-white truncate">
                           {profile?.full_name || profile?.username || "Unknown Participant"}
                         </p>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                           {profile?.school && (
                             <span className="flex items-center gap-1 truncate">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -388,8 +388,8 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
 
                       {/* Registration Date */}
                       <div className="flex-shrink-0 text-right">
-                        <p className="text-xs text-slate-500">Registered</p>
-                        <p className="text-xs font-medium text-slate-600">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Registered</p>
+                        <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
                           {registeredDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
                       </div>
@@ -399,13 +399,13 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
-                <p className="text-slate-500 font-medium">No participants yet</p>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-slate-500 dark:text-slate-400 font-medium">No participants yet</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
                   {competition.status === "published"
                     ? "Participants will appear here once they register."
                     : "Publish this competition to allow participants to register."
@@ -416,16 +416,16 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
           </div>
 
           {/* Leaderboard */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Leaderboard
               </h3>
               {leaderboardData.length > 0 && (
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-slate-500 dark:text-slate-400">
                   {leaderboardData.length} participant{leaderboardData.length !== 1 ? 's' : ''} ranked
                 </span>
               )}
@@ -443,7 +443,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                   };
 
                   return (
-                    <div key={entry.mathlete_id} className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${rank <= 3 ? 'bg-gradient-to-r from-slate-50 to-white border border-slate-200' : 'bg-slate-50 hover:bg-slate-100'}`}>
+                    <div key={entry.mathlete_id} className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${rank <= 3 ? 'bg-gradient-to-r from-slate-50 to-white dark:from-slate-700 dark:to-slate-800 border border-slate-200 dark:border-slate-600' : 'bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                       {/* Rank */}
                       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${getMedalColor(rank)}`}>
                         {rank <= 3 ? (
@@ -455,20 +455,20 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
 
                       {/* Name */}
                       <div className="flex-1 min-w-0">
-                        <p className={`font-medium truncate ${rank <= 3 ? 'text-slate-800' : 'text-slate-700'}`}>
+                        <p className={`font-medium truncate ${rank <= 3 ? 'text-slate-800 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
                           {entry.display_name}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {entry.attempts_count} attempt{entry.attempts_count !== 1 ? 's' : ''}
                         </p>
                       </div>
 
                       {/* Score */}
                       <div className="flex-shrink-0 text-right">
-                        <p className={`text-lg font-bold ${rank === 1 ? 'text-[#f49700]' : rank <= 3 ? 'text-slate-700' : 'text-slate-600'}`}>
+                        <p className={`text-lg font-bold ${rank === 1 ? 'text-[#f49700]' : rank <= 3 ? 'text-slate-700 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300'}`}>
                           {entry.best_score}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {entry.percentage}%
                         </p>
                       </div>
@@ -478,37 +478,37 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <p className="text-slate-500 font-medium">No results yet</p>
-                <p className="text-sm text-slate-400 mt-1">
+                <p className="text-slate-500 dark:text-slate-400 font-medium">No results yet</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
                   The leaderboard will appear once participants complete the competition.
                 </p>
               </div>
             )}
 
             {leaderboardData.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-slate-200">
+              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">Total Possible Points</span>
-                  <span className="font-semibold text-slate-800">{totalPossiblePoints}</span>
+                  <span className="text-slate-600 dark:text-slate-400">Total Possible Points</span>
+                  <span className="font-semibold text-slate-800 dark:text-white">{totalPossiblePoints}</span>
                 </div>
               </div>
             )}
           </div>
 
           {/* Problems */}
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">
               Problems ({problems.length})
             </h3>
             <div className="space-y-2">
               {problems.map((cp: any, index: number) => (
-                <div key={cp.problems.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
-                  <div className="flex-shrink-0 w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center text-xs font-medium text-slate-700">
+                <div key={cp.problems.id} className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
+                  <div className="flex-shrink-0 w-6 h-6 bg-slate-200 dark:bg-slate-600 rounded-full flex items-center justify-center text-xs font-medium text-slate-700 dark:text-slate-200">
                     {index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -516,14 +516,14 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                       <span className={`text-xs font-medium px-2 py-0.5 rounded border capitalize ${getDifficultyColor(cp.problems.difficulty)}`}>
                         {cp.problems.difficulty}
                       </span>
-                      <span className="text-xs text-slate-500">{getTypeLabel(cp.problems.type)}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{getTypeLabel(cp.problems.type)}</span>
                     </div>
-                    <div className="text-sm text-slate-800 mb-1">
+                    <div className="text-sm text-slate-800 dark:text-white mb-1">
                       <MathRenderer text={cp.problems.question} />
                     </div>
                     <div className="flex items-center gap-2 text-xs">
-                      <span className="text-slate-600 font-medium">Answer:</span>
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+                      <span className="text-slate-600 dark:text-slate-400 font-medium">Answer:</span>
+                      <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded font-medium">
                         <MathRenderer text={cp.problems.correct_answer} />
                       </span>
                     </div>
@@ -534,9 +534,9 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
               <div className="flex justify-between items-center">
-                <p className="text-sm font-medium text-slate-700">Total Points</p>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Total Points</p>
                 <p className="text-lg font-bold text-[#f49700]">
                   {problems.reduce((sum: number, cp: any) => sum + (cp.points || 0), 0)} points
                 </p>
@@ -548,7 +548,7 @@ export default async function CompetitionDetailPage({ params }: { params: { id: 
           <div className="flex justify-center pt-4">
             <Link
               href="/organizer/competition"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
