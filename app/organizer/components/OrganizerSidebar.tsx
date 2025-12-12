@@ -74,12 +74,12 @@ export default function OrganizerSidebar() {
     ];
 
     return (
-        <aside className="w-64 bg-white border-r border-slate-200 fixed h-full overflow-y-auto">
+        <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 fixed h-full overflow-y-auto transition-colors">
             <div className="p-6">
                 <Link href="/" className="flex items-center gap-3 mb-8">
                     <Image src="/icon.svg" alt="Mathwiz Logo" width={40} height={40} className="rounded-md" />
                     <div>
-                        <h1 className="text-lg font-semibold text-slate-800">Mathwiz</h1>
+                        <h1 className="text-lg font-semibold text-slate-800 dark:text-white">Mathwiz</h1>
                         <p className="text-xs text-[#f49700] font-medium">Organizer</p>
                     </div>
                 </Link>
@@ -90,8 +90,8 @@ export default function OrganizerSidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
-                                    ? "text-white bg-[#f49700]"
-                                    : "text-slate-700 hover:bg-slate-50"
+                                ? "text-white bg-[#f49700]"
+                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#f49700] dark:hover:text-[#f49700]"
                                 }`}
                         >
                             {item.icon}
@@ -99,8 +99,8 @@ export default function OrganizerSidebar() {
                         </Link>
                     ))}
 
-                    <div className="pt-4 mt-4 border-t border-slate-200">
-                        <LoginButton />
+                    <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
+                        <LoginButton className="w-full" />
                     </div>
                 </nav>
             </div>

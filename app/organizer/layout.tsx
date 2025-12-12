@@ -26,7 +26,7 @@ export default async function OrganizerLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors">
             <OrganizerSidebar />
             <main className="flex-1 ml-64">
                 {children}
