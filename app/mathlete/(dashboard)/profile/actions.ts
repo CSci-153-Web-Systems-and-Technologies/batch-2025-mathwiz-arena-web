@@ -62,6 +62,41 @@ export async function updateProfilePicture(formData: FormData) {
     return { success: true, url: urlData.publicUrl };
 }
 
+export async function removeProfilePicture() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: "Not authenticated" };
+    }
+
+    // Try to delete the avatar file from storage (might fail if it doesn't exist)
+    try {
+        const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        for (const ext of extensions) {
+            await supabase.storage
+                .from("avatars")
+                .remove([`${user.id}/avatar.${ext}`]);
+        }
+    } catch (e) {
+        // Ignore errors - file might not exist
+    }
+
+    // Update profile to remove avatar URL
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("id", user.id);
+
+    if (updateError) {
+        console.error("Update error:", updateError);
+        return { error: "Failed to remove profile picture" };
+    }
+
+    revalidatePath("/mathlete/profile");
+    return { success: true };
+}
+
 export async function updateCoverPhoto(formData: FormData) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -119,6 +154,41 @@ export async function updateCoverPhoto(formData: FormData) {
 
     revalidatePath("/mathlete/profile");
     return { success: true, url: urlData.publicUrl };
+}
+
+export async function removeCoverPhoto() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: "Not authenticated" };
+    }
+
+    // Try to delete the cover file from storage
+    try {
+        const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        for (const ext of extensions) {
+            await supabase.storage
+                .from("covers")
+                .remove([`${user.id}/cover.${ext}`]);
+        }
+    } catch (e) {
+        // Ignore errors - file might not exist
+    }
+
+    // Update profile to remove cover URL
+    const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ cover_photo_url: null })
+        .eq("id", user.id);
+
+    if (updateError) {
+        console.error("Update error:", updateError);
+        return { error: "Failed to remove cover photo" };
+    }
+
+    revalidatePath("/mathlete/profile");
+    return { success: true };
 }
 
 export async function updateProfileInfo(formData: FormData) {

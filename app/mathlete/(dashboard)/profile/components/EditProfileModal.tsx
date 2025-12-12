@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { updateProfileInfo, updateProfilePicture } from "../actions";
+import { updateProfileInfo, updateProfilePicture, removeProfilePicture, updateCoverPhoto, removeCoverPhoto } from "../actions";
 
 interface EditProfileModalProps {
     isOpen: boolean;
@@ -13,6 +13,7 @@ interface EditProfileModalProps {
         username: string | null;
         bio: string | null;
         avatar_url: string | null;
+        cover_photo_url: string | null;
         school: string | null;
         country: string | null;
         province_city: string | null;
@@ -23,12 +24,17 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
     const [fullName, setFullName] = useState(profile.full_name || "");
     const [bio, setBio] = useState(profile.bio || "");
     const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
+    const [coverUrl, setCoverUrl] = useState(profile.cover_photo_url);
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+    const [isRemovingAvatar, setIsRemovingAvatar] = useState(false);
+    const [isUploadingCover, setIsUploadingCover] = useState(false);
+    const [isRemovingCover, setIsRemovingCover] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
     const avatarInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -49,6 +55,61 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
         }
 
         setIsUploadingAvatar(false);
+    };
+
+    const handleRemoveAvatar = async () => {
+        if (!avatarUrl) return;
+
+        setIsRemovingAvatar(true);
+        setError("");
+
+        const result = await removeProfilePicture();
+
+        if (result.error) {
+            setError(result.error);
+        } else {
+            setAvatarUrl(null);
+        }
+
+        setIsRemovingAvatar(false);
+    };
+
+    const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingCover(true);
+        setError("");
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const result = await updateCoverPhoto(formData);
+
+        if (result.error) {
+            setError(result.error);
+        } else if (result.url) {
+            setCoverUrl(result.url + "?t=" + Date.now());
+        }
+
+        setIsUploadingCover(false);
+    };
+
+    const handleRemoveCover = async () => {
+        if (!coverUrl) return;
+
+        setIsRemovingCover(true);
+        setError("");
+
+        const result = await removeCoverPhoto();
+
+        if (result.error) {
+            setError(result.error);
+        } else {
+            setCoverUrl(null);
+        }
+
+        setIsRemovingCover(false);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -108,16 +169,16 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                     {/* Profile Picture */}
                     <div className="flex flex-col items-center">
                         <div className="relative">
-                            <div className="w-24 h-24 rounded-full border-4 border-slate-200 overflow-hidden bg-gradient-to-br from-[#25346A] to-[#3a5199]">
+                            <div className="w-28 h-28 rounded-full border-4 border-slate-200 overflow-hidden bg-gradient-to-br from-[#25346A] to-[#3a5199]">
                                 {avatarUrl ? (
                                     <Image
                                         src={avatarUrl}
                                         alt="Profile"
                                         fill
-                                        className="object-cover"
+                                        className="object-cover rounded-full"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
+                                    <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
                                         {getInitials()}
                                     </div>
                                 )}
@@ -128,7 +189,7 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                                 type="button"
                                 onClick={() => avatarInputRef.current?.click()}
                                 disabled={isUploadingAvatar}
-                                className="absolute bottom-0 right-0 w-8 h-8 bg-[#F49700] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-colors"
+                                className="absolute bottom-0 right-0 w-9 h-9 bg-[#F49700] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-colors border-2 border-white"
                             >
                                 {isUploadingAvatar ? (
                                     <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -151,8 +212,132 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
                                 className="hidden"
                             />
                         </div>
-                        <p className="text-sm text-slate-500 mt-2">Click to upload a new photo</p>
-                        <p className="text-xs text-slate-400">Max 2MB • JPG, PNG, GIF</p>
+
+                        {/* Upload/Remove Buttons */}
+                        <div className="flex items-center gap-3 mt-3">
+                            <button
+                                type="button"
+                                onClick={() => avatarInputRef.current?.click()}
+                                disabled={isUploadingAvatar}
+                                className="text-sm text-[#25346A] hover:text-[#F49700] font-medium transition-colors"
+                            >
+                                {avatarUrl ? "Change photo" : "Upload photo"}
+                            </button>
+                            {avatarUrl && (
+                                <>
+                                    <span className="text-slate-300">|</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveAvatar}
+                                        disabled={isRemovingAvatar}
+                                        className="text-sm text-red-500 hover:text-red-600 font-medium transition-colors flex items-center gap-1"
+                                    >
+                                        {isRemovingAvatar ? (
+                                            <>
+                                                <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Removing...
+                                            </>
+                                        ) : (
+                                            "Remove"
+                                        )}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Max 2MB • JPG, PNG, GIF</p>
+                    </div>
+
+                    {/* Cover Photo */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Cover Photo
+                        </label>
+                        <div className="relative w-full h-32 rounded-xl overflow-hidden border-2 border-dashed border-slate-300 bg-gradient-to-br from-[#25346A] to-[#3a5199]">
+                            {coverUrl ? (
+                                <Image
+                                    src={coverUrl}
+                                    alt="Cover"
+                                    fill
+                                    className="object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <div className="text-center text-white/70">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p className="text-xs">No cover photo</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Camera upload button */}
+                            <button
+                                type="button"
+                                onClick={() => coverInputRef.current?.click()}
+                                disabled={isUploadingCover}
+                                className="absolute bottom-2 right-2 w-9 h-9 bg-white/90 text-slate-700 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
+                            >
+                                {isUploadingCover ? (
+                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                )}
+                            </button>
+
+                            <input
+                                ref={coverInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleCoverUpload}
+                                className="hidden"
+                            />
+                        </div>
+
+                        {/* Upload/Remove buttons */}
+                        <div className="flex items-center gap-3 mt-2">
+                            <button
+                                type="button"
+                                onClick={() => coverInputRef.current?.click()}
+                                disabled={isUploadingCover}
+                                className="text-sm text-[#25346A] hover:text-[#F49700] font-medium transition-colors"
+                            >
+                                {coverUrl ? "Change cover" : "Upload cover"}
+                            </button>
+                            {coverUrl && (
+                                <>
+                                    <span className="text-slate-300">|</span>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveCover}
+                                        disabled={isRemovingCover}
+                                        className="text-sm text-red-500 hover:text-red-600 font-medium transition-colors flex items-center gap-1"
+                                    >
+                                        {isRemovingCover ? (
+                                            <>
+                                                <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                Removing...
+                                            </>
+                                        ) : (
+                                            "Remove"
+                                        )}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">Max 5MB • Recommended: 1200 x 400px</p>
                     </div>
 
                     {/* Full Name */}
