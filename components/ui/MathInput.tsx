@@ -417,15 +417,15 @@ export function MathAnswerInput({
                             onClick={() => setActiveCategory(activeCategory === category ? null : category)}
                             disabled={disabled}
                             className={`px-2 py-1 text-xs font-medium rounded transition-colors ${activeCategory === category
-                                ? "bg-[#25346A] text-white"
-                                : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
+                                ? "bg-[#25346A] dark:bg-blue-600 text-white"
+                                : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
                                 } disabled:opacity-50`}
                         >
                             {category}
                         </button>
 
                         {activeCategory === category && (
-                            <div className="absolute top-full left-0 mt-1 z-10 bg-white border border-slate-200 rounded-md shadow-lg p-2 flex flex-wrap gap-1 min-w-[200px]">
+                            <div className="absolute top-full left-0 mt-1 z-10 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg p-2 flex flex-wrap gap-1 min-w-[200px]">
                                 {symbols.map((symbol, idx) => (
                                     <button
                                         key={idx}
@@ -436,7 +436,7 @@ export function MathAnswerInput({
                                         }}
                                         title={`${symbol.title} (${symbol.latex})`}
                                         disabled={disabled}
-                                        className="px-2 py-1 text-sm bg-slate-50 hover:bg-slate-100 rounded transition-colors flex items-center gap-1 disabled:opacity-50"
+                                        className="px-2 py-1 text-sm bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors flex items-center gap-1 disabled:opacity-50 text-slate-700 dark:text-slate-200"
                                     >
                                         <span className="font-medium">{symbol.label}</span>
                                     </button>
@@ -456,7 +456,7 @@ export function MathAnswerInput({
                     disabled={disabled}
                     className={`px-2 py-1 text-xs font-medium rounded transition-colors ${showPreview
                         ? "bg-green-600 text-white"
-                        : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
+                        : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
                         } disabled:opacity-50`}
                 >
                     {showPreview ? "Hide Preview" : "Show Preview"}
@@ -471,14 +471,14 @@ export function MathAnswerInput({
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
                 disabled={disabled}
-                className="w-full px-4 py-3 text-lg bg-white border-2 border-slate-200 rounded-lg focus:outline-none focus:border-[#25346A] disabled:opacity-50 transition-colors"
+                className="w-full px-4 py-3 text-lg bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:border-[#25346A] dark:focus:border-blue-400 text-slate-900 dark:text-white disabled:opacity-50 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
 
             {/* Preview */}
             {showPreview && value && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs font-medium text-blue-700 mb-2">Preview:</p>
-                    <div className="text-lg text-slate-800">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-2">Preview:</p>
+                    <div className="text-lg text-slate-800 dark:text-slate-200">
                         <MathRenderer text={value} />
                     </div>
                 </div>

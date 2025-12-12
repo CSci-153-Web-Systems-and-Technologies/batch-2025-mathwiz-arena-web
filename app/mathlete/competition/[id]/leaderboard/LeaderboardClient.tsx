@@ -41,7 +41,7 @@ export default function LeaderboardClient({
         if (rank === 1) return "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white";
         if (rank === 2) return "bg-gradient-to-r from-slate-300 to-slate-400 text-white";
         if (rank === 3) return "bg-gradient-to-r from-orange-400 to-orange-500 text-white";
-        return "bg-slate-100 text-slate-600";
+        return "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300";
     };
 
     const getRankIcon = (rank: number) => {
@@ -64,18 +64,18 @@ export default function LeaderboardClient({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-8 px-4">
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-[#25346A] mb-2">
+                    <h1 className="text-3xl font-bold text-[#25346A] dark:text-white mb-2">
                         🏆 Leaderboard
                     </h1>
-                    <p className="text-slate-600">{competitionName}</p>
+                    <p className="text-slate-600 dark:text-slate-400">{competitionName}</p>
                 </div>
 
                 {/* Leaderboard Card */}
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg overflow-hidden mb-8">
                     {/* Top 3 Podium */}
                     {leaderboard.length >= 3 && (
                         <div className="bg-gradient-to-br from-[#25346A] to-[#1e2a54] p-8">
@@ -129,8 +129,8 @@ export default function LeaderboardClient({
                                 <div
                                     key={entry.mathlete_id}
                                     className={`flex items-center gap-4 p-4 rounded-xl transition-all ${entry.is_current_user
-                                        ? "bg-blue-50 border-2 border-blue-200"
-                                        : "bg-slate-50 hover:bg-slate-100"
+                                        ? "bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800"
+                                        : "bg-slate-50 dark:bg-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-700/50"
                                         }`}
                                 >
                                     {/* Rank */}
@@ -140,25 +140,25 @@ export default function LeaderboardClient({
 
                                     {/* Name */}
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-semibold truncate ${entry.is_current_user ? "text-[#25346A]" : "text-slate-800"}`}>
+                                        <p className={`font-semibold truncate ${entry.is_current_user ? "text-[#25346A] dark:text-blue-400" : "text-slate-800 dark:text-slate-200"}`}>
                                             {entry.display_name}
-                                            {entry.is_current_user && <span className="ml-2 text-xs text-blue-600">(You)</span>}
+                                            {entry.is_current_user && <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">(You)</span>}
                                         </p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
                                             {entry.attempts_count} attempt{entry.attempts_count > 1 ? 's' : ''}
                                         </p>
                                     </div>
 
                                     {/* Score */}
                                     <div className="text-right">
-                                        <p className="font-bold text-[#25346A]">{entry.best_score} pts</p>
-                                        <p className="text-xs text-slate-500">{entry.best_percentage}%</p>
+                                        <p className="font-bold text-[#25346A] dark:text-white">{entry.best_score} pts</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">{entry.best_percentage}%</p>
                                     </div>
                                 </div>
                             ))}
 
                             {leaderboard.length === 0 && (
-                                <div className="text-center py-8 text-slate-500">
+                                <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                                     No participants yet. Be the first to complete this competition!
                                 </div>
                             )}
@@ -170,14 +170,14 @@ export default function LeaderboardClient({
                 <div className="flex justify-center gap-4">
                     <Link
                         href="/mathlete"
-                        className="px-8 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                        className="px-8 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
                     >
                         Back to Dashboard
                     </Link>
                     {attemptId && (
                         <Link
                             href={`/mathlete/competition/${competitionId}/results?attemptId=${attemptId}`}
-                            className="px-8 py-3 bg-[#25346A] text-white rounded-lg hover:bg-[#1e2a54] transition-colors font-semibold"
+                            className="px-8 py-3 bg-[#25346A] dark:bg-blue-600 text-white rounded-lg hover:bg-[#1e2a54] dark:hover:bg-blue-700 transition-colors font-semibold"
                         >
                             View Answers
                         </Link>

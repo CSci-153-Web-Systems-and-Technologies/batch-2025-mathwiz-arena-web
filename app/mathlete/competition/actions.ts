@@ -363,8 +363,203 @@ export async function submitAnswer(
         isCorrect,
         pointsEarned
     };
+    return {
+        success: true,
+        isCorrect,
+        pointsEarned
+    };
 }
 
+export async function submitBatchAnswers(
+    attemptId: string,
+    answers: Record<string, string>
+) {
+    const supabase = await createClient();
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+        return {
+            success: false,
+            error: "You must be logged in"
+        };
+    }
+
+    // Verify attempt matches user and is active
+    const { data: attempt, error: attemptError } = await supabase
+        .from("competition_attempts")
+        .select("id, competition_id, is_completed, started_at")
+        .eq("id", attemptId)
+        .eq("mathlete_id", user.id)
+        .single();
+
+    if (attemptError || !attempt) {
+        return {
+            success: false,
+            error: "Attempt not found"
+        };
+    }
+
+    if (attempt.is_completed) {
+        return {
+            success: false,
+            error: "This attempt has already been completed"
+        };
+    }
+
+    // Get competition details for validation
+    const { data: competition, error: compError } = await supabase
+        .from("competitions")
+        .select("duration_minutes")
+        .eq("id", attempt.competition_id)
+        .single();
+
+    if (compError || !competition) {
+        return {
+            success: false,
+            error: "Competition not found"
+        };
+    }
+
+    // Check expiration
+    const attemptStart = new Date(attempt.started_at);
+    const attemptEnd = new Date(attemptStart.getTime() + competition.duration_minutes * 60 * 1000);
+    const now = new Date();
+
+    if (now >= attemptEnd) {
+        await supabase
+            .from("competition_attempts")
+            .update({
+                is_completed: true,
+                ended_at: attemptEnd.toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", attemptId);
+
+        return {
+            success: false,
+            error: "Time has expired for this attempt"
+        };
+    }
+
+    // Fetch all relevant problems
+    const problemIds = Object.keys(answers);
+    const { data: competitionProblems, error: cpError } = await supabase
+        .from("competition_problems")
+        .select(`
+            id,
+            points,
+            problems (
+                id,
+                correct_answer,
+                type
+            )
+        `)
+        .in("id", problemIds)
+        .eq("competition_id", attempt.competition_id);
+
+    if (cpError || !competitionProblems) {
+        return {
+            success: false,
+            error: "Failed to fetch problems"
+        };
+    }
+
+    // Reuse helper functions logic
+    const normalizeAnswer = (ans: string): string => {
+        let normalized = ans.trim().toLowerCase();
+        normalized = normalized.replace(/\$/g, '');
+        normalized = normalized.replace(/\s*=\s*/g, '=');
+        return normalized;
+    };
+
+    const areNumericallyEqual = (a: string, b: string): boolean => {
+        const numA = parseFloat(a);
+        const numB = parseFloat(b);
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return Math.abs(numA - numB) < 0.0001;
+        }
+        return false;
+    };
+
+    const answersToUpsert = [];
+
+    // Process each answer
+    for (const compProblem of competitionProblems) {
+        const userAnswer = answers[compProblem.id];
+        if (!userAnswer) continue;
+
+        const problem = compProblem.problems as any;
+        let isCorrect = false;
+
+        if (problem.type === "identification") {
+            const acceptableAnswers = problem.correct_answer.split('|').map((a: string) => a.trim());
+            const normalizedUser = normalizeAnswer(userAnswer);
+
+            for (const acceptable of acceptableAnswers) {
+                const normalizedAcceptable = normalizeAnswer(acceptable);
+
+                if (normalizedUser === normalizedAcceptable) {
+                    isCorrect = true;
+                    break;
+                }
+                if (areNumericallyEqual(normalizedUser, normalizedAcceptable)) {
+                    isCorrect = true;
+                    break;
+                }
+                if (normalizedAcceptable.includes('=')) {
+                    const valueAfterEquals = normalizedAcceptable.split('=').pop()?.trim() || '';
+                    if (normalizedUser === valueAfterEquals || areNumericallyEqual(normalizedUser, valueAfterEquals)) {
+                        isCorrect = true;
+                        break;
+                    }
+                }
+                if (normalizedUser.includes('=')) {
+                    const userValueAfterEquals = normalizedUser.split('=').pop()?.trim() || '';
+                    if (userValueAfterEquals === normalizedAcceptable || areNumericallyEqual(userValueAfterEquals, normalizedAcceptable)) {
+                        isCorrect = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            isCorrect = userAnswer === problem.correct_answer;
+        }
+
+        const pointsEarned = isCorrect ? compProblem.points : 0;
+
+        answersToUpsert.push({
+            attempt_id: attemptId,
+            competition_problem_id: compProblem.id,
+            answer: userAnswer,
+            is_correct: isCorrect,
+            points_earned: pointsEarned,
+            answered_at: new Date().toISOString()
+        });
+    }
+
+    // Batch upsert
+    if (answersToUpsert.length > 0) {
+        const { error: upsertError } = await supabase
+            .from("competition_answers")
+            .upsert(answersToUpsert, {
+                onConflict: "attempt_id,competition_problem_id"
+            });
+
+        if (upsertError) {
+            console.error("Batch save failed:", upsertError);
+            return {
+                success: false,
+                error: "Failed to save answers"
+            };
+        }
+    }
+
+    return {
+        success: true,
+        count: answersToUpsert.length
+    };
+}
 export async function completeAttempt(attemptId: string) {
     const supabase = await createClient();
 
