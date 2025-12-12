@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import ProfileContent from "./components/ProfileContent";
+import { syncAchievements } from "./actions";
 
 export default async function MathleteProfilePage() {
   const supabase = await createClient();
@@ -10,99 +11,198 @@ export default async function MathleteProfilePage() {
     redirect("/login");
   }
 
-  // Fetch user profile
+  // Sync achievements - retroactively awards any achievements the user qualifies for
+  // This runs on each page load but only inserts if not already earned
+  await syncAchievements();
+
+  // Fetch user profile with new fields
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
+  // Fetch all completed competition attempts with competition details
+  const { data: attempts } = await supabase
+    .from("competition_attempts")
+    .select(`
+      id, 
+      total_score, 
+      is_completed,
+      started_at,
+      ended_at,
+      competition_id,
+      competitions (
+        id,
+        name,
+        competition_problems (
+          points
+        )
+      )
+    `)
+    .eq("mathlete_id", user.id)
+    .eq("is_completed", true)
+    .order("ended_at", { ascending: false });
+
+  // Calculate competition stats
+  const competitionsCompleted = attempts?.length || 0;
+  const totalScore = attempts?.reduce((sum, a) => sum + (a.total_score || 0), 0) || 0;
+  const averageScore = competitionsCompleted > 0 ? totalScore / competitionsCompleted : 0;
+
+  // Find best performance
+  let bestScore = 0;
+  let bestCompetition: string | null = null;
+
+  if (attempts && attempts.length > 0) {
+    const best = attempts.reduce((prev, current) =>
+      (current.total_score || 0) > (prev.total_score || 0) ? current : prev
+    );
+    bestScore = best.total_score || 0;
+    bestCompetition = (best.competitions as any)?.name || null;
+  }
+
+  // Calculate wins and top 3 finishes
+  let wins = 0;
+  let topThree = 0;
+  let perfectScores = 0;
+
+  if (attempts && attempts.length > 0) {
+    for (const attempt of attempts) {
+      // Get all attempts for this competition to determine rank
+      const { data: allCompetitionAttempts } = await supabase
+        .from("competition_attempts")
+        .select("mathlete_id, total_score")
+        .eq("competition_id", attempt.competition_id)
+        .eq("is_completed", true)
+        .order("total_score", { ascending: false });
+
+      if (allCompetitionAttempts) {
+        // Find user's rank in this competition
+        const userRank = allCompetitionAttempts.findIndex(a => a.mathlete_id === user.id) + 1;
+
+        if (userRank === 1) wins++;
+        if (userRank <= 3) topThree++;
+      }
+
+      // Check for perfect score
+      const competition = attempt.competitions as any;
+      if (competition?.competition_problems) {
+        const maxPoints = competition.competition_problems.reduce(
+          (sum: number, p: any) => sum + (p.points || 0), 0
+        );
+        if (maxPoints > 0 && attempt.total_score === maxPoints) {
+          perfectScores++;
+        }
+      }
+    }
+  }
+
+  const winRate = competitionsCompleted > 0 ? (wins / competitionsCompleted) * 100 : 0;
+
+  const stats = {
+    competitionsCompleted,
+    totalScore,
+    averageScore,
+    bestScore,
+    bestCompetition,
+    wins,
+    topThree,
+    perfectScores,
+    winRate,
+  };
+
+  // Calculate header stats (for quick stats in header)
+  // Get global rank
+  const { count: higherScoreCount } = await supabase
+    .from("competition_attempts")
+    .select("mathlete_id", { count: "exact", head: true })
+    .gt("total_score", totalScore)
+    .eq("is_completed", true);
+
+  const { data: allParticipants } = await supabase
+    .from("competition_attempts")
+    .select("mathlete_id")
+    .eq("is_completed", true);
+
+  const uniqueParticipants = new Set(allParticipants?.map(p => p.mathlete_id) || []);
+  const totalParticipants = uniqueParticipants.size;
+  const rank = competitionsCompleted > 0 ? (higherScoreCount || 0) + 1 : null;
+
+  const headerStats = {
+    competitionsJoined: competitionsCompleted,
+    totalScore,
+    rank,
+    totalParticipants
+  };
+
+  // Fetch user achievements
+  const { data: userAchievements } = await supabase
+    .from("user_achievements")
+    .select(`
+      id,
+      earned_at,
+      achievements (
+        id,
+        name,
+        description,
+        icon,
+        badge_color
+      )
+    `)
+    .eq("user_id", user.id)
+    .order("earned_at", { ascending: false });
+
+  // Get ALL available achievements (for the detail view)
+  const { data: allAchievementsData } = await supabase
+    .from("achievements")
+    .select("*")
+    .eq("is_active", true)
+    .order("requirement_value", { ascending: true });
+
+  // Get total available achievements count
+  const totalAchievements = allAchievementsData?.length || 0;
+
+  // Format earned achievements for display
+  const achievements = userAchievements?.map(ua => ({
+    id: (ua.achievements as any)?.id || ua.id,
+    name: (ua.achievements as any)?.name || "Unknown",
+    description: (ua.achievements as any)?.description || "",
+    icon: (ua.achievements as any)?.icon || "🏅",
+    badge_color: (ua.achievements as any)?.badge_color || "blue",
+    earned_at: ua.earned_at,
+  })) || [];
+
+  // Format all achievements for detail view
+  const allAchievements = allAchievementsData?.map(a => ({
+    id: a.id,
+    name: a.name,
+    description: a.description || "",
+    icon: a.icon || "🏅",
+    badge_color: a.badge_color || "blue",
+    requirement_type: a.requirement_type || "unknown",
+    requirement_value: a.requirement_value || 0,
+    is_active: a.is_active,
+  })) || [];
+
   return (
-    <div className="min-h-screen">
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link
-            href="/mathlete"
-            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-[#25346A]">Profile</h1>
-          <p className="text-slate-600 mt-1">View and manage your profile information</p>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Header Section */}
-          <div className="bg-gradient-to-r from-[#25346A] to-[#2A64d1] px-6 py-8">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-[#25346A] text-3xl font-bold shadow-lg">
-                {profile?.full_name?.charAt(0).toUpperCase() || profile?.username?.charAt(0).toUpperCase() || 'U'}
-              </div>
-              <div className="text-white">
-                <h2 className="text-2xl font-bold">{profile?.full_name || 'Mathlete'}</h2>
-                <p className="text-blue-100 mt-1">@{profile?.username}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Information Section */}
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-sm font-medium text-slate-600">Full Name</label>
-                <p className="mt-1 text-lg text-slate-900">{profile?.full_name || 'Not set'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">Username</label>
-                <p className="mt-1 text-lg text-slate-900">@{profile?.username}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">Email</label>
-                <p className="mt-1 text-lg text-slate-900">{user.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-600">Role</label>
-                <p className="mt-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    Mathlete
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            {/* Edit Profile Button (Coming Soon) */}
-            <div className="pt-4 border-t border-slate-200">
-              <button
-                disabled
-                className="px-6 py-2 bg-slate-100 text-slate-400 font-semibold rounded-lg cursor-not-allowed"
-              >
-                Edit Profile (Coming Soon)
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h3 className="font-semibold text-blue-900">Profile Editing Coming Soon</h3>
-              <p className="text-sm text-blue-800 mt-1">
-                The ability to edit your profile information will be available in a future update.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ProfileContent
+      profile={{
+        id: profile?.id || user.id,
+        full_name: profile?.full_name || null,
+        username: profile?.username || null,
+        avatar_url: profile?.avatar_url || null,
+        cover_photo_url: profile?.cover_photo_url || null,
+        school: profile?.school || null,
+        country: profile?.country || null,
+        province_city: profile?.province_city || null,
+        bio: profile?.bio || null,
+      }}
+      headerStats={headerStats}
+      stats={stats}
+      achievements={achievements}
+      allAchievements={allAchievements}
+      totalAchievements={totalAchievements}
+      userEmail={user.email || ""}
+    />
   );
 }
