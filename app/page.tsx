@@ -333,9 +333,9 @@ export default async function Home() {
             <span className="font-semibold">© {new Date().getFullYear()} Mathwiz</span>
           </div>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Contact</Link>
+            <Link href="/privacy" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Terms</Link>
+            <Link href="/contact" className="hover:text-[#1B2559] dark:hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </footer>
