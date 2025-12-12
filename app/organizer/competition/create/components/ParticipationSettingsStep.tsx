@@ -29,58 +29,56 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-1">Participation Settings</h3>
-        <p className="text-sm text-slate-600">Configure how participants will compete</p>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-1">Participation Settings</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Configure how participants will compete</p>
       </div>
 
       {/* Participation Type */}
       <div className="space-y-2">
-        <Label className="text-slate-700 font-medium">
+        <Label className="text-slate-700 dark:text-slate-300 font-medium">
           Participation Type <span className="text-red-500">*</span>
         </Label>
         <div className="grid grid-cols-2 gap-4">
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
+            onClick={() => setFormData({
+              ...formData,
               participationType: "individual",
               hasMaxTeams: false,
               maxTeams: "",
               maxTeamMembers: ""
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.participationType === "individual"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.participationType === "individual"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+                : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
+              }`}
             disabled={isLoading}
           >
             <div className="text-center">
               <div className="text-2xl mb-2">👤</div>
               <div className="font-semibold mb-1">Individual</div>
-              <div className="text-xs text-slate-600">Participants compete alone</div>
+              <div className="text-xs text-slate-600 dark:text-slate-400">Participants compete alone</div>
             </div>
           </button>
-          
+
           <button
             type="button"
-            onClick={() => setFormData({ 
-              ...formData, 
+            onClick={() => setFormData({
+              ...formData,
               participationType: "team",
               hasMaxParticipants: false,
               maxParticipants: ""
             })}
-            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${
-              formData.participationType === "team"
+            className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.participationType === "team"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 text-slate-700 hover:border-slate-300"
-            }`}
+                : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
+              }`}
             disabled={isLoading}
           >
             <div className="text-center">
               <div className="text-2xl mb-2">👥</div>
               <div className="font-semibold mb-1">Team</div>
-              <div className="text-xs text-slate-600">Participants compete in teams</div>
+              <div className="text-xs text-slate-600 dark:text-slate-400">Participants compete in teams</div>
             </div>
           </button>
         </div>
@@ -94,8 +92,8 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               type="checkbox"
               id="hasMaxParticipants"
               checked={formData.hasMaxParticipants}
-              onChange={(e) => setFormData({ 
-                ...formData, 
+              onChange={(e) => setFormData({
+                ...formData,
                 hasMaxParticipants: e.target.checked,
                 maxParticipants: e.target.checked ? formData.maxParticipants : ""
               })}
@@ -103,16 +101,16 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               disabled={isLoading}
             />
             <div className="flex-1">
-              <Label htmlFor="hasMaxParticipants" className="text-slate-700 font-medium cursor-pointer">
+              <Label htmlFor="hasMaxParticipants" className="text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
                 Set maximum number of participants
               </Label>
-              <p className="text-xs text-slate-500 mt-1">Leave unchecked for unlimited participants</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Leave unchecked for unlimited participants</p>
             </div>
           </div>
 
           {formData.hasMaxParticipants && (
             <div className="space-y-2">
-              <Label htmlFor="maxParticipants" className="text-sm text-slate-600">
+              <Label htmlFor="maxParticipants" className="text-sm text-slate-600 dark:text-slate-400">
                 Maximum Participants
               </Label>
               <Input
@@ -135,7 +133,7 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
         <div className="space-y-4 pl-4 border-l-2 border-[#f49700]">
           {/* Max Team Members */}
           <div className="space-y-2">
-            <Label htmlFor="maxTeamMembers" className="text-slate-700 font-medium">
+            <Label htmlFor="maxTeamMembers" className="text-slate-700 dark:text-slate-300 font-medium">
               Maximum Team Members <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -149,16 +147,16 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               disabled={isLoading}
               required
             />
-            <p className="text-xs text-slate-500">Minimum 2 members per team</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Minimum 2 members per team</p>
           </div>
 
           {/* Team Size Requirement */}
-          <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <Label className="text-slate-700 font-medium">
+          <div className="space-y-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
+            <Label className="text-slate-700 dark:text-slate-300 font-medium">
               Team Size Requirement
             </Label>
             <div className="space-y-3">
-              <div 
+              <div
                 className="flex items-start gap-3 cursor-pointer"
                 onClick={() => handleTeamSizeChange(false)}
               >
@@ -172,17 +170,17 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
                   disabled={isLoading}
                 />
                 <div className="flex-1">
-                  <div className="text-slate-700 font-medium">
+                  <div className="text-slate-700 dark:text-slate-300 font-medium">
                     Flexible (Recommended)
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Teams can register with <strong>2 or more members</strong> up to the maximum. 
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    Teams can register with <strong>2 or more members</strong> up to the maximum.
                     Good for competitions where team size flexibility is acceptable.
                   </p>
                 </div>
               </div>
 
-              <div 
+              <div
                 className="flex items-start gap-3 cursor-pointer"
                 onClick={() => handleTeamSizeChange(true)}
               >
@@ -196,11 +194,11 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
                   disabled={isLoading}
                 />
                 <div className="flex-1">
-                  <div className="text-slate-700 font-medium">
+                  <div className="text-slate-700 dark:text-slate-300 font-medium">
                     Strict Full Team
                   </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Teams must have <strong>exactly the maximum number</strong> of members to register. 
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    Teams must have <strong>exactly the maximum number</strong> of members to register.
                     Use for relay-style or role-based competitions.
                   </p>
                 </div>
@@ -214,8 +212,8 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               type="checkbox"
               id="hasMaxTeams"
               checked={formData.hasMaxTeams}
-              onChange={(e) => setFormData({ 
-                ...formData, 
+              onChange={(e) => setFormData({
+                ...formData,
                 hasMaxTeams: e.target.checked,
                 maxTeams: e.target.checked ? formData.maxTeams : ""
               })}
@@ -223,16 +221,16 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               disabled={isLoading}
             />
             <div className="flex-1">
-              <Label htmlFor="hasMaxTeams" className="text-slate-700 font-medium cursor-pointer">
+              <Label htmlFor="hasMaxTeams" className="text-slate-700 dark:text-slate-300 font-medium cursor-pointer">
                 Set maximum number of teams
               </Label>
-              <p className="text-xs text-slate-500 mt-1">Leave unchecked for unlimited teams</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Leave unchecked for unlimited teams</p>
             </div>
           </div>
 
           {formData.hasMaxTeams && (
             <div className="space-y-2">
-              <Label htmlFor="maxTeams" className="text-sm text-slate-600">
+              <Label htmlFor="maxTeams" className="text-sm text-slate-600 dark:text-slate-400">
                 Maximum Teams
               </Label>
               <Input
