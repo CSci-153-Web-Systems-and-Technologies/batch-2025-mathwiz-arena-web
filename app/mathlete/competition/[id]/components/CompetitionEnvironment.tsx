@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { startCompetitionAttempt, submitAnswer, completeAttempt } from "../../actions";
+import { startCompetitionAttempt, submitAnswer, submitBatchAnswers, completeAttempt } from "../../actions";
 import { MathRenderer, MathAnswerInput } from "@/components/ui/MathInput";
 
 interface Problem {
@@ -241,13 +241,16 @@ export default function CompetitionEnvironment({
         // Auto-save all unsaved answers before completing
         if (unsavedProblemIds.length > 0) {
             try {
-                // Use Promise.all to save concurrently
-                await Promise.all(unsavedProblemIds.map(async (problemId) => {
-                    const answer = answers[problemId];
-                    if (answer) {
-                        await submitAnswer(attempt.id, problemId, answer);
+                const batchPayload: Record<string, string> = {};
+                unsavedProblemIds.forEach(id => {
+                    if (answers[id]) {
+                        batchPayload[id] = answers[id];
                     }
-                }));
+                });
+
+                if (Object.keys(batchPayload).length > 0) {
+                    await submitBatchAnswers(attempt.id, batchPayload);
+                }
             } catch (err) {
                 console.error("Error auto-saving answers:", err);
                 // Continue with submission even if auto-save fails partially? 
@@ -445,9 +448,9 @@ export default function CompetitionEnvironment({
                                                 ${isCurrent
                                                     ? 'bg-white dark:bg-slate-700 text-[#25346A] dark:text-white border-2 border-[#25346A] dark:border-blue-400'
                                                     : isSaved
-                                                        ? 'bg-blue-100 dark:bg-blue-900/50 text-[#25346A] dark:text-blue-200 border-0 hover:bg-blue-200 dark:hover:bg-blue-900/70'
+                                                        ? 'bg-blue-100 dark:bg-blue-500 text-[#25346A] dark:text-white border-0 hover:bg-blue-200 dark:hover:bg-blue-600'
                                                         : hasAnswer
-                                                            ? 'bg-orange-100 dark:bg-orange-900/50 text-[#FFA726] dark:text-orange-300 border-0 hover:bg-orange-200 dark:hover:bg-orange-900/70'
+                                                            ? 'bg-orange-100 dark:bg-orange-500 text-[#FFA726] dark:text-white border-0 hover:bg-orange-200 dark:hover:bg-orange-600'
                                                             : 'bg-[#E0E0E0] dark:bg-slate-700 text-slate-600 dark:text-slate-400 border-0 hover:bg-[#BDBDBD] dark:hover:bg-slate-600'
                                                 }
                                             `}
@@ -499,12 +502,12 @@ export default function CompetitionEnvironment({
                     {/* Legend with Counts */}
                     <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/50"></div>
+                            <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-400"></div>
                             <span className="text-slate-600 dark:text-slate-400">Solved</span>
                             <span className="ml-auto font-semibold text-slate-800 dark:text-slate-200">{solvedCount}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-900/50"></div>
+                            <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-400"></div>
                             <span className="text-slate-600 dark:text-slate-400">Filled</span>
                             <span className="ml-auto font-semibold text-slate-800 dark:text-slate-200">{inProgressCount}</span>
                         </div>
@@ -695,35 +698,35 @@ export default function CompetitionEnvironment({
 
             {/* Review Panel */}
             {showReview && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-700">
                         {/* Review Header */}
-                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
-                            <h2 className="text-xl font-bold text-slate-800">Review Your Answers</h2>
+                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Review Your Answers</h2>
                             <button
                                 onClick={() => setShowReview(false)}
-                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
 
                         {/* Summary Stats */}
-                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex-shrink-0">
+                        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-700/30 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
                             <div className="flex gap-6">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded bg-blue-100"></div>
-                                    <span className="text-sm text-slate-600">Solved: <span className="font-semibold text-slate-800">{solvedCount}</span></span>
+                                    <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-400"></div>
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">Solved: <span className="font-semibold text-slate-800 dark:text-slate-200">{solvedCount}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded bg-orange-100"></div>
-                                    <span className="text-sm text-slate-600">Filled: <span className="font-semibold text-slate-800">{inProgressCount}</span></span>
+                                    <div className="w-4 h-4 rounded bg-orange-100 dark:bg-orange-400"></div>
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">Filled: <span className="font-semibold text-slate-800 dark:text-slate-200">{inProgressCount}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded bg-[#E0E0E0]"></div>
-                                    <span className="text-sm text-slate-600">Blank: <span className="font-semibold text-slate-800">{blankCount}</span></span>
+                                    <div className="w-4 h-4 rounded bg-[#E0E0E0] dark:bg-slate-600"></div>
+                                    <span className="text-sm text-slate-600 dark:text-slate-400">Blank: <span className="font-semibold text-slate-800 dark:text-slate-200">{blankCount}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -739,16 +742,16 @@ export default function CompetitionEnvironment({
                                     return (
                                         <div
                                             key={problem.id}
-                                            className="flex items-center gap-4 p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                                            className="flex items-center gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                                         >
                                             {/* Problem Number with Status */}
                                             <div className={`
                                                 w-10 h-10 rounded-lg flex items-center justify-center font-semibold text-sm flex-shrink-0
                                                 ${isSaved
-                                                    ? 'bg-blue-100 text-[#25346A]'
+                                                    ? 'bg-blue-100 dark:bg-blue-500 text-[#25346A] dark:text-white'
                                                     : hasAnswer
-                                                        ? 'bg-orange-100 text-[#FFA726]'
-                                                        : 'bg-[#E0E0E0] text-slate-600'
+                                                        ? 'bg-orange-100 dark:bg-orange-500 text-[#FFA726] dark:text-white'
+                                                        : 'bg-[#E0E0E0] dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                                                 }
                                             `}>
                                                 {index + 1}
@@ -756,14 +759,14 @@ export default function CompetitionEnvironment({
 
                                             {/* Problem Info */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-sm text-slate-800 font-medium line-clamp-1">
+                                                <div className="text-sm text-slate-800 dark:text-slate-200 font-medium line-clamp-1">
                                                     <MathRenderer text={
                                                         problem.problems.question.length > 80
                                                             ? problem.problems.question.substring(0, 80) + '...'
                                                             : problem.problems.question
                                                     } />
                                                 </div>
-                                                <p className="text-xs text-slate-500 mt-1">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                                     {problem.points} points • {problem.problems.difficulty}
                                                 </p>
                                             </div>
@@ -771,15 +774,15 @@ export default function CompetitionEnvironment({
                                             {/* Answer Status */}
                                             <div className="flex-shrink-0 text-right max-w-[200px]">
                                                 {isSaved ? (
-                                                    <span className="text-sm text-[#25346A] font-medium truncate max-w-[150px] block">
+                                                    <span className="text-sm text-[#25346A] dark:text-blue-400 font-medium truncate max-w-[150px] block">
                                                         <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
                                                     </span>
                                                 ) : hasAnswer ? (
-                                                    <span className="text-sm text-yellow-600 font-medium truncate max-w-[150px] block">
+                                                    <span className="text-sm text-yellow-600 dark:text-orange-400 font-medium truncate max-w-[150px] block">
                                                         <MathRenderer text={answer && answer.length > 20 ? answer.substring(0, 20) + '...' : answer || ''} />
                                                     </span>
                                                 ) : (
-                                                    <span className="text-sm text-slate-400">
+                                                    <span className="text-sm text-slate-400 dark:text-slate-500">
                                                         Blank
                                                     </span>
                                                 )}
@@ -791,7 +794,7 @@ export default function CompetitionEnvironment({
                                                     setCurrentProblemIndex(index);
                                                     setShowReview(false);
                                                 }}
-                                                className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-[#25346A] border border-[#25346A] rounded-lg hover:bg-[#25346A]/5 transition-colors"
+                                                className="flex-shrink-0 px-3 py-1.5 text-xs font-medium text-[#25346A] dark:text-blue-400 border border-[#25346A] dark:border-blue-400 rounded-lg hover:bg-[#25346A]/5 dark:hover:bg-blue-900/20 transition-colors"
                                             >
                                                 Go to
                                             </button>
@@ -802,16 +805,16 @@ export default function CompetitionEnvironment({
                         </div>
 
                         {/* Review Footer with Submit */}
-                        <div className="px-6 py-4 border-t border-slate-200 flex-shrink-0">
+                        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
                             {blankCount > 0 && (
-                                <p className="text-orange-600 text-sm mb-3">
+                                <p className="text-orange-600 dark:text-orange-400 text-sm mb-3">
                                     ⚠️ You have {blankCount} unanswered problem{blankCount > 1 ? 's' : ''}. You can still submit, but those will be marked as incorrect.
                                 </p>
                             )}
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowReview(false)}
-                                    className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                                    className="flex-1 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
                                 >
                                     Go Back
                                 </button>
@@ -832,21 +835,21 @@ export default function CompetitionEnvironment({
 
             {/* Confirm Submit Modal */}
             {showConfirmSubmit && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-                        <h2 className="text-xl font-bold text-slate-800 mb-4">Submit Competition?</h2>
-                        <p className="text-slate-600 mb-2">
-                            You have answered <span className="font-semibold">{Object.keys(answers).length}</span> out of <span className="font-semibold">{problems.length}</span> problems.
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700">
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-4">Submit Competition?</h2>
+                        <p className="text-slate-600 dark:text-slate-400 mb-2">
+                            You have answered <span className="font-semibold text-slate-900 dark:text-white">{Object.keys(answers).length}</span> out of <span className="font-semibold text-slate-900 dark:text-white">{problems.length}</span> problems.
                         </p>
                         {Object.keys(answers).length < problems.length && (
-                            <p className="text-orange-600 text-sm mb-4">
+                            <p className="text-orange-600 dark:text-orange-400 text-sm mb-4">
                                 ⚠️ Some problems are not answered. Are you sure you want to submit?
                             </p>
                         )}
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowConfirmSubmit(false)}
-                                className="flex-1 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                                className="flex-1 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
                             >
                                 Go Back
                             </button>
