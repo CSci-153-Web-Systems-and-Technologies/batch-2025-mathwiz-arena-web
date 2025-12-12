@@ -19,9 +19,14 @@ const SignUpPage = () => {
               Mathwiz
             </span>
           </Link>
-          <Link href="/login" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#1B2559] dark:hover:text-white transition-colors">
-            Already have an account? <span className="font-bold text-[#F49700] hover:text-orange-600 ml-1">Log in</span>
-          </Link>
+          <div className="flex items-center gap-4 md:gap-6">
+            <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+              Back to Home
+            </Link>
+            <Link href="/login" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#1B2559] dark:hover:text-white transition-colors">
+              Already have an account? <span className="font-bold text-[#F49700] hover:text-orange-600 ml-1">Log in</span>
+            </Link>
+          </div>
         </div>
       </header>
 
