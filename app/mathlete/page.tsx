@@ -300,8 +300,8 @@ export default async function MathleteDashboard() {
           <div className="max-w-7xl mx-auto">
             {/* Welcome Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#25346A]">Welcome back, {userName}!</h1>
-              <p className="text-slate-600 mt-1">Ready to solve some problems today?</p>
+              <h1 className="text-3xl font-bold text-[#25346A] dark:text-white">Welcome back, {userName}!</h1>
+              <p className="text-slate-600 dark:text-slate-400 mt-1">Ready to solve some problems today?</p>
             </div>
 
             {/* Main Grid */}
@@ -324,12 +324,12 @@ export default async function MathleteDashboard() {
                       <input
                         type="text"
                         placeholder="Search competitions..."
-                        className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#2A64d1] focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2A64d1] focus:border-transparent"
                       />
                     </div>
                   </div>
 
-                  <h2 className="text-lg font-bold text-[#25346A] mb-6 uppercase tracking-wide">Join Competitions</h2>
+                  <h2 className="text-lg font-bold text-[#25346A] dark:text-white mb-6 uppercase tracking-wide">Join Competitions</h2>
                   <div className="space-y-4">
                     {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
                       upcomingCompetitions.map((competition) => {
@@ -382,18 +382,18 @@ export default async function MathleteDashboard() {
                         }
 
                         return (
-                          <div key={competition.id} className="rounded-xl border bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+                          <div key={competition.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm hover:shadow-md transition-all">
                             {/* Header with status badge */}
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-2">
-                                  <h3 className="text-lg font-semibold text-[#25346A]">{competition.name}</h3>
+                                  <h3 className="text-lg font-semibold text-[#25346A] dark:text-white">{competition.name}</h3>
                                   {statusBadge}
                                   {isRegistered && !isScheduledLive && (
                                     <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Registered</span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-slate-600">
+                                <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
                                   <span className="flex items-center gap-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -429,12 +429,12 @@ export default async function MathleteDashboard() {
 
                             {/* Description */}
                             {competition.description && (
-                              <p className="text-slate-600 mb-4 leading-relaxed">{competition.description}</p>
+                              <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">{competition.description}</p>
                             )}
 
                             {/* Footer with time and action */}
-                            <div className="flex items-center justify-between pt-4 border-t">
-                              <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+                              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
@@ -452,8 +452,8 @@ export default async function MathleteDashboard() {
                       })
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-slate-500">No upcoming competitions at the moment</p>
-                        <p className="text-sm text-slate-400 mt-2">Check back later for new challenges!</p>
+                        <p className="text-slate-500 dark:text-slate-400">No upcoming competitions at the moment</p>
+                        <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">Check back later for new challenges!</p>
                       </div>
                     )}
                   </div>
@@ -466,8 +466,8 @@ export default async function MathleteDashboard() {
                 <CompetitionCalendar competitions={upcomingCompetitions || []} />
 
                 {/* Recent Activity */}
-                <div className="rounded-xl border bg-white p-4 shadow-sm">
-                  <h2 className="text-lg font-bold text-[#25346A] mb-4 uppercase tracking-wide">Recent Activity</h2>
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
+                  <h2 className="text-lg font-bold text-[#25346A] dark:text-white mb-4 uppercase tracking-wide">Recent Activity</h2>
                   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                     {allActivities.length > 0 ? (
                       allActivities.slice(0, 5).map((activity, index) => (
@@ -478,38 +478,38 @@ export default async function MathleteDashboard() {
                             }`}></div>
                           <div>
                             {activity.type === 'registration' && activity.competitionName ? (
-                              <p className="text-sm font-medium text-[#25346A]">
+                              <p className="text-sm font-medium text-[#25346A] dark:text-slate-200">
                                 Registered for <span className="font-semibold">{activity.competitionName}</span>
                               </p>
                             ) : activity.type === 'withdrawal' && activity.competitionName ? (
-                              <p className="text-sm font-medium text-[#25346A]">
+                              <p className="text-sm font-medium text-[#25346A] dark:text-slate-200">
                                 Withdrew from <span className="font-semibold">{activity.competitionName}</span>
                               </p>
                             ) : activity.type === 'rating' && activity.competitionName ? (
-                              <p className="text-sm font-medium text-[#25346A]">
+                              <p className="text-sm font-medium text-[#25346A] dark:text-slate-200">
                                 Rated <span className="font-semibold">{activity.competitionName}</span> ({activity.rating}/5 stars)
                               </p>
                             ) : activity.type === 'team_create' && activity.teamName ? (
-                              <p className="text-sm font-medium text-[#25346A]">
+                              <p className="text-sm font-medium text-[#25346A] dark:text-slate-200">
                                 Created team <span className="font-semibold">{activity.teamName}</span>
                               </p>
                             ) : activity.type === 'team_join' && activity.teamName ? (
-                              <p className="text-sm font-medium text-[#25346A]">
+                              <p className="text-sm font-medium text-[#25346A] dark:text-slate-200">
                                 Joined team <span className="font-semibold">{activity.teamName}</span>
                               </p>
                             ) : activity.type === 'team_invite' && activity.teamName ? (
-                              <p className="text-sm font-medium text-[#25346A]">
+                              <p className="text-sm font-medium text-[#25346A] dark:text-slate-200">
                                 Invited {activity.inviteeName} to <span className="font-semibold">{activity.teamName}</span>
                               </p>
                             ) : null}
-                            <p className="text-xs text-slate-500">{getTimeAgo(activity.timestamp)}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{getTimeAgo(activity.timestamp)}</p>
                           </div>
                         </div>
                       ))
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-sm text-slate-500">No recent activity</p>
-                        <p className="text-xs text-slate-400 mt-1">Your activity will appear here</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">No recent activity</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Your activity will appear here</p>
                       </div>
                     )}
                   </div>

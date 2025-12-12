@@ -148,23 +148,23 @@ export default function NotificationsClient({ notifications }: NotificationsClie
   return (
     <>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link
             href="/mathlete"
-            className="text-sm text-slate-600 hover:text-slate-900 flex items-center gap-2 mb-2"
+            className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 mb-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-[#25346A]">Notifications</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold text-[#25346A] dark:text-white">Notifications</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             {unreadCount > 0
               ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}`
               : "You're all caught up!"}
-            {notifications.length > 0 && ` • ${notifications.length} total`}
+            {notifications.length > 0 && ` - ${notifications.length} total`}
           </p>
         </div>
       </div>
@@ -178,30 +178,32 @@ export default function NotificationsClient({ notifications }: NotificationsClie
         )}
 
         {/* Unified Notifications List */}
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           {notifications.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No notifications</h3>
-              <p className="text-slate-600">You're all caught up! Check back later for updates.</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No notifications</h3>
+              <p className="text-slate-600 dark:text-slate-400">You're all caught up! Check back later for updates.</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-200">
+            <div className="divide-y divide-slate-200 dark:divide-slate-700">
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`px-6 py-5 transition-all ${notification.status === 'read'
-                    ? 'bg-slate-50/50 opacity-75'
-                    : 'bg-white hover:bg-slate-50'
+                    ? 'bg-slate-50/50 dark:bg-slate-700/30 opacity-75'
+                    : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                     }`}
                 >
                   <div className="flex items-start gap-4">
                     {/* Icon */}
-                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notification.status === 'read' ? 'bg-slate-200 text-slate-600' : 'bg-blue-100 text-blue-600'
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${notification.status === 'read'
+                      ? 'bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-400'
+                      : 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
                       }`}>
                       {getNotificationIcon(notification.type)}
                     </div>
@@ -211,16 +213,16 @@ export default function NotificationsClient({ notifications }: NotificationsClie
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-base font-semibold text-slate-900">
+                            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                               {notification.title}
                             </h3>
                             {notification.status === 'read' && (
-                              <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-slate-200 text-slate-600">
+                              <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-400">
                                 Read
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-slate-600 mb-2">
+                          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
                             {notification.message}
                           </p>
                           <p className="text-xs text-slate-500">
@@ -235,7 +237,7 @@ export default function NotificationsClient({ notifications }: NotificationsClie
                               <button
                                 onClick={() => handleRejectInvitation(notification.id, notification.relatedId!)}
                                 disabled={processingId === notification.relatedId}
-                                className="px-3 py-1.5 text-sm border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Decline
                               </button>

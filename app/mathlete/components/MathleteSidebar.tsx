@@ -95,8 +95,8 @@ export default function MathleteSidebar({ notificationCount = 0 }: MathleteSideb
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
-                  ? "text-white bg-[#25346A] dark:bg-blue-600"
-                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                ? "text-white bg-[#25346A] dark:bg-blue-600"
+                : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                 }`}
             >
               {item.icon}
@@ -110,7 +110,7 @@ export default function MathleteSidebar({ notificationCount = 0 }: MathleteSideb
           ))}
 
           <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
-            <LoginButton />
+            <LoginButton className="w-full" />
           </div>
         </nav>
       </div>

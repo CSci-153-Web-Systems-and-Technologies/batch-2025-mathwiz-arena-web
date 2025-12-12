@@ -80,23 +80,9 @@ export default async function MathleteSettingsPage() {
 
           {/* Theme Settings */}
           <ThemeSettings />
-
-          {/* Info Notice */}
-          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 transition-colors">
-            <div className="flex items-start gap-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <h3 className="font-semibold text-blue-900 dark:text-blue-200">More Settings Coming Soon</h3>
-                <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">
-                  Additional settings like notification preferences and privacy options will be available in a future update.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   );
 }
+
