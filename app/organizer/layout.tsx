@@ -30,7 +30,7 @@ export default async function OrganizerLayout({
         <ThemeProvider>
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors">
                 <OrganizerSidebar />
-                <main className="flex-1 ml-64">
+                <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
                     {children}
                 </main>
             </div>

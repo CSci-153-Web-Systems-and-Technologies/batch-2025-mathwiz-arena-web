@@ -183,7 +183,10 @@ export default function MathleteSidebar({ notificationCount = 0 }: MathleteSideb
         </button>
         <Link href="/" className="flex items-center gap-2">
           <Image src="/icon.svg" alt="Mathwiz Logo" width={32} height={32} className="rounded-md" />
-          <span className="text-lg font-semibold text-[#25346A] dark:text-white">Mathwiz</span>
+          <div>
+            <h1 className="text-base font-semibold text-[#25346A] dark:text-white">Mathwiz</h1>
+            <p className="text-[10px] text-[#2A64d1] dark:text-blue-400 font-medium -mt-1">Mathlete</p>
+          </div>
         </Link>
       </div>
 
