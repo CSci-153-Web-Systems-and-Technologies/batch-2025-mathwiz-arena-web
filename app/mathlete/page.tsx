@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import JoinButton from "./components/JoinButton";
+import CompetitionsList from "./components/CompetitionsList";
 import CompetitionCalendar from "./components/CompetitionCalendar";
 import ErrorAlert from "./components/ErrorAlert";
 import MathleteSidebar from "./components/MathleteSidebar";
@@ -308,156 +308,10 @@ export default async function MathleteDashboard() {
             <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
               {/* Join Competitions */}
               <div className="lg:col-span-2">
-                <div>
-                  {/* Search Bar */}
-                  <div className="mb-4 sm:mb-6">
-                    <div className="relative">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Search competitions..."
-                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2A64d1] focus:border-transparent text-sm sm:text-base"
-                      />
-                    </div>
-                  </div>
-
-                  <h2 className="text-base sm:text-lg font-bold text-[#25346A] dark:text-white mb-4 sm:mb-6 uppercase tracking-wide">Join Competitions</h2>
-                  <div className="space-y-3 sm:space-y-4">
-                    {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
-                      upcomingCompetitions.map((competition) => {
-                        const isLiveCompetition = (competition as any).competition_mode === "live";
-                        const maxAttempts = (competition as any).max_attempts;
-
-                        // For scheduled competitions
-                        const startTime = competition.start_datetime ? new Date(competition.start_datetime) : null;
-                        const endTime = startTime ? new Date(startTime.getTime() + competition.duration_minutes * 60 * 1000) : null;
-                        const now = new Date();
-
-                        let timeText = "";
-                        let statusBadge = null;
-                        let isScheduledLive = false; // For scheduled competitions that are currently active
-                        const isRegistered = registrationMap.has(competition.id);
-
-                        if (isLiveCompetition) {
-                          // Live competition - available anytime
-                          timeText = "Available anytime";
-                          statusBadge = (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                              Live
-                            </span>
-                          );
-                        } else if (startTime && endTime) {
-                          // Scheduled competition
-                          const timeUntilStart = startTime.getTime() - now.getTime();
-                          const timeUntilEnd = endTime.getTime() - now.getTime();
-                          const hoursUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60));
-                          const daysUntilStart = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24));
-                          const minutesUntilEnd = Math.floor(timeUntilEnd / (1000 * 60));
-                          isScheduledLive = now >= startTime && now < endTime;
-
-                          if (isScheduledLive) {
-                            timeText = `Ends in ${minutesUntilEnd} minute${minutesUntilEnd !== 1 ? 's' : ''}`;
-                            statusBadge = <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Live Now</span>;
-                          } else if (daysUntilStart > 0) {
-                            timeText = `Starts in ${daysUntilStart} day${daysUntilStart > 1 ? 's' : ''}`;
-                          } else if (hoursUntilStart > 0) {
-                            timeText = `Starts in ${hoursUntilStart} hour${hoursUntilStart > 1 ? 's' : ''}`;
-                          } else {
-                            timeText = startTime.toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit'
-                            });
-                          }
-                        }
-
-                        return (
-                          <div key={competition.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
-                            {/* Header with status badge */}
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
-                              <div className="flex-1">
-                                <div className="flex flex-wrap items-center gap-2 mb-2">
-                                  <h3 className="text-base sm:text-lg font-semibold text-[#25346A] dark:text-white">{competition.name}</h3>
-                                  {statusBadge}
-                                  {isRegistered && !isScheduledLive && (
-                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Registered</span>
-                                  )}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                                  <span className="flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                    </svg>
-                                    {competition.participation_type.charAt(0).toUpperCase() + competition.participation_type.slice(1)}
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {competition.duration_minutes} minutes{isLiveCompetition ? "/attempt" : ""}
-                                  </span>
-                                  {/* Show attempts for Live competitions */}
-                                  {isLiveCompetition && (
-                                    <span className="flex items-center gap-1">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                      </svg>
-                                      {maxAttempts === null ? "Unlimited attempts" : `${maxAttempts} attempt${maxAttempts !== 1 ? 's' : ''}`}
-                                    </span>
-                                  )}
-                                  {competition.max_participants && (
-                                    <span className="flex items-center gap-1">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                      </svg>
-                                      Max {competition.max_participants} participants
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Description */}
-                            {competition.description && (
-                              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 sm:mb-4 leading-relaxed line-clamp-2">{competition.description}</p>
-                            )}
-
-                            {/* Footer with time and action */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 sm:pt-4 border-t border-slate-200 dark:border-slate-700">
-                              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <span className="font-medium">{timeText}</span>
-                              </div>
-                              <JoinButton
-                                competition={competition}
-                                isRegistered={isRegistered}
-                                isScheduledLive={isScheduledLive}
-                                isLiveCompetition={isLiveCompetition}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-slate-500 dark:text-slate-400">No upcoming competitions at the moment</p>
-                        <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">Check back later for new challenges!</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <CompetitionsList
+                  competitions={upcomingCompetitions}
+                  registeredIds={Array.from(registrationMap.keys())}
+                />
               </div>
 
               {/* Calendar and Recent Activity */}

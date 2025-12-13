@@ -34,32 +34,32 @@ export default function AchievementBadges({ achievements, totalAvailable }: Achi
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Achievements</h2>
-                <span className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-white">Achievements</h2>
+                <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                     {achievements.length} / {totalAvailable} earned
                 </span>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
                 {achievements.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                         {achievements.map((achievement) => (
                             <div
                                 key={achievement.id}
-                                className="group relative p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all cursor-pointer bg-white dark:bg-slate-800"
+                                className="group relative p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all cursor-pointer bg-white dark:bg-slate-800"
                             >
                                 {/* Badge Icon */}
                                 <div
-                                    className={`w-14 h-14 mx-auto rounded-full bg-gradient-to-br ${getBadgeColorClasses(achievement.badge_color)} flex items-center justify-center shadow-md mb-3`}
+                                    className={`w-10 h-10 sm:w-14 sm:h-14 mx-auto rounded-full bg-gradient-to-br ${getBadgeColorClasses(achievement.badge_color)} flex items-center justify-center shadow-md mb-2 sm:mb-3`}
                                 >
-                                    <span className="text-2xl">{achievement.icon}</span>
+                                    <span className="text-lg sm:text-2xl">{achievement.icon}</span>
                                 </div>
 
                                 {/* Badge Info */}
                                 <div className="text-center">
-                                    <h3 className="font-semibold text-slate-800 dark:text-white text-sm">{achievement.name}</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{achievement.description}</p>
+                                    <h3 className="font-semibold text-slate-800 dark:text-white text-xs sm:text-sm">{achievement.name}</h3>
+                                    <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{achievement.description}</p>
                                 </div>
 
                                 {/* Earned Date Tooltip */}
@@ -73,12 +73,12 @@ export default function AchievementBadges({ achievements, totalAvailable }: Achi
                     </div>
                 ) : (
                     /* Empty State */
-                    <div className="text-center py-8">
-                        <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-4xl opacity-50">🏅</span>
+                    <div className="text-center py-6 sm:py-8">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                            <span className="text-3xl sm:text-4xl opacity-50">🏅</span>
                         </div>
-                        <p className="text-slate-600 dark:text-slate-300 font-medium">No achievements yet</p>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                        <p className="text-slate-600 dark:text-slate-300 font-medium text-sm sm:text-base">No achievements yet</p>
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto px-4">
                             Complete competitions and hit milestones to earn badges!
                         </p>
 

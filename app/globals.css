@@ -127,3 +127,13 @@
 .mathlete-section-title {
   @apply text-lg font-bold text-[#25346A] dark:text-white uppercase tracking-wide;
 }
+
+/* Scrollbar Hide Utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
