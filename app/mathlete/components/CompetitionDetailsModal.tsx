@@ -16,6 +16,7 @@ interface Competition {
   require_full_team?: boolean;
   competition_mode?: string | null;
   max_attempts?: number | null;
+  organizer_name?: string;
 }
 
 interface CompetitionDetailsModalProps {
@@ -268,6 +269,13 @@ export default function CompetitionDetailsModal({
                 <div>
                   <h3 className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-0.5 sm:mb-1">Max Participants</h3>
                   <p className="text-xs sm:text-base text-slate-600 dark:text-slate-400">{competition.max_participants}</p>
+                </div>
+              )}
+
+              {competition.organizer_name && (
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-0.5 sm:mb-1">Created By</h3>
+                  <p className="text-xs sm:text-base text-slate-600 dark:text-slate-400">{competition.organizer_name}</p>
                 </div>
               )}
             </div>

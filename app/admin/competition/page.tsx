@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import DeleteCompetitionButton from "./components/DeleteCompetitionButton";
+import StopCompetitionButton from "./components/StopCompetitionButton";
 
 export default async function AdminCompetitionPage() {
     const supabase = await createClient();
@@ -136,11 +137,20 @@ export default async function AdminCompetitionPage() {
                                                                 {competition.status.charAt(0).toUpperCase() + competition.status.slice(1)}
                                                             </span>
                                                             {/* Competition Mode Badge */}
-                                                            {(competition as any).competition_mode === "live" ? (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                                                                    Live
-                                                                </span>
+                                                            {isLive ? (
+                                                                competition.is_active === false ? (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                        </svg>
+                                                                        Live (Stopped)
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                                                        Live
+                                                                    </span>
+                                                                )
                                                             ) : (
                                                                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -207,6 +217,14 @@ export default async function AdminCompetitionPage() {
                                                             </svg>
                                                             Edit
                                                         </Link>
+                                                    )}
+                                                    {/* Stop/Resume button for published Live competitions */}
+                                                    {isLive && competition.status === "published" && (
+                                                        <StopCompetitionButton
+                                                            competitionId={competition.id}
+                                                            competitionName={competition.name}
+                                                            isActive={competition.is_active !== false}
+                                                        />
                                                     )}
                                                     <DeleteCompetitionButton
                                                         competitionId={competition.id}
