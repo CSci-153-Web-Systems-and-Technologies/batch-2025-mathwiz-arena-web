@@ -69,13 +69,13 @@ export default function EditProblemBankForm({ problemBank }: { problemBank: Prob
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-700 dark:text-red-400 text-sm">
           {error}
         </div>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="title" className="text-slate-700 font-medium">
+        <Label htmlFor="title" className="text-slate-700 dark:text-slate-300 font-medium">
           Title <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -88,11 +88,11 @@ export default function EditProblemBankForm({ problemBank }: { problemBank: Prob
           required
           disabled={isLoading}
         />
-        <p className="text-sm text-slate-500">Give your problem bank a descriptive title</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Give your problem bank a descriptive title</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description" className="text-slate-700 font-medium">
+        <Label htmlFor="description" className="text-slate-700 dark:text-slate-300 font-medium">
           Description
         </Label>
         <textarea
@@ -100,10 +100,10 @@ export default function EditProblemBankForm({ problemBank }: { problemBank: Prob
           placeholder="Briefly describe the types of problems in this bank..."
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          className="w-full min-h-[120px] px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none"
+          className="w-full min-h-[120px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#f49700] focus:border-transparent resize-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
           disabled={isLoading}
         />
-        <p className="text-sm text-slate-500">Optional: Add more details about this problem bank</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Optional: Add more details about this problem bank</p>
       </div>
 
       <div className="flex gap-3 pt-4">

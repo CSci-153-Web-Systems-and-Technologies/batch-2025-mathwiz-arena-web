@@ -110,7 +110,7 @@ export default function CreateProblemBankForm() {
         <p className="text-sm text-slate-500 dark:text-slate-400">Optional: Add more details about this problem bank</p>
       </div>
 
-      <div className="flex gap-3 pt-4">
+      <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
         <Button
           type="submit"
           disabled={isLoading}

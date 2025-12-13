@@ -16,17 +16,17 @@ export default async function ProblemBankPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Problem Banks</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-2">Problem Banks</h1>
             <p className="text-slate-600 dark:text-slate-400">Manage your collection of problem banks</p>
           </div>
           <Link
             href="/organizer/problem-bank/create"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors shadow-sm"
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-[#f49700] px-4 py-2 md:px-6 md:py-3 text-sm md:text-base text-white font-medium hover:bg-[#d68400] transition-colors shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -46,24 +46,25 @@ export default async function ProblemBankPage() {
               <Link
                 key={bank.id}
                 href={`/organizer/problem-bank/${bank.id}`}
-                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 hover:shadow-lg dark:hover:shadow-slate-900/50 transition-shadow cursor-pointer group"
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 md:p-6 hover:shadow-lg dark:hover:shadow-slate-900/50 transition-shadow cursor-pointer group"
               >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-12 h-12 bg-[#f49700]/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#f49700]/20 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex items-start gap-3 md:gap-4 mb-3 md:mb-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-[#f49700]/10 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-[#f49700]/20 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
+
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-1 truncate group-hover:text-[#f49700] transition-colors">
+                    <h3 className="text-base md:text-lg font-semibold text-slate-800 dark:text-white mb-0.5 md:mb-1 truncate group-hover:text-[#f49700] transition-colors">
                       {bank.title}
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                    <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
                       {bank.description || "No description"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-3 md:pt-4 border-t border-slate-100 dark:border-slate-700">
                   <span>Created {new Date(bank.created_at).toLocaleDateString()}</span>
                   <span className="text-[#f49700] font-medium">View →</span>
                 </div>
@@ -71,7 +72,7 @@ export default async function ProblemBankPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-8 md:p-12 text-center">
             <div className="w-20 h-20 bg-[#f49700]/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -93,6 +94,6 @@ export default async function ProblemBankPage() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }

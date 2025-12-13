@@ -29,22 +29,22 @@ export default async function EditProblemBankPage({ params }: { params: { id: st
         <div className="mb-8">
           <Link
             href={`/organizer/problem-bank/${params.id}`}
-            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-[#f49700] mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-[#f49700] mb-4 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to {problemBank.title}
           </Link>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Edit Problem Bank</h1>
-          <p className="text-slate-600">Update the title and description</p>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Edit Problem Bank</h1>
+          <p className="text-slate-600 dark:text-slate-400">Update the title and description</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg border border-slate-200 p-8 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
           <EditProblemBankForm problemBank={problemBank} />
         </div>
       </div>
-    </div>
+    </div >
   );
 }

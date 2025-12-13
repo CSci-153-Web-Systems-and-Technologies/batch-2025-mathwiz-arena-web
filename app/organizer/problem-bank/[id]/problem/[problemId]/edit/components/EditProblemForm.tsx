@@ -220,7 +220,7 @@ export default function EditProblemForm({
               correctAnswerIndex: 0,
               options: formData.type === "multiple_choice" ? formData.options : ["", "", "", ""]
             })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "multiple_choice"
+            className={`p-2 sm:p-3 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.type === "multiple_choice"
               ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
               : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
@@ -236,7 +236,7 @@ export default function EditProblemForm({
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "true_false"
+            className={`p-2 sm:p-3 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.type === "true_false"
               ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
               : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
@@ -252,7 +252,7 @@ export default function EditProblemForm({
               correctAnswer: "",
               correctAnswerIndex: 0
             })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.type === "identification"
+            className={`p-2 sm:p-3 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.type === "identification"
               ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
               : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
@@ -268,11 +268,11 @@ export default function EditProblemForm({
         <Label className="text-slate-700 dark:text-slate-300 font-medium">
           Difficulty <span className="text-red-500">*</span>
         </Label>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "easy" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "easy"
+            className={`p-2 sm:p-3 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.difficulty === "easy"
               ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
               : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
@@ -283,7 +283,7 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "average" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "average"
+            className={`p-2 sm:p-3 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.difficulty === "average"
               ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"
               : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
@@ -294,7 +294,7 @@ export default function EditProblemForm({
           <button
             type="button"
             onClick={() => setFormData({ ...formData, difficulty: "difficult" })}
-            className={`p-3 border-2 rounded-lg text-sm font-medium transition-all ${formData.difficulty === "difficult"
+            className={`p-2 sm:p-3 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.difficulty === "difficult"
               ? "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"
               : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
@@ -340,11 +340,11 @@ export default function EditProblemForm({
           <Label className="text-slate-700 dark:text-slate-300 font-medium">
             Correct Answer <span className="text-red-500">*</span>
           </Label>
-          <div className="flex gap-4">
+          <div className="flex gap-3 sm:gap-4">
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "true" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "true"
+              className={`flex-1 p-2 sm:p-4 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.correctAnswer === "true"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
                 }`}
@@ -355,7 +355,7 @@ export default function EditProblemForm({
             <button
               type="button"
               onClick={() => setFormData({ ...formData, correctAnswer: "false" })}
-              className={`flex-1 p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.correctAnswer === "false"
+              className={`flex-1 p-2 sm:p-4 border-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${formData.correctAnswer === "false"
                 ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
                 : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
                 }`}
@@ -440,7 +440,7 @@ export default function EditProblemForm({
       )}
 
       {/* Submit Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+      <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
         <Button
           type="submit"
           disabled={isLoading}

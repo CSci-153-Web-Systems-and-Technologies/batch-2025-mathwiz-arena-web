@@ -3,7 +3,7 @@ import CreateProblemBankForm from "./components/CreateProblemBankForm";
 
 export default async function CreateProblemBankPage() {
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -16,12 +16,12 @@ export default async function CreateProblemBankPage() {
             </svg>
             Back to Problem Banks
           </Link>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Create Problem Bank</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-2">Create Problem Bank</h1>
           <p className="text-slate-600 dark:text-slate-400">Add a new problem bank to organize your questions</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 md:p-8 shadow-sm">
           <CreateProblemBankForm />
         </div>
       </div>
