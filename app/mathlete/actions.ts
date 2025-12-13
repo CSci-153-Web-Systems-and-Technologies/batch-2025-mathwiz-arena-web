@@ -19,7 +19,7 @@ export async function registerForCompetition(competitionId: string, teamId?: str
   // Check if the competition exists and is published
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, status, start_datetime, max_participants, participation_type, max_team_members, require_full_team, competition_mode, is_active")
+    .select("id, name, status, start_datetime, max_participants, participation_type, max_team_members, require_full_team, competition_mode, is_active, organizer_id")
     .eq("id", competitionId)
     .single();
 
@@ -286,8 +286,42 @@ export async function registerForCompetition(competitionId: string, teamId?: str
     }
   }
 
+  // Get mathlete's username for notification
+  const { data: mathleteProfile } = await supabase
+    .from("profiles")
+    .select("username, full_name")
+    .eq("id", user.id)
+    .single();
+
+  const mathleteName = mathleteProfile?.full_name || mathleteProfile?.username || "A mathlete";
+
+  // Notify the organizer about the registration
+  if (competition.organizer_id && competition.organizer_id !== user.id) {
+    const registrationType = competition.participation_type === "team" ? "team" : "individual";
+    await supabase
+      .from("notifications")
+      .insert({
+        user_id: competition.organizer_id,
+        type: "competition_registration",
+        title: "New Registration",
+        message: `${mathleteName} has registered for "${competition.name}" (${registrationType})`,
+        action_url: `/organizer/competition/${competitionId}`,
+        related_id: competitionId,
+        metadata: {
+          competition_id: competitionId,
+          competition_name: competition.name,
+          mathlete_id: user.id,
+          mathlete_name: mathleteName,
+          registration_type: registrationType,
+          team_id: teamId || null
+        },
+        status: "unread"
+      });
+  }
+
   // Revalidate the page to show updated registration status
   revalidatePath("/mathlete");
+  revalidatePath("/organizer");
 
   return {
     success: true,
@@ -313,7 +347,7 @@ export async function unregisterFromCompetition(competitionId: string) {
   // Check if the competition exists
   const { data: competition, error: competitionError } = await supabase
     .from("competitions")
-    .select("id, start_datetime, participation_type, competition_mode")
+    .select("id, name, start_datetime, participation_type, competition_mode, organizer_id")
     .eq("id", competitionId)
     .single();
 
@@ -394,8 +428,41 @@ export async function unregisterFromCompetition(competitionId: string) {
     }
   }
 
+  // Get mathlete's username for notification
+  const { data: mathleteProfile } = await supabase
+    .from("profiles")
+    .select("username, full_name")
+    .eq("id", user.id)
+    .single();
+
+  const mathleteName = mathleteProfile?.full_name || mathleteProfile?.username || "A mathlete";
+
+  // Notify the organizer about the withdrawal
+  if (competition.organizer_id && competition.organizer_id !== user.id) {
+    const registrationType = competition.participation_type === "team" ? "team" : "individual";
+    await supabase
+      .from("notifications")
+      .insert({
+        user_id: competition.organizer_id,
+        type: "competition_withdrawal",
+        title: "Registration Withdrawn",
+        message: `${mathleteName} has withdrawn from "${competition.name}" (${registrationType})`,
+        action_url: `/organizer/competition/${competitionId}`,
+        related_id: competitionId,
+        metadata: {
+          competition_id: competitionId,
+          competition_name: competition.name,
+          mathlete_id: user.id,
+          mathlete_name: mathleteName,
+          registration_type: registrationType
+        },
+        status: "unread"
+      });
+  }
+
   // Revalidate the page to show updated registration status
   revalidatePath("/mathlete");
+  revalidatePath("/organizer");
 
   return {
     success: true,

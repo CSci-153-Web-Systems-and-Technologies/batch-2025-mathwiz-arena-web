@@ -26,10 +26,17 @@ export default async function OrganizerLayout({
         redirect("/error?message=Access denied");
     }
 
+    // Fetch notification count (unread notifications)
+    const { count: notificationCount } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("status", "unread");
+
     return (
         <ThemeProvider>
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors">
-                <OrganizerSidebar />
+                <OrganizerSidebar notificationCount={notificationCount || 0} />
                 <main className="flex-1 lg:ml-64 pt-14 lg:pt-0">
                     {children}
                 </main>
@@ -37,3 +44,4 @@ export default async function OrganizerLayout({
         </ThemeProvider>
     );
 }
+
