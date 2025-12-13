@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,85 +12,25 @@ import {
 } from "@/components/ui/card";
 import { saveUserRole } from "@/lib/auth-actions";
 
-// Submit button component that shows loading state
-function RoleButton({
-  role,
-  title,
-  description,
-  subtext,
-  color,
-  icon,
-  isSubmitting,
-  isThisButtonSubmitting,
-}: {
-  role: string;
-  title: string;
-  description: string;
-  subtext: string;
-  color: string;
-  icon: React.ReactNode;
-  isSubmitting: boolean;
-  isThisButtonSubmitting: boolean;
-}) {
-  const isDisabled = isSubmitting;
-  const showLoading = isThisButtonSubmitting;
-
-  return (
-    <button
-      type="submit"
-      disabled={isDisabled}
-      className={`group relative overflow-hidden rounded-lg border-2 bg-white p-6 transition-all w-full text-left h-full
-        ${isDisabled
-          ? 'border-slate-200 dark:border-slate-700 opacity-60 cursor-not-allowed'
-          : 'border-slate-200 hover:shadow-lg dark:border-slate-700 dark:bg-slate-800/50 dark:hover:bg-slate-800 cursor-pointer'
-        }
-        ${showLoading ? 'border-current shadow-lg' : ''}
-      `}
-      style={{
-        borderColor: showLoading ? color : undefined,
-      }}
-    >
-      <div className="flex flex-col items-center text-center space-y-4">
-        <div
-          className={`rounded-full p-4 shadow-md transition-transform ${!isDisabled ? 'group-hover:scale-110' : ''} ${showLoading ? 'animate-pulse' : ''}`}
-          style={{ backgroundColor: color }}
-        >
-          {showLoading ? (
-            <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          ) : icon}
-        </div>
-        <div>
-          <h3
-            className={`text-xl font-semibold mb-2 transition-colors ${isDisabled && !showLoading ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'}`}
-            style={{ color: showLoading ? color : undefined }}
-          >
-            {showLoading ? "Setting up..." : title}
-          </h3>
-          <p className={`text-sm ${isDisabled && !showLoading ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
-            {showLoading ? "Please wait while we configure your account" : description}
-          </p>
-        </div>
-        <div className="text-xs text-slate-400 dark:text-slate-500 mt-auto pt-2">
-          {subtext}
-        </div>
-      </div>
-    </button>
-  );
-}
-
 const SelectRolePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittingRole, setSubmittingRole] = useState<string | null>(null);
+  const mathleteFormRef = useRef<HTMLFormElement>(null);
+  const organizerFormRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (role: string, formData: FormData) => {
+  const handleRoleClick = async (role: string) => {
     // Prevent multiple submissions
     if (isSubmitting) return;
 
     setIsSubmitting(true);
     setSubmittingRole(role);
+
+    // Small delay to ensure UI updates before form submission
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Submit the appropriate form
+    const formData = new FormData();
+    formData.append("role", role);
 
     try {
       await saveUserRole(formData);
@@ -100,7 +40,6 @@ const SelectRolePage = () => {
       setIsSubmitting(false);
       setSubmittingRole(null);
     }
-    // Note: On success, the page will redirect, so we don't need to reset state
   };
 
   return (
@@ -133,63 +72,145 @@ const SelectRolePage = () => {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
-              <form action={(formData) => handleSubmit("mathlete", formData)}>
-                <input type="hidden" name="role" value="mathlete" />
-                <RoleButton
-                  role="mathlete"
-                  title="I'm a Mathlete"
-                  description="Compete in math challenges, solve problems, and climb the leaderboards"
-                  subtext="Perfect for students and math enthusiasts"
-                  color="#25346A"
-                  isSubmitting={isSubmitting}
-                  isThisButtonSubmitting={submittingRole === "mathlete"}
-                  icon={
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
+              {/* Mathlete Button */}
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleRoleClick("mathlete")}
+                className={`group relative overflow-hidden rounded-lg border-2 p-6 transition-all w-full text-left h-full
+                  ${isSubmitting && submittingRole !== "mathlete"
+                    ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-700 opacity-40 cursor-not-allowed grayscale'
+                    : isSubmitting && submittingRole === "mathlete"
+                      ? 'bg-white dark:bg-slate-800 border-[#25346A] dark:border-blue-400 shadow-lg shadow-blue-500/20 dark:shadow-blue-400/20 cursor-wait'
+                      : 'bg-white dark:bg-slate-800/50 border-slate-200 hover:border-[#25346A] hover:shadow-lg dark:border-slate-700 dark:hover:border-blue-400 dark:hover:bg-slate-800 cursor-pointer'
                   }
-                />
-              </form>
+                `}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div
+                    className={`rounded-full p-4 shadow-md transition-transform 
+                      ${!isSubmitting ? 'group-hover:scale-110' : ''} 
+                      ${submittingRole === "mathlete" ? 'animate-pulse bg-[#25346A] dark:bg-blue-500' : 'bg-[#25346A]'}
+                      ${isSubmitting && submittingRole !== "mathlete" ? 'bg-slate-400 dark:bg-slate-600' : ''}
+                    `}
+                  >
+                    {submittingRole === "mathlete" ? (
+                      <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-xl font-semibold mb-2 transition-colors
+                        ${submittingRole === "mathlete"
+                          ? 'text-[#25346A] dark:text-blue-400'
+                          : isSubmitting
+                            ? 'text-slate-300 dark:text-slate-600'
+                            : 'text-slate-900 dark:text-white group-hover:text-[#25346A] dark:group-hover:text-blue-400'
+                        }
+                      `}
+                    >
+                      {submittingRole === "mathlete" ? "Setting up..." : "I'm a Mathlete"}
+                    </h3>
+                    <p className={`text-sm ${isSubmitting && submittingRole !== "mathlete" ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {submittingRole === "mathlete"
+                        ? "Please wait while we configure your account"
+                        : "Compete in math challenges, solve problems, and climb the leaderboards"
+                      }
+                    </p>
+                  </div>
+                  <div className="text-xs text-slate-400 dark:text-slate-500 mt-auto pt-2">
+                    Perfect for students and math enthusiasts
+                  </div>
+                </div>
+              </button>
 
-              <form action={(formData) => handleSubmit("organizer", formData)}>
-                <input type="hidden" name="role" value="organizer" />
-                <RoleButton
-                  role="organizer"
-                  title="I'm an Organizer"
-                  description="Create contests, manage participants, and host math competitions"
-                  subtext="Perfect for teachers and competition hosts"
-                  color="#f49700"
-                  isSubmitting={isSubmitting}
-                  isThisButtonSubmitting={submittingRole === "organizer"}
-                  icon={
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                      />
-                    </svg>
+              {/* Organizer Button */}
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleRoleClick("organizer")}
+                className={`group relative overflow-hidden rounded-lg border-2 p-6 transition-all w-full text-left h-full
+                  ${isSubmitting && submittingRole !== "organizer"
+                    ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-700 opacity-40 cursor-not-allowed grayscale'
+                    : isSubmitting && submittingRole === "organizer"
+                      ? 'bg-white dark:bg-slate-800 border-[#f49700] dark:border-orange-400 shadow-lg shadow-orange-500/20 dark:shadow-orange-400/20 cursor-wait'
+                      : 'bg-white dark:bg-slate-800/50 border-slate-200 hover:border-[#f49700] hover:shadow-lg dark:border-slate-700 dark:hover:border-orange-400 dark:hover:bg-slate-800 cursor-pointer'
                   }
-                />
-              </form>
+                `}
+              >
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div
+                    className={`rounded-full p-4 shadow-md transition-transform 
+                      ${!isSubmitting ? 'group-hover:scale-110' : ''} 
+                      ${submittingRole === "organizer" ? 'animate-pulse bg-[#f49700] dark:bg-orange-500' : 'bg-[#f49700]'}
+                      ${isSubmitting && submittingRole !== "organizer" ? 'bg-slate-400 dark:bg-slate-600' : ''}
+                    `}
+                  >
+                    {submittingRole === "organizer" ? (
+                      <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-8 w-8 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <h3
+                      className={`text-xl font-semibold mb-2 transition-colors
+                        ${submittingRole === "organizer"
+                          ? 'text-[#f49700] dark:text-orange-400'
+                          : isSubmitting
+                            ? 'text-slate-300 dark:text-slate-600'
+                            : 'text-slate-900 dark:text-white group-hover:text-[#f49700] dark:group-hover:text-orange-400'
+                        }
+                      `}
+                    >
+                      {submittingRole === "organizer" ? "Setting up..." : "I'm an Organizer"}
+                    </h3>
+                    <p className={`text-sm ${isSubmitting && submittingRole !== "organizer" ? 'text-slate-400 dark:text-slate-600' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {submittingRole === "organizer"
+                        ? "Please wait while we configure your account"
+                        : "Create contests, manage participants, and host math competitions"
+                      }
+                    </p>
+                  </div>
+                  <div className="text-xs text-slate-400 dark:text-slate-500 mt-auto pt-2">
+                    Perfect for teachers and competition hosts
+                  </div>
+                </div>
+              </button>
             </div>
           </CardContent>
         </Card>
