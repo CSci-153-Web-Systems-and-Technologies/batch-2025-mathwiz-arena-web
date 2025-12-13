@@ -1,4 +1,4 @@
-# 🏆 Mathwiz Arena
+# Mathwiz Arena
 
 <p align="center">
   <img src="./app/icon.svg" alt="Mathwiz Logo" width="120" height="120">
@@ -19,11 +19,11 @@
 
 ---
 
-## 📖 Overview
+## Overview
 
 Mathwiz Arena is a comprehensive web platform designed for organizing, managing, and participating in mathematics competitions. The platform supports multiple user roles including **Mathletes** (participants), **Organizers** (competition creators), and **Administrators** (platform managers).
 
-## ✨ Features
+## Features
 
 ### For Mathletes (Participants)
 - **Dashboard** - View available competitions, registered events, and recent activity
@@ -58,7 +58,7 @@ Mathwiz Arena is a comprehensive web platform designed for organizing, managing,
 - **Secure Authentication** - Supabase-powered authentication with email verification
 - **Role-based Access Control** - Row Level Security (RLS) policies
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Category | Technology |
 |----------|------------|
@@ -66,12 +66,12 @@ Mathwiz Arena is a comprehensive web platform designed for organizing, managing,
 | **Language** | [TypeScript](https://www.typescriptlang.org/) |
 | **Styling** | [Tailwind CSS](https://tailwindcss.com/) |
 | **Database & Auth** | [Supabase](https://supabase.com/) (PostgreSQL + Auth) |
-| **UI Components** | [Radix UI](https://www.radix-ui.com/) + Custom Components |
+| **UI Components** | [Shadcn/ui](https://ui.shadcn.com/) + Custom Components |
 | **Math Rendering** | [KaTeX](https://katex.org/) |
 | **Icons** | [Lucide React](https://lucide.dev/) |
 | **Deployment** | [Vercel](https://vercel.com/) |
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -123,7 +123,7 @@ Mathwiz Arena is a comprehensive web platform designed for organizing, managing,
    
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 mathwiz-arena/
@@ -169,7 +169,7 @@ mathwiz-arena/
 └── package.json                  # Dependencies
 ```
 
-## 👥 User Roles
+## User Roles
 
 ### Mathlete (Default Role)
 - Register and login to the platform
@@ -191,7 +191,7 @@ mathwiz-arena/
 - Access organizer problem banks (read-only)
 - Manage platform settings
 
-## 🗄️ Database Schema
+## Database Schema
 
 ### Core Tables
 
@@ -210,7 +210,7 @@ mathwiz-arena/
 | `competition_answers` | Submitted answers |
 | `notifications` | User notifications |
 
-## 🎨 Design System
+## Design System
 
 The platform uses a consistent design system with:
 
@@ -219,14 +219,14 @@ The platform uses a consistent design system with:
 - **Admin Theme**: Indigo tones
 - **Dark Mode**: Full dark mode support with slate color palette
 
-## 📱 Responsive Design
+## Responsive Design
 
 The platform is fully responsive with breakpoints:
 - Mobile: `< 640px`
 - Tablet: `640px - 1024px`
 - Desktop: `> 1024px`
 
-## 🔒 Security
+## Security
 
 - **Authentication**: Supabase Auth with email verification
 - **Authorization**: Row Level Security (RLS) policies
@@ -240,7 +240,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -248,11 +248,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is developed for educational purposes.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Next.js](https://nextjs.org/) - The React Framework
 - [Supabase](https://supabase.com/) - Open Source Firebase Alternative
