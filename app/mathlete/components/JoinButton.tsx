@@ -38,7 +38,7 @@ export default function JoinButton({
     return (
       <button
         disabled
-        className="rounded-lg bg-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-500 cursor-not-allowed"
+        className="rounded-lg bg-slate-200 dark:bg-slate-700 px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 cursor-not-allowed"
       >
         In Progress
       </button>
@@ -51,16 +51,16 @@ export default function JoinButton({
       <div className="flex items-center gap-2">
         <Link
           href={`/mathlete/competition/${competition.id}`}
-          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 flex items-center gap-1.5"
+          className="flex-1 sm:flex-none rounded-lg px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-1.5"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
           </svg>
           Enter
         </Link>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+          className="flex-1 sm:flex-none rounded-lg px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
         >
           View Details
         </button>
@@ -82,16 +82,16 @@ export default function JoinButton({
       <div className="flex items-center gap-2">
         <Link
           href={`/mathlete/competition/${competition.id}`}
-          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 flex items-center gap-1.5"
+          className="flex-1 sm:flex-none rounded-lg px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors bg-green-600 text-white hover:bg-green-700 flex items-center justify-center gap-1.5"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
           </svg>
           Enter
         </Link>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100"
+          className="flex-1 sm:flex-none rounded-lg px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
         >
           View Details
         </button>
@@ -117,7 +117,7 @@ export default function JoinButton({
 
   const getButtonStyle = () => {
     if (isRegistered) {
-      return "bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100";
+      return "bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50";
     }
     return "bg-[#25346A] text-white hover:bg-[#2A64d1]";
   };
@@ -126,7 +126,7 @@ export default function JoinButton({
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-colors ${getButtonStyle()}`}
+        className={`rounded-lg px-4 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors ${getButtonStyle()}`}
       >
         {getButtonText()}
       </button>

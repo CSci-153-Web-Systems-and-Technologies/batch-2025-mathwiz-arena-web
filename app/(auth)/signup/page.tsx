@@ -13,24 +13,24 @@ const SignUpPage = () => {
       {/* Header */}
       <header className="w-full fixed top-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-sm border-b border-slate-100 dark:border-slate-800 transition-all duration-300">
         <div className="mx-auto max-w-7xl flex items-center justify-between p-3 lg:p-4">
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Image src="/icon.svg" alt="Mathwiz Logo" width={32} height={32} className="rounded-md" />
-            <span className="text-xl font-bold text-[#1B2559] dark:text-white tracking-tight">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
+            <Image src="/icon.svg" alt="Mathwiz Logo" width={28} height={28} className="rounded-md sm:w-8 sm:h-8" />
+            <span className="text-lg sm:text-xl font-bold text-[#1B2559] dark:text-white tracking-tight">
               Mathwiz
             </span>
           </Link>
-          <div className="flex items-center gap-4 md:gap-6">
-            <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+          <div className="flex items-center gap-2 sm:gap-4 md:gap-6">
+            <Link href="/" className="text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
               Back to Home
             </Link>
-            <Link href="/login" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#1B2559] dark:hover:text-white transition-colors">
-              Already have an account? <span className="font-bold text-[#F49700] hover:text-orange-600 ml-1">Log in</span>
+            <Link href="/login" className="hidden sm:block text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-[#1B2559] dark:hover:text-white transition-colors">
+              Already have an account? <span className="font-bold text-[#F49700] hover:text-orange-600">Log in</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="flex grow items-center justify-center p-6 pt-24 relative z-10">
+      <div className="flex grow items-center justify-center p-4 sm:p-6 pt-20 sm:pt-24 relative z-10">
         <RoleSelection />
       </div>
     </div>
