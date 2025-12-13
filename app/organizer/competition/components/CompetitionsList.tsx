@@ -48,11 +48,11 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
     return (
         <div>
             {/* Filter Tabs */}
-            <div className="flex items-center gap-2 mb-6">
-                <span className="text-sm text-slate-500 dark:text-slate-400 mr-2">Filter:</span>
+            <div className="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar pb-1">
+                <span className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mr-2 flex-shrink-0">Filter:</span>
                 <button
                     onClick={() => setFilter("all")}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === "all"
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${filter === "all"
                         ? "bg-[#f49700] text-white"
                         : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                         }`}
@@ -61,7 +61,7 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
                 </button>
                 <button
                     onClick={() => setFilter("published")}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === "published"
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${filter === "published"
                         ? "bg-blue-600 text-white"
                         : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                         }`}
@@ -70,7 +70,7 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
                 </button>
                 <button
                     onClick={() => setFilter("draft")}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${filter === "draft"
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${filter === "draft"
                         ? "bg-slate-600 text-white"
                         : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                         }`}
@@ -98,7 +98,7 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
                     </p>
                 </div>
             ) : (
-                <div className="grid gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {filteredCompetitions.map((competition) => {
                         const statusColor = statusColors[competition.status as keyof typeof statusColors] || statusColors.draft;
                         const problemCount = competition.competition_problems?.[0]?.count || 0;
@@ -114,8 +114,14 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
                         return (
                             <div
                                 key={competition.id}
-                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition-shadow"
+                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition-shadow relative group"
                             >
+                                <Link
+                                    href={`/organizer/competition/${competition.id}`}
+                                    className="absolute inset-0 z-0"
+                                >
+                                    <span className="sr-only">View Details</span>
+                                </Link>
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
@@ -132,7 +138,7 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -162,21 +168,21 @@ export default function CompetitionsList({ competitions }: CompetitionsListProps
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <div className="flex items-center gap-2 pt-4 border-t border-slate-200 dark:border-slate-700 w-full relative z-10">
                                     <Link
                                         href={`/organizer/competition/${competition.id}`}
-                                        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#f49700] rounded-lg hover:bg-[#d68400] transition-colors"
+                                        className="inline-flex items-center justify-center flex-1 gap-1 px-2 py-2 text-xs md:text-sm font-medium text-white bg-[#f49700] rounded-lg hover:bg-[#d68400] transition-colors whitespace-nowrap"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        View Details
+                                        View<span className="hidden sm:inline">&nbsp;Details</span>
                                     </Link>
                                     {(competition.status === "draft" || competition.status === "published") && (
                                         <Link
                                             href={`/organizer/competition/create?edit=${competition.id}`}
-                                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                            className="inline-flex items-center justify-center flex-1 gap-1 px-2 py-2 text-xs md:text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors whitespace-nowrap"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

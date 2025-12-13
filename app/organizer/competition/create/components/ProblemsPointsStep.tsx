@@ -256,7 +256,7 @@ export default function ProblemsPointsStep({
         <Label className="text-slate-700 dark:text-slate-300 font-medium">
           Point Assignment Method <span className="text-red-500">*</span>
         </Label>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setFormData({
@@ -319,7 +319,7 @@ export default function ProblemsPointsStep({
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Easy Points */}
             <div className="space-y-2">
               <Label htmlFor="easyPoints" className="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-2">

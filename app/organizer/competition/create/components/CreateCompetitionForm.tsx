@@ -410,7 +410,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Review Competition</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Review all details before saving or publishing</p>
@@ -420,7 +420,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
             variant="outline"
             onClick={() => setShowReview(false)}
             disabled={isLoading}
-            className="font-medium"
+            className="font-medium w-full sm:w-auto"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -433,29 +433,29 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         <div className="bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Basic Information</h3>
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <p className="text-sm text-slate-600 dark:text-slate-400">Competition Name</p>
               <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">{formData.name}</p>
             </div>
             {formData.description && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <p className="text-sm text-slate-600 dark:text-slate-400">Description</p>
                 <p className="col-span-2 text-sm text-slate-800 dark:text-slate-200">{formData.description}</p>
               </div>
             )}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <p className="text-sm text-slate-600 dark:text-slate-400">Start Date & Time</p>
               <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">
                 {startDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <p className="text-sm text-slate-600 dark:text-slate-400">End Date & Time</p>
               <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">
                 {endDateTime.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <p className="text-sm text-slate-600 dark:text-slate-400">Duration</p>
               <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">
                 {hours > 0 && `${hours} hour${hours !== 1 ? 's' : ''}`}
@@ -470,24 +470,24 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         <div className="bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Participation Settings</h3>
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <p className="text-sm text-slate-600 dark:text-slate-400">Participation Type</p>
               <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium capitalize">{formData.participationType}</p>
             </div>
             {formData.participationType === "individual" && formData.hasMaxParticipants && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <p className="text-sm text-slate-600 dark:text-slate-400">Max Participants</p>
                 <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">{formData.maxParticipants}</p>
               </div>
             )}
             {formData.participationType === "team" && (
               <>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <p className="text-sm text-slate-600 dark:text-slate-400">Max Team Members</p>
                   <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">{formData.maxTeamMembers}</p>
                 </div>
                 {formData.hasMaxTeams && (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <p className="text-sm text-slate-600 dark:text-slate-400">Max Teams</p>
                     <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">{formData.maxTeams}</p>
                   </div>
@@ -501,14 +501,14 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         <div className="bg-white dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Point System</h3>
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <p className="text-sm text-slate-600 dark:text-slate-400">Point System Type</p>
               <p className="col-span-2 text-sm text-slate-800 dark:text-white font-medium">
                 {formData.pointSystemType === "auto_level" ? "Auto-Level Points" : "Manual Points"}
               </p>
             </div>
             {formData.pointSystemType === "auto_level" && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <p className="text-sm text-slate-600 dark:text-slate-400">Points by Difficulty</p>
                 <div className="col-span-2 text-sm">
                   <span className="inline-block px-2 py-1 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 mr-2">Easy: {formData.easyPoints} pts</span>
@@ -563,7 +563,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-600">
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-slate-200 dark:border-slate-600">
           <Button
             onClick={() => handleSaveCompetition("published")}
             disabled={isLoading}
@@ -629,7 +629,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
                 >
                   {step}
                 </div>
-                <p className={`text-xs mt-2 font-medium transition-colors ${currentStep >= step ? "text-[#f49700]" : "text-slate-500 dark:text-slate-400"
+                <p className={`text-xs mt-2 font-medium text-center transition-colors ${currentStep >= step ? "text-[#f49700]" : "text-slate-500 dark:text-slate-400"
                   }`}>
                   {step === 1 && "Competition Details"}
                   {step === 2 && "Participation Settings"}
@@ -697,7 +697,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-600">
+      <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 border-t border-slate-200 dark:border-slate-600">
         {currentStep > 1 && (
           <Button
             type="button"
@@ -778,7 +778,7 @@ export default function CreateCompetitionForm({ competitionData, competitionProb
           variant="outline"
           onClick={() => router.push("/organizer/competition")}
           disabled={isLoading}
-          className="font-medium ml-auto"
+          className="font-medium sm:ml-auto"
         >
           Cancel
         </Button>

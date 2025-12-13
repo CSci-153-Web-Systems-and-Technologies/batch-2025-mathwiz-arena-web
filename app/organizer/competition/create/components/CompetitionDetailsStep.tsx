@@ -56,7 +56,7 @@ export default function CompetitionDetailsStep({ formData, setFormData, isLoadin
       </div>
 
       {/* Start Date and Time */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="startDate" className="text-slate-700 dark:text-slate-300 font-medium">
             Start Date <span className="text-red-500">*</span>

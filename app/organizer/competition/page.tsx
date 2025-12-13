@@ -31,17 +31,17 @@ export default async function CompetitionPage() {
   const competitionList = competitions || [];
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with Create Button */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 md:gap-0">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Competitions</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">Competitions</h1>
             <p className="text-slate-600 dark:text-slate-400 mt-1">Manage your math competitions</p>
           </div>
           <Link
             href="/organizer/competition/create"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors shadow-sm"
+            className="inline-flex items-center justify-center w-full md:w-auto gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

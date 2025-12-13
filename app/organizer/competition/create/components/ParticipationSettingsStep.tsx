@@ -38,7 +38,7 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
         <Label className="text-slate-700 dark:text-slate-300 font-medium">
           Participation Type <span className="text-red-500">*</span>
         </Label>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => setFormData({
@@ -49,8 +49,8 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               maxTeamMembers: ""
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.participationType === "individual"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
@@ -70,8 +70,8 @@ export default function ParticipationSettingsStep({ formData, setFormData, isLoa
               maxParticipants: ""
             })}
             className={`p-4 border-2 rounded-lg text-sm font-medium transition-all ${formData.participationType === "team"
-                ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
-                : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
+              ? "border-[#f49700] bg-[#f49700]/5 text-[#f49700]"
+              : "border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500"
               }`}
             disabled={isLoading}
           >
