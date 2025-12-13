@@ -40,35 +40,53 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Prevent spam clicking
+        if (isUploadingAvatar) return;
+
         setIsUploadingAvatar(true);
         setError("");
 
-        const formData = new FormData();
-        formData.append("file", file);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
 
-        const result = await updateProfilePicture(formData);
+            const result = await updateProfilePicture(formData);
 
-        if (result.error) {
-            setError(result.error);
-        } else if (result.url) {
-            setAvatarUrl(result.url + "?t=" + Date.now());
+            if (result.error) {
+                setError(result.error);
+            } else if (result.url) {
+                setAvatarUrl(result.url + "?t=" + Date.now());
+            }
+        } catch (error) {
+            setError("Failed to upload avatar");
         }
 
         setIsUploadingAvatar(false);
+        // Reset the input so the same file can be selected again
+        if (avatarInputRef.current) {
+            avatarInputRef.current.value = "";
+        }
     };
 
     const handleRemoveAvatar = async () => {
         if (!avatarUrl) return;
 
+        // Prevent spam clicking
+        if (isRemovingAvatar) return;
+
         setIsRemovingAvatar(true);
         setError("");
 
-        const result = await removeProfilePicture();
+        try {
+            const result = await removeProfilePicture();
 
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setAvatarUrl(null);
+            if (result.error) {
+                setError(result.error);
+            } else {
+                setAvatarUrl(null);
+            }
+        } catch (error) {
+            setError("Failed to remove avatar");
         }
 
         setIsRemovingAvatar(false);
@@ -78,35 +96,53 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Prevent spam clicking
+        if (isUploadingCover) return;
+
         setIsUploadingCover(true);
         setError("");
 
-        const formData = new FormData();
-        formData.append("file", file);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
 
-        const result = await updateCoverPhoto(formData);
+            const result = await updateCoverPhoto(formData);
 
-        if (result.error) {
-            setError(result.error);
-        } else if (result.url) {
-            setCoverUrl(result.url + "?t=" + Date.now());
+            if (result.error) {
+                setError(result.error);
+            } else if (result.url) {
+                setCoverUrl(result.url + "?t=" + Date.now());
+            }
+        } catch (error) {
+            setError("Failed to upload cover photo");
         }
 
         setIsUploadingCover(false);
+        // Reset the input so the same file can be selected again
+        if (coverInputRef.current) {
+            coverInputRef.current.value = "";
+        }
     };
 
     const handleRemoveCover = async () => {
         if (!coverUrl) return;
 
+        // Prevent spam clicking
+        if (isRemovingCover) return;
+
         setIsRemovingCover(true);
         setError("");
 
-        const result = await removeCoverPhoto();
+        try {
+            const result = await removeCoverPhoto();
 
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setCoverUrl(null);
+            if (result.error) {
+                setError(result.error);
+            } else {
+                setCoverUrl(null);
+            }
+        } catch (error) {
+            setError("Failed to remove cover photo");
         }
 
         setIsRemovingCover(false);
@@ -114,27 +150,36 @@ export default function EditProfileModal({ isOpen, onClose, profile }: EditProfi
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Prevent spam clicking
+        if (isLoading) return;
+
         setIsLoading(true);
         setError("");
         setSuccess(false);
 
-        const formData = new FormData();
-        formData.append("full_name", fullName);
-        formData.append("bio", bio);
+        try {
+            const formData = new FormData();
+            formData.append("full_name", fullName);
+            formData.append("bio", bio);
 
-        const result = await updateProfileInfo(formData);
+            const result = await updateProfileInfo(formData);
 
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(true);
-            setTimeout(() => {
-                onClose();
-                window.location.reload(); // Refresh to show updated data
-            }, 1000);
+            if (result.error) {
+                setError(result.error);
+                setIsLoading(false);
+            } else {
+                setSuccess(true);
+                setTimeout(() => {
+                    onClose();
+                    window.location.reload(); // Refresh to show updated data
+                }, 1000);
+                // Don't reset isLoading on success - page will reload
+            }
+        } catch (error) {
+            setError("An unexpected error occurred");
+            setIsLoading(false);
         }
-
-        setIsLoading(false);
     };
 
     const getInitials = () => {
