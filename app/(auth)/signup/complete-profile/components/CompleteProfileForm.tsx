@@ -31,21 +31,21 @@ export default function CompleteProfileForm({
 
     try {
       const result = await completeProfile(formData);
-      
+
       if (result?.error) {
         setError(result.error);
         setLoading(false);
       } else {
         // Small delay to ensure database updates propagate
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Redirect to appropriate dashboard
-        if (role === "organizer") {
-          router.push("/organizer");
-        } else {
-          router.push("/mathlete");
-        }
-        
+
+        // Use the logging-in page for smooth transition
+        const targetDashboard = role === "organizer" ? "/organizer" : "/mathlete";
+        const title = "Setting up account";
+        const message = "Profile completed! Redirecting to your dashboard...";
+
+        router.push(`/logging-in?next=${encodeURIComponent(targetDashboard)}&title=${encodeURIComponent(title)}&message=${encodeURIComponent(message)}`);
+
         // Force a hard refresh to clear any cached data
         router.refresh();
       }
@@ -60,25 +60,24 @@ export default function CompleteProfileForm({
       {/* Role Badge */}
       <div className="flex justify-center mb-6">
         <span
-          className={`px-4 py-2 rounded-full text-sm font-semibold ${
-            role === "organizer"
-              ? "bg-[#f49700]/10 text-[#f49700] border-2 border-[#f49700]"
-              : "bg-[#25346A]/10 text-[#25346A] border-2 border-[#25346A]"
-          }`}
+          className={`px-4 py-2 rounded-full text-sm font-semibold ${role === "organizer"
+            ? "bg-[#f49700]/10 text-[#f49700] border-2 border-[#f49700] dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500"
+            : "bg-[#25346A]/10 text-[#25346A] border-2 border-[#25346A] dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500"
+            }`}
         >
           {role === "organizer" ? "🎯 Organizer" : "🎓 Mathlete"}
         </span>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       {/* Username - Common for both roles */}
       <div>
-        <Label htmlFor="username" className="text-slate-700">
+        <Label htmlFor="username" className="text-slate-700 dark:text-slate-300">
           Username <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -87,13 +86,13 @@ export default function CompleteProfileForm({
           type="text"
           required
           placeholder="Choose a unique username"
-          className="mt-1"
           minLength={3}
           maxLength={30}
           pattern="^[a-zA-Z0-9_-]+$"
           title="Username can only contain letters, numbers, underscores, and hyphens"
+          className="mt-1 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
         />
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
           3-30 characters, letters, numbers, underscore, and hyphen only
         </p>
       </div>
@@ -101,7 +100,7 @@ export default function CompleteProfileForm({
       {/* School/Organization - Role dependent */}
       {role === "mathlete" ? (
         <div>
-          <Label htmlFor="school" className="text-slate-700">
+          <Label htmlFor="school" className="text-slate-700 dark:text-slate-300">
             School <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -110,12 +109,12 @@ export default function CompleteProfileForm({
             type="text"
             required
             placeholder="Enter your school name"
-            className="mt-1"
+            className="mt-1 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
         </div>
       ) : (
         <div>
-          <Label htmlFor="organization" className="text-slate-700">
+          <Label htmlFor="organization" className="text-slate-700 dark:text-slate-300">
             Organization/School <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -124,14 +123,14 @@ export default function CompleteProfileForm({
             type="text"
             required
             placeholder="Enter your organization or school name"
-            className="mt-1"
+            className="mt-1 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
           />
         </div>
       )}
 
       {/* Country */}
       <div>
-        <Label htmlFor="country" className="text-slate-700">
+        <Label htmlFor="country" className="text-slate-700 dark:text-slate-300">
           Country <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -140,13 +139,13 @@ export default function CompleteProfileForm({
           type="text"
           required
           placeholder="Enter your country"
-          className="mt-1"
+          className="mt-1 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
         />
       </div>
 
       {/* Province/City */}
       <div>
-        <Label htmlFor="province_city" className="text-slate-700">
+        <Label htmlFor="province_city" className="text-slate-700 dark:text-slate-300">
           Province/City <span className="text-red-500">*</span>
         </Label>
         <Input
@@ -155,7 +154,7 @@ export default function CompleteProfileForm({
           type="text"
           required
           placeholder="Enter your province or city"
-          className="mt-1"
+          className="mt-1 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
         />
       </div>
 
@@ -163,11 +162,10 @@ export default function CompleteProfileForm({
       <Button
         type="submit"
         disabled={loading}
-        className={`w-full h-12 text-base font-semibold ${
-          role === "organizer"
-            ? "bg-[#f49700] hover:bg-[#d68400]"
-            : "bg-[#25346A] hover:bg-[#1a2650]"
-        }`}
+        className={`w-full h-12 text-base font-bold tracking-wide transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg ${role === "organizer"
+          ? "bg-gradient-to-r from-[#f49700] to-[#e68a00] hover:from-[#e68a00] hover:to-[#d68400] text-white shadow-orange-500/20"
+          : "bg-gradient-to-r from-[#25346A] to-[#1E2B58] hover:from-[#1E2B58] hover:to-[#172144] text-white shadow-blue-900/20 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-500 dark:hover:to-blue-600 dark:shadow-blue-900/40"
+          }`}
       >
         {loading ? (
           <span className="flex items-center gap-2">
@@ -198,7 +196,7 @@ export default function CompleteProfileForm({
         )}
       </Button>
 
-      <p className="text-xs text-center text-slate-500">
+      <p className="text-xs text-center text-slate-500 dark:text-slate-400">
         By completing your profile, you agree to our Terms of Service and
         Privacy Policy.
       </p>

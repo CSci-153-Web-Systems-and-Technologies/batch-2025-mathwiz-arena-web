@@ -38,18 +38,18 @@ export default async function CompleteProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center p-4 transition-colors duration-300">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-[#25346A] mb-2">
+          <h1 className="text-4xl font-bold text-[#25346A] dark:text-white mb-2 transition-colors">
             Complete Your Profile
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-slate-400 transition-colors">
             Just a few more details to get you started!
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-200">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-8 border border-slate-200 dark:border-slate-700 transition-all">
           <CompleteProfileForm userId={user.id} role={role} />
         </div>
       </div>

@@ -97,12 +97,12 @@ export default function ThemeSettings() {
     if (!mounted) {
         return (
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm animate-pulse">
-                <div className="px-6 py-4 border-b border-slate-200">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
                     <div className="h-6 bg-slate-200 rounded w-32"></div>
                     <div className="h-4 bg-slate-100 rounded w-48 mt-2"></div>
                 </div>
-                <div className="p-6">
-                    <div className="grid grid-cols-3 gap-4">
+                <div className="p-4 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="h-24 bg-slate-100 rounded-xl"></div>
                         ))}
@@ -114,28 +114,28 @@ export default function ThemeSettings() {
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-colors">
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Appearance</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700">
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Appearance</h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
                     Customize how MathWiz Arena looks for you
                 </p>
             </div>
-            <div className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4">
                     {themeOptions.map((option) => (
                         <button
                             key={option.value}
                             onClick={() => handleThemeChange(option.value)}
-                            className={`relative p-4 rounded-xl border-2 transition-all text-left ${theme === option.value
+                            className={`relative p-2 sm:p-4 rounded-xl border-2 transition-all text-left flex flex-col justify-between h-20 sm:h-auto ${theme === option.value
                                 ? "border-[#f49700] bg-[#f49700]/5 dark:bg-[#f49700]/20"
                                 : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
                                 }`}
                         >
                             {/* Selected indicator */}
                             {theme === option.value && (
-                                <div className="absolute top-2 right-2">
-                                    <div className="w-5 h-5 rounded-full bg-[#f49700] flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
+                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#f49700] flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                         </svg>
                                     </div>
@@ -143,7 +143,7 @@ export default function ThemeSettings() {
                             )}
 
                             {/* Icon */}
-                            <div className={`mb-3 ${theme === option.value
+                            <div className={`mb-1.5 sm:mb-3 ${theme === option.value
                                 ? "text-[#f49700] dark:text-orange-400"
                                 : "text-slate-400 dark:text-slate-500"
                                 }`}>
@@ -151,13 +151,13 @@ export default function ThemeSettings() {
                             </div>
 
                             {/* Label */}
-                            <h3 className={`font-semibold ${theme === option.value
+                            <h3 className={`font-semibold text-xs sm:text-base ${theme === option.value
                                 ? "text-[#f49700] dark:text-white"
                                 : "text-slate-700 dark:text-slate-300"
                                 }`}>
                                 {option.label}
                             </h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            <p className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 mt-1">
                                 {option.description}
                             </p>
                         </button>
@@ -165,9 +165,11 @@ export default function ThemeSettings() {
                 </div>
 
                 {/* Preview Section */}
-                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">
-                        <span className="font-medium text-slate-900 dark:text-white">Preview:</span> This is how your interface will look with the selected theme.
+                <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                        <span className="font-medium text-slate-900 dark:text-white">Preview:</span>{" "}
+                        <span className="hidden sm:inline">This is how your interface will look with the selected theme.</span>
+                        <span className="sm:hidden">Current theme preview</span>
                     </p>
                 </div>
             </div>
