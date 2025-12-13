@@ -296,21 +296,21 @@ export default async function MathleteDashboard() {
         <MathleteSidebar notificationCount={notificationCount || 0} />
 
         {/* Main Content */}
-        <main className="flex-1 ml-64 p-8">
+        <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
           <div className="max-w-7xl mx-auto">
             {/* Welcome Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-[#25346A] dark:text-white">Welcome back, {userName}!</h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">Ready to solve some problems today?</p>
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#25346A] dark:text-white">Welcome back, {userName}!</h1>
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1">Ready to solve some problems today?</p>
             </div>
 
             {/* Main Grid */}
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
               {/* Join Competitions */}
               <div className="lg:col-span-2">
                 <div>
                   {/* Search Bar */}
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <div className="relative">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -324,13 +324,13 @@ export default async function MathleteDashboard() {
                       <input
                         type="text"
                         placeholder="Search competitions..."
-                        className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2A64d1] focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#2A64d1] focus:border-transparent text-sm sm:text-base"
                       />
                     </div>
                   </div>
 
-                  <h2 className="text-lg font-bold text-[#25346A] dark:text-white mb-6 uppercase tracking-wide">Join Competitions</h2>
-                  <div className="space-y-4">
+                  <h2 className="text-base sm:text-lg font-bold text-[#25346A] dark:text-white mb-4 sm:mb-6 uppercase tracking-wide">Join Competitions</h2>
+                  <div className="space-y-3 sm:space-y-4">
                     {upcomingCompetitions && upcomingCompetitions.length > 0 ? (
                       upcomingCompetitions.map((competition) => {
                         const isLiveCompetition = (competition as any).competition_mode === "live";
@@ -382,18 +382,18 @@ export default async function MathleteDashboard() {
                         }
 
                         return (
-                          <div key={competition.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm hover:shadow-md transition-all">
+                          <div key={competition.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
                             {/* Header with status badge */}
-                            <div className="flex items-start justify-between mb-4">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
                               <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <h3 className="text-lg font-semibold text-[#25346A] dark:text-white">{competition.name}</h3>
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                  <h3 className="text-base sm:text-lg font-semibold text-[#25346A] dark:text-white">{competition.name}</h3>
                                   {statusBadge}
                                   {isRegistered && !isScheduledLive && (
                                     <span className="inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Registered</span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                                   <span className="flex items-center gap-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -429,11 +429,11 @@ export default async function MathleteDashboard() {
 
                             {/* Description */}
                             {competition.description && (
-                              <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">{competition.description}</p>
+                              <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 sm:mb-4 leading-relaxed line-clamp-2">{competition.description}</p>
                             )}
 
                             {/* Footer with time and action */}
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 sm:pt-4 border-t border-slate-200 dark:border-slate-700">
                               <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -461,14 +461,14 @@ export default async function MathleteDashboard() {
               </div>
 
               {/* Calendar and Recent Activity */}
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Competition Calendar */}
                 <CompetitionCalendar competitions={upcomingCompetitions || []} />
 
                 {/* Recent Activity */}
-                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
-                  <h2 className="text-lg font-bold text-[#25346A] dark:text-white mb-4 uppercase tracking-wide">Recent Activity</h2>
-                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 sm:p-4 shadow-sm">
+                  <h2 className="text-base sm:text-lg font-bold text-[#25346A] dark:text-white mb-3 sm:mb-4 uppercase tracking-wide">Recent Activity</h2>
+                  <div className="space-y-3 sm:space-y-4 max-h-[250px] sm:max-h-[300px] overflow-y-auto pr-2">
                     {allActivities.length > 0 ? (
                       allActivities.slice(0, 5).map((activity, index) => (
                         <div key={index} className="flex gap-3">

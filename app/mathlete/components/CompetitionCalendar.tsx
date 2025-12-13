@@ -61,7 +61,7 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
 
   // Add empty cells for days before month starts
   for (let i = 0; i < startingDayOfWeek; i++) {
-    calendarDays.push(<div key={`empty-${i}`} className="h-8"></div>);
+    calendarDays.push(<div key={`empty-${i}`} className="h-7 sm:h-8"></div>);
   }
 
   // Add days of the month
@@ -74,7 +74,7 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
     calendarDays.push(
       <div
         key={day}
-        className={`h-8 flex items-center justify-center text-sm rounded-lg relative group cursor-pointer
+        className={`h-7 sm:h-8 flex items-center justify-center text-xs sm:text-sm rounded-lg relative group cursor-pointer
           ${isToday && hasCompetition ? "bg-purple-100 text-purple-700 font-bold" : ""}
           ${isToday && !hasCompetition ? "bg-blue-100 text-blue-700 font-bold" : ""}
           ${hasCompetition && !isToday ? "bg-red-100 text-red-700 font-semibold" : ""}
@@ -92,20 +92,20 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-[#25346A] dark:text-white uppercase tracking-wide">Calendar</h2>
-        <div className="flex items-center gap-2">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 sm:p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <h2 className="text-base sm:text-lg font-bold text-[#25346A] dark:text-white uppercase tracking-wide">Calendar</h2>
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             onClick={goToPreviousMonth}
             className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
             aria-label="Previous month"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="text-sm font-semibold text-[#25346A] dark:text-white min-w-[140px] text-center">
+          <span className="text-xs sm:text-sm font-semibold text-[#25346A] dark:text-white min-w-[100px] sm:min-w-[140px] text-center">
             {monthNames[month]} {year}
           </span>
           <button
@@ -113,7 +113,7 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
             className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
             aria-label="Next month"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -121,27 +121,27 @@ export default function CompetitionCalendar({ competitions }: CompetitionCalenda
       </div>
 
       {/* Day labels */}
-      <div className="grid grid-cols-7 gap-1 mb-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(day => (
-          <div key={day} className="h-6 flex items-center justify-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <div key={day} className="h-5 sm:h-6 flex items-center justify-center text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400">
             {day}
           </div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {calendarDays}
       </div>
 
       {/* Legend */}
-      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center gap-4 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-blue-100 border border-blue-300"></div>
+      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-blue-100 border border-blue-300"></div>
           <span className="text-slate-600 dark:text-slate-400">Today</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-red-100 border border-red-300"></div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-red-100 border border-red-300"></div>
           <span className="text-slate-600 dark:text-slate-400">Competition</span>
         </div>
       </div>
