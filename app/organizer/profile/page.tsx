@@ -19,7 +19,7 @@ export default async function OrganizerProfilePage() {
             username,
             avatar_url,
             cover_photo_url,
-            school,
+            organization,
             country,
             province_city,
             bio

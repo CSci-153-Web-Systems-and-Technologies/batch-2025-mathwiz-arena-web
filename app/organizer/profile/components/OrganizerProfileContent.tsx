@@ -12,7 +12,7 @@ interface OrganizerProfileContentProps {
         username: string | null;
         avatar_url: string | null;
         cover_photo_url: string | null;
-        school: string | null;
+        organization: string | null;
         country: string | null;
         province_city: string | null;
         bio: string | null;
@@ -78,12 +78,12 @@ export default function OrganizerProfileContent({
 
                                         {/* Info Items */}
                                         <div className="flex-1 flex flex-col justify-evenly space-y-3">
-                                            {profile?.school && (
+                                            {profile?.organization && (
                                                 <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                                     </svg>
-                                                    <span>Works at <strong className="text-slate-900 dark:text-white">{profile.school}</strong></span>
+                                                    <span>Works at <strong className="text-slate-900 dark:text-white">{profile.organization}</strong></span>
                                                 </div>
                                             )}
 
@@ -148,7 +148,7 @@ export default function OrganizerProfileContent({
                     bio: profile.bio,
                     avatar_url: profile.avatar_url,
                     cover_photo_url: profile.cover_photo_url,
-                    school: profile.school,
+                    organization: profile.organization,
                     country: profile.country,
                     province_city: profile.province_city,
                 }}

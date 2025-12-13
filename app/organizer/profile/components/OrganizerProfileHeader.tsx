@@ -12,7 +12,7 @@ interface OrganizerProfileHeaderProps {
         username: string | null;
         avatar_url: string | null;
         cover_photo_url: string | null;
-        school: string | null;
+        organization: string | null;
         country: string | null;
     };
     stats: {
@@ -194,14 +194,14 @@ export default function OrganizerProfileHeader({
                                 {stats.averageRating !== null && ` • ${stats.averageRating}★ avg rating`}
                             </p>
 
-                            {/* School & Location */}
+                            {/* Organization & Location */}
                             <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600 dark:text-slate-400">
-                                {profile.school && (
+                                {profile.organization && (
                                     <span className="flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
-                                        {profile.school}
+                                        {profile.organization}
                                     </span>
                                 )}
                                 {profile.country && (
