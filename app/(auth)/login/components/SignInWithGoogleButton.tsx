@@ -8,12 +8,12 @@ const SignInWithGoogleButton = () => {
     <Button
       type="button"
       variant="default"
-      className="w-full h-12 rounded-xl text-base bg-[#F49700] text-white hover:bg-orange-600 border-transparent shadow-md shadow-orange-900/10 dark:bg-[#F49700] dark:text-white dark:hover:bg-orange-600 transition-all duration-200 gap-3"
+      className="w-full h-11 sm:h-12 rounded-xl text-sm sm:text-base bg-[#F49700] text-white hover:bg-orange-600 border-transparent shadow-md shadow-orange-900/10 dark:bg-[#F49700] dark:text-white dark:hover:bg-orange-600 transition-all duration-200 gap-2 sm:gap-3"
       onClick={async () => {
         await signInWithGoogle();
       }}
     >
-      <svg className="h-5 w-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
+      <svg className="h-4 w-4 sm:h-5 sm:w-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
         <path
           fill="#4285F4"
           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -37,3 +37,4 @@ const SignInWithGoogleButton = () => {
 };
 
 export default SignInWithGoogleButton;
+

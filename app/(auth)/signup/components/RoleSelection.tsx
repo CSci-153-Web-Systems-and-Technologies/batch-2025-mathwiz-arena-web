@@ -10,21 +10,21 @@ import { signInWithGoogle } from "@/lib/auth-actions";
 
 export function RoleSelection() {
   return (
-    <Card className="mx-auto max-w-lg w-full shadow-xl shadow-blue-900/10 border-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none overflow-hidden rounded-2xl">
-      <CardHeader className="space-y-1 text-center pb-8 pt-8">
-        <CardTitle className="text-3xl font-bold text-[#1B2559] dark:text-white">Join Mathwiz</CardTitle>
-        <CardDescription className="text-slate-500 dark:text-slate-400 text-base">
+    <Card className="mx-auto max-w-lg w-full shadow-xl shadow-blue-900/10 border-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none overflow-hidden rounded-xl sm:rounded-2xl">
+      <CardHeader className="space-y-1 text-center pb-6 sm:pb-8 pt-6 sm:pt-8 px-4 sm:px-6">
+        <CardTitle className="text-2xl sm:text-3xl font-bold text-[#1B2559] dark:text-white">Join Mathwiz</CardTitle>
+        <CardDescription className="text-slate-500 dark:text-slate-400 text-sm sm:text-base">
           Sign in with Google to get started
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-8 pb-8">
-        <div className="grid gap-6">
+      <CardContent className="px-4 sm:px-8 pb-6 sm:pb-8">
+        <div className="grid gap-4 sm:gap-6">
           <form action={signInWithGoogle}>
             <button
               type="submit"
-              className="w-full h-12 rounded-xl text-base bg-[#F49700] text-white hover:bg-orange-600 border-transparent shadow-md shadow-orange-900/10 font-medium transition-all duration-200 flex items-center justify-center gap-3"
+              className="w-full h-11 sm:h-12 rounded-xl text-sm sm:text-base bg-[#F49700] text-white hover:bg-orange-600 border-transparent shadow-md shadow-orange-900/10 font-medium transition-all duration-200 flex items-center justify-center gap-2 sm:gap-3"
             >
-              <svg className="h-5 w-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 sm:h-5 sm:w-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -55,10 +55,10 @@ export function RoleSelection() {
             </div>
           </div>
 
-          <div className="bg-blue-50/50 border border-blue-100 text-[#1B2559] px-4 py-3 rounded-xl text-sm flex items-start gap-3 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-100">
+          <div className="bg-blue-50/50 border border-blue-100 text-[#1B2559] px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm flex items-start gap-2 sm:gap-3 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 flex-shrink-0 mt-0.5 text-blue-500"
+              className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5 text-blue-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -72,11 +72,11 @@ export function RoleSelection() {
             </svg>
             <div>
               <p className="font-bold">Choose Your Role</p>
-              <p className="mt-1 text-slate-600 dark:text-slate-300">After signing in, you'll select whether you're a Mathlete or Organizer.</p>
+              <p className="mt-0.5 sm:mt-1 text-slate-600 dark:text-slate-300">After signing in, you'll select whether you're a Mathlete or Organizer.</p>
             </div>
           </div>
 
-          <div className="text-center text-sm">
+          <div className="text-center text-xs sm:text-sm">
             <span className="text-slate-500 dark:text-slate-400">Already have an account? </span>
             <Link href="/login" className="text-[#F49700] hover:text-orange-600 dark:text-[#F49700] dark:hover:text-orange-500 font-bold hover:underline transition-all">
               Sign in
@@ -87,3 +87,4 @@ export function RoleSelection() {
     </Card>
   );
 }
+
