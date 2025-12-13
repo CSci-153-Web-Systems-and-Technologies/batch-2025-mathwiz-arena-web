@@ -52,7 +52,7 @@ export default async function CreateCompetitionPage({
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -65,7 +65,7 @@ export default async function CreateCompetitionPage({
             </svg>
             Back to Competitions
           </Link>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">
             {searchParams.edit ? "Edit Competition" : "Create Competition"}
           </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
@@ -76,7 +76,7 @@ export default async function CreateCompetitionPage({
         </div>
 
         {/* Form Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 md:p-8">
           <CreateCompetitionForm
             competitionData={competitionData}
             competitionProblems={competitionProblems}

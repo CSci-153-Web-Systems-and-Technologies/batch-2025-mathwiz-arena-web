@@ -73,18 +73,23 @@ export async function GET(request: NextRequest) {
       // Existing user with completed profile - redirect to appropriate dashboard
       console.log('✅ Existing user with completed profile, role:', profile.role);
       const role = profile.role
+      let targetPath = '/'
+
       if (role === 'organizer') {
-        redirectTo.pathname = '/organizer'
+        targetPath = '/organizer'
       } else if (role === 'mathlete') {
-        redirectTo.pathname = '/mathlete'
+        targetPath = '/mathlete'
       } else if (role === 'admin') {
-        redirectTo.pathname = '/admin'
+        targetPath = '/admin'
       } else {
         // Fallback if role is somehow invalid
         console.log('⚠️ Invalid role, redirecting to home');
-        redirectTo.pathname = '/'
+        targetPath = '/'
       }
-      redirectTo.searchParams.delete('next')
+
+      // Redirect to logging-in intermediate page
+      redirectTo.pathname = '/logging-in'
+      redirectTo.searchParams.set('next', targetPath)
       return NextResponse.redirect(redirectTo)
     }
   }
@@ -119,14 +124,19 @@ export async function GET(request: NextRequest) {
         // Profile already completed - redirect to appropriate dashboard
         console.log('Email verified, profile complete, redirecting to dashboard');
         const role = profile.role || user.user_metadata?.role
+        let targetPath = '/'
+
         if (role === 'organizer') {
-          redirectTo.pathname = '/organizer'
+          targetPath = '/organizer'
         } else if (role === 'mathlete') {
-          redirectTo.pathname = '/mathlete'
+          targetPath = '/mathlete'
         } else {
-          redirectTo.pathname = '/'
+          targetPath = '/'
         }
-        redirectTo.searchParams.delete('next')
+
+        // Redirect to logging-in intermediate page
+        redirectTo.pathname = '/logging-in'
+        redirectTo.searchParams.set('next', targetPath)
         return NextResponse.redirect(redirectTo)
       }
     }

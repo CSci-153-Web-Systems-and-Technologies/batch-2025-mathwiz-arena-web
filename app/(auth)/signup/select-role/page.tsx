@@ -25,10 +25,10 @@ const SelectRolePage = () => {
         </div>
       </header>
       <div className="flex grow items-center justify-center p-6">
-        <Card className="mx-auto max-w-2xl w-full shadow-xl">
+        <Card className="mx-auto max-w-2xl w-full shadow-xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold">Welcome to Mathwiz!</CardTitle>
-            <CardDescription className="text-base">
+            <CardTitle className="text-3xl font-bold text-slate-900 dark:text-white">Welcome to Mathwiz!</CardTitle>
+            <CardDescription className="text-base text-slate-500 dark:text-slate-400">
               Choose your role to complete your account setup
             </CardDescription>
           </CardHeader>
@@ -38,10 +38,10 @@ const SelectRolePage = () => {
                 <input type="hidden" name="role" value="mathlete" />
                 <button
                   type="submit"
-                  className="group relative overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-6 transition-all hover:border-[#25346A] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 w-full text-left"
+                  className="group relative overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-6 transition-all hover:border-[#25346A] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-blue-400 dark:hover:bg-slate-800 w-full text-left h-full"
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="rounded-full bg-[#25346A] p-4">
+                    <div className="rounded-full bg-[#25346A] p-4 shadow-md transition-transform group-hover:scale-110">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-8 w-8 text-white"
@@ -58,14 +58,14 @@ const SelectRolePage = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-[#25346A]">
+                      <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-white group-hover:text-[#25346A] dark:group-hover:text-blue-400 transition-colors">
                         I'm a Mathlete
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         Compete in math challenges, solve problems, and climb the leaderboards
                       </p>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-2">
+                    <div className="text-xs text-slate-400 dark:text-slate-500 mt-auto pt-2">
                       Perfect for students and math enthusiasts
                     </div>
                   </div>
@@ -76,10 +76,10 @@ const SelectRolePage = () => {
                 <input type="hidden" name="role" value="organizer" />
                 <button
                   type="submit"
-                  className="group relative overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-6 transition-all hover:border-[#f49700] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800 w-full text-left"
+                  className="group relative overflow-hidden rounded-lg border-2 border-slate-200 bg-white p-6 transition-all hover:border-[#f49700] hover:shadow-lg dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-orange-400 dark:hover:bg-slate-800 w-full text-left h-full"
                 >
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="rounded-full bg-[#f49700] p-4">
+                    <div className="rounded-full bg-[#f49700] p-4 shadow-md transition-transform group-hover:scale-110">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className="h-8 w-8 text-white"
@@ -96,14 +96,14 @@ const SelectRolePage = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold mb-2 group-hover:text-[#f49700]">
+                      <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-white group-hover:text-[#f49700] dark:group-hover:text-orange-400 transition-colors">
                         I'm an Organizer
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         Create contests, manage participants, and host math competitions
                       </p>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-2">
+                    <div className="text-xs text-slate-400 dark:text-slate-500 mt-auto pt-2">
                       Perfect for teachers and competition hosts
                     </div>
                   </div>

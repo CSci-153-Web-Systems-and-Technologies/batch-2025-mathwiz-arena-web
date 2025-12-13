@@ -299,7 +299,7 @@ export default async function MathleteDashboard() {
         <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
           <div className="max-w-7xl mx-auto">
             {/* Welcome Header */}
-            <div className="mb-6 sm:mb-8">
+            <div className="mb-6 sm:mb-8 mt-6 sm:mt-0">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#25346A] dark:text-white">Welcome back, {userName}!</h1>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1">Ready to solve some problems today?</p>
             </div>

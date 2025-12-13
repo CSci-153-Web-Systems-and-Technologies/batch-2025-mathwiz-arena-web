@@ -23,7 +23,7 @@ export default async function AddProblemPage({ params }: { params: { id: string 
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -36,12 +36,12 @@ export default async function AddProblemPage({ params }: { params: { id: string 
             </svg>
             Back to {problemBank.title}
           </Link>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">Add Problem</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white mb-2">Add Problem</h1>
           <p className="text-slate-600 dark:text-slate-400">Create a new problem for this problem bank</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-8 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-6 md:p-8 shadow-sm">
           <AddProblemForm problemBankId={params.id} />
         </div>
       </div>

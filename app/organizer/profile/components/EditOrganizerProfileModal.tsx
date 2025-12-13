@@ -160,14 +160,14 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-800 rounded-t-2xl">
-                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Edit Profile</h2>
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-800 rounded-t-2xl z-10">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white">Edit Profile</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-1.5 sm:p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -175,11 +175,11 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                     {/* Profile Picture */}
                     <div className="flex flex-col items-center">
                         <div className="relative">
-                            <div className="w-28 h-28 rounded-full border-4 border-slate-200 dark:border-slate-600 overflow-hidden bg-gradient-to-br from-[#f49700] to-[#d98600]">
+                            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-slate-200 dark:border-slate-600 overflow-hidden bg-gradient-to-br from-[#f49700] to-[#d98600]">
                                 {avatarUrl ? (
                                     <Image
                                         src={avatarUrl}
@@ -188,7 +188,7 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                                         className="object-cover rounded-full"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
+                                    <div className="w-full h-full flex items-center justify-center text-white text-2xl sm:text-4xl font-bold">
                                         {getInitials()}
                                     </div>
                                 )}
@@ -199,15 +199,15 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                                 type="button"
                                 onClick={() => avatarInputRef.current?.click()}
                                 disabled={isUploadingAvatar}
-                                className="absolute bottom-0 right-0 w-9 h-9 bg-[#F49700] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-colors border-2 border-white dark:border-slate-800"
+                                className="absolute bottom-0 right-0 w-7 h-7 sm:w-9 sm:h-9 bg-[#F49700] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-orange-600 transition-colors border-2 border-white dark:border-slate-800"
                             >
                                 {isUploadingAvatar ? (
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
@@ -224,12 +224,12 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                         </div>
 
                         {/* Upload/Remove Buttons */}
-                        <div className="flex items-center gap-3 mt-3">
+                        <div className="flex items-center gap-2 sm:gap-3 mt-2 sm:mt-3">
                             <button
                                 type="button"
                                 onClick={() => avatarInputRef.current?.click()}
                                 disabled={isUploadingAvatar}
-                                className="text-sm text-[#f49700] hover:text-orange-600 font-medium transition-colors"
+                                className="text-xs sm:text-sm text-[#f49700] hover:text-orange-600 font-medium transition-colors"
                             >
                                 {avatarUrl ? "Change photo" : "Upload photo"}
                             </button>
@@ -240,29 +240,19 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                                         type="button"
                                         onClick={handleRemoveAvatar}
                                         disabled={isRemovingAvatar}
-                                        className="text-sm text-red-500 hover:text-red-600 font-medium transition-colors flex items-center gap-1"
+                                        className="text-xs sm:text-sm text-red-500 hover:text-red-600 font-medium transition-colors flex items-center gap-1"
                                     >
-                                        {isRemovingAvatar ? (
-                                            <>
-                                                <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Removing...
-                                            </>
-                                        ) : (
-                                            "Remove"
-                                        )}
+                                        {isRemovingAvatar ? "..." : "Remove"}
                                     </button>
                                 </>
                             )}
                         </div>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Max 5MB • JPG, PNG, GIF</p>
+                        <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">Max 5MB • JPG, PNG, GIF</p>
                     </div>
 
                     {/* Cover Photo */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                             Cover Photo
                         </label>
                         <div className="relative w-full h-32 rounded-xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-600 bg-gradient-to-br from-[#f49700] to-[#d98600]">
@@ -352,7 +342,7 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
 
                     {/* Full Name */}
                     <div>
-                        <label htmlFor="full_name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label htmlFor="full_name" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                             Full Name
                         </label>
                         <input
@@ -362,17 +352,17 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                             value={formData.full_name}
                             onChange={handleInputChange}
                             placeholder="Enter your full name"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all"
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all text-sm sm:text-base"
                         />
                     </div>
 
                     {/* Username */}
                     <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label htmlFor="username" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                             Username
                         </label>
                         <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">@</span>
+                            <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400">@</span>
                             <input
                                 type="text"
                                 id="username"
@@ -380,14 +370,14 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                                 value={formData.username}
                                 onChange={handleInputChange}
                                 placeholder="username"
-                                className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all"
+                                className="w-full pl-7 sm:pl-8 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all text-sm sm:text-base"
                             />
                         </div>
                     </div>
 
                     {/* Bio */}
                     <div>
-                        <label htmlFor="bio" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label htmlFor="bio" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                             Bio
                         </label>
                         <textarea
@@ -397,13 +387,13 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                             onChange={handleInputChange}
                             placeholder="Tell us about yourself..."
                             rows={3}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all resize-none"
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all resize-none text-sm sm:text-base"
                         />
                     </div>
 
                     {/* Organization */}
                     <div>
-                        <label htmlFor="organization" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        <label htmlFor="organization" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                             Organization
                         </label>
                         <input
@@ -413,14 +403,14 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                             value={formData.organization}
                             onChange={handleInputChange}
                             placeholder="Your organization"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all"
+                            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all text-sm sm:text-base"
                         />
                     </div>
 
                     {/* Location Grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <div>
-                            <label htmlFor="province_city" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="province_city" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                                 City / Province
                             </label>
                             <input
@@ -430,11 +420,11 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                                 value={formData.province_city}
                                 onChange={handleInputChange}
                                 placeholder="City or province"
-                                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all text-sm sm:text-base"
                             />
                         </div>
                         <div>
-                            <label htmlFor="country" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            <label htmlFor="country" className="block text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 sm:mb-2">
                                 Country
                             </label>
                             <input
@@ -444,7 +434,7 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                                 value={formData.country}
                                 onChange={handleInputChange}
                                 placeholder="Country"
-                                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all"
+                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F49700] focus:border-transparent transition-all text-sm sm:text-base"
                             />
                         </div>
                     </div>
@@ -467,19 +457,19 @@ export default function EditOrganizerProfileModal({ isOpen, onClose, profile }: 
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isLoading}
-                            className="flex-1 py-3 px-4 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium"
+                            className="flex-1 py-2.5 sm:py-3 px-4 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium text-sm sm:text-base"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="flex-1 py-3 px-4 bg-[#f49700] text-white rounded-xl hover:bg-orange-600 transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 py-2.5 sm:py-3 px-4 bg-[#f49700] text-white rounded-xl hover:bg-orange-600 transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2 text-sm sm:text-base"
                         >
                             {isLoading ? (
                                 <>
