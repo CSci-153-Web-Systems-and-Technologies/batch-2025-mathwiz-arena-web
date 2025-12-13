@@ -32,7 +32,7 @@ export async function updateProfilePicture(formData: FormData) {
 
     // Upload to storage
     const { error: uploadError } = await supabase.storage
-        .from("profile-pictures")
+        .from("avatars")
         .upload(fileName, file, { upsert: true });
 
     if (uploadError) {
@@ -42,7 +42,7 @@ export async function updateProfilePicture(formData: FormData) {
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-        .from("profile-pictures")
+        .from("avatars")
         .getPublicUrl(fileName);
 
     // Update profile
@@ -89,7 +89,7 @@ export async function updateCoverPhoto(formData: FormData) {
 
     // Upload to storage
     const { error: uploadError } = await supabase.storage
-        .from("cover-photos")
+        .from("covers")
         .upload(fileName, file, { upsert: true });
 
     if (uploadError) {
@@ -99,7 +99,7 @@ export async function updateCoverPhoto(formData: FormData) {
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
-        .from("cover-photos")
+        .from("covers")
         .getPublicUrl(fileName);
 
     // Update profile
