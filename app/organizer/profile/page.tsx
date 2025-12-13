@@ -1,30 +1,167 @@
-import Link from "next/link";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import OrganizerProfileContent from "./components/OrganizerProfileContent";
 
-export default function OrganizerProfilePage() {
+export default async function OrganizerProfilePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Verify organizer role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select(`
+            id,
+            full_name,
+            username,
+            avatar_url,
+            cover_photo_url,
+            organization,
+            country,
+            province_city,
+            bio
+        `)
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) {
+    redirect("/error?message=Profile not found");
+  }
+
+  // Fetch organizer statistics
+  const { data: competitions } = await supabase
+    .from("competitions")
+    .select(`
+            id,
+            name,
+            status,
+            start_datetime,
+            duration_minutes,
+            created_at
+        `)
+    .eq("organizer_id", user.id);
+
+  const competitionIds = competitions?.map(c => c.id) || [];
+
+  // Get participant counts
+  let totalParticipants = 0;
+  let participantsByCompetition: Record<string, number> = {};
+
+  if (competitionIds.length > 0) {
+    const { data: registrations } = await supabase
+      .from("competition_registrations")
+      .select("competition_id")
+      .in("competition_id", competitionIds)
+      .eq("status", "registered");
+
+    if (registrations) {
+      registrations.forEach(reg => {
+        participantsByCompetition[reg.competition_id] = (participantsByCompetition[reg.competition_id] || 0) + 1;
+        totalParticipants++;
+      });
+    }
+  }
+
+  // Get ratings
+  let totalRatingSum = 0;
+  let totalRatingCount = 0;
+  let ratingsByCompetition: Record<string, { sum: number; count: number }> = {};
+
+  if (competitionIds.length > 0) {
+    const { data: ratings } = await supabase
+      .from("competition_ratings")
+      .select("competition_id, rating")
+      .in("competition_id", competitionIds);
+
+    if (ratings) {
+      ratings.forEach(rat => {
+        if (!ratingsByCompetition[rat.competition_id]) {
+          ratingsByCompetition[rat.competition_id] = { sum: 0, count: 0 };
+        }
+        ratingsByCompetition[rat.competition_id].sum += rat.rating;
+        ratingsByCompetition[rat.competition_id].count += 1;
+        totalRatingSum += rat.rating;
+        totalRatingCount++;
+      });
+    }
+  }
+
+  // Calculate statistics
+  const totalCompetitions = competitions?.length || 0;
+  const publishedCompetitions = competitions?.filter(c => c.status === "published").length || 0;
+  const draftCompetitions = competitions?.filter(c => c.status === "draft").length || 0;
+
+  // Find ended competitions
+  const now = new Date();
+  const endedCompetitions = competitions?.filter(c => {
+    if (!c.start_datetime) return false;
+    const startTime = new Date(c.start_datetime);
+    const endTime = new Date(startTime.getTime() + c.duration_minutes * 60000);
+    return now > endTime;
+  }).length || 0;
+
+  const averageRating = totalRatingCount > 0
+    ? parseFloat((totalRatingSum / totalRatingCount).toFixed(1))
+    : null;
+
+  // Find top rated competition
+  let topRatedCompetition: { name: string; rating: number } | null = null;
+  let highestAvgRating = 0;
+
+  Object.entries(ratingsByCompetition).forEach(([compId, data]) => {
+    const avgRating = data.sum / data.count;
+    if (avgRating > highestAvgRating) {
+      highestAvgRating = avgRating;
+      const comp = competitions?.find(c => c.id === compId);
+      if (comp) {
+        topRatedCompetition = { name: comp.name, rating: parseFloat(avgRating.toFixed(1)) };
+      }
+    }
+  });
+
+  // Find most popular competition
+  let mostPopularCompetition: { name: string; participants: number } | null = null;
+  let highestParticipants = 0;
+
+  Object.entries(participantsByCompetition).forEach(([compId, count]) => {
+    if (count > highestParticipants) {
+      highestParticipants = count;
+      const comp = competitions?.find(c => c.id === compId);
+      if (comp) {
+        mostPopularCompetition = { name: comp.name, participants: count };
+      }
+    }
+  });
+
+  // Header stats
+  const headerStats = {
+    competitionsCreated: totalCompetitions,
+    totalParticipants,
+    averageRating,
+  };
+
+  // Detailed stats
+  const stats = {
+    totalCompetitions,
+    publishedCompetitions,
+    draftCompetitions,
+    endedCompetitions,
+    totalParticipants,
+    averageRating,
+    topRatedCompetition,
+    mostPopularCompetition,
+    totalRatings: totalRatingCount,
+  };
+
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
-          <div className="w-20 h-20 bg-[#f49700]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#f49700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-3">Profile</h1>
-          <p className="text-slate-600 mb-8">
-            This feature is coming soon. You'll be able to view and edit your profile here.
-          </p>
-          <Link
-            href="/organizer"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#f49700] px-6 py-3 text-white font-medium hover:bg-[#d68400] transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to Dashboard
-          </Link>
-        </div>
-      </div>
-    </div>
+    <OrganizerProfileContent
+      profile={profile}
+      headerStats={headerStats}
+      stats={stats}
+      userEmail={user.email || ""}
+    />
   );
 }
