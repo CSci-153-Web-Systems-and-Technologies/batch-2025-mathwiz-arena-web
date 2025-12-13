@@ -41,7 +41,8 @@ export default async function MathleteDashboard() {
       status,
       competition_mode,
       max_attempts,
-      is_active
+      is_active,
+      organizer_id
     `)
     .eq("status", "published")
     .order("start_datetime", { ascending: true, nullsFirst: false });
@@ -52,7 +53,7 @@ export default async function MathleteDashboard() {
   }
 
   // Filter competitions that are available (Live + active, or Scheduled + not ended)
-  const upcomingCompetitions = allPublishedCompetitions?.filter(competition => {
+  const filteredCompetitions = allPublishedCompetitions?.filter(competition => {
     const isLiveCompetition = (competition as any).competition_mode === "live";
     const isActive = (competition as any).is_active !== false; // default to true if undefined
 
@@ -68,6 +69,32 @@ export default async function MathleteDashboard() {
       return endTime > currentTime; // Show if competition hasn't ended
     }
   }) || [];
+
+  // Fetch organizer usernames for all competitions
+  const organizerIds = Array.from(new Set(
+    filteredCompetitions.map(c => (c as any).organizer_id).filter(Boolean)
+  ));
+
+  let organizerProfiles: Record<string, string> = {};
+  if (organizerIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, username, full_name")
+      .in("id", organizerIds);
+
+    if (profiles) {
+      organizerProfiles = profiles.reduce((acc, p) => {
+        acc[p.id] = p.full_name || p.username || "Unknown";
+        return acc;
+      }, {} as Record<string, string>);
+    }
+  }
+
+  // Add organizer name to each competition
+  const upcomingCompetitions = filteredCompetitions.map(comp => ({
+    ...comp,
+    organizer_name: organizerProfiles[(comp as any).organizer_id] || "Unknown Organizer"
+  }));
 
   // Get competition IDs to check registration status
   const competitionIds = upcomingCompetitions.map(comp => comp.id);

@@ -150,25 +150,21 @@ export default function OrganizerSidebar({ notificationCount = 0 }: OrganizerSid
                     <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
+                        className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive(item.href)
                             ? "text-white bg-[#f49700]"
                             : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#f49700] dark:hover:text-[#f49700]"
                             }`}
                     >
-                        <div className="flex items-center gap-3">
-                            {item.icon}
-                            <span>{item.label}</span>
-                        </div>
-                        {item.badge && item.badge > 0 && (
-                            <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${isActive(item.href)
-                                ? "bg-white text-[#f49700]"
-                                : "bg-[#f49700] text-white"
-                                }`}>
-                                {item.badge > 99 ? "99+" : item.badge}
+                        {item.icon}
+                        <span className="flex-1">{item.label}</span>
+                        {item.badge !== undefined && item.badge > 0 && (
+                            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                                {item.badge > 9 ? "9+" : item.badge}
                             </span>
                         )}
                     </Link>
                 ))}
+
 
 
                 <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
