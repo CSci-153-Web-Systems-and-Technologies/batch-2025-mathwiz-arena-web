@@ -47,6 +47,7 @@ export default function ProfileHeaderWithEdit({ profile, stats, isOwnProfile }: 
                     username: profile.username,
                     bio: profile.bio,
                     avatar_url: profile.avatar_url,
+                    cover_photo_url: profile.cover_photo_url,
                     school: profile.school,
                     country: profile.country,
                     province_city: profile.province_city,
